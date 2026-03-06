@@ -1,0 +1,85 @@
+[
+  {
+    "id": "prod_1772004404459_3df92077e7ebc8",
+    "sellerId": "demoSeller",
+    "name": "Oversized Tee",
+    "price": 699,
+    "images": [],
+    "variants": [
+      {
+        "options": [
+          {
+            "add": 0,
+            "label": "M"
+          },
+          {
+            "add": 0,
+            "label": "L"
+          }
+        ],
+        "label": "Size"
+      },
+      {
+        "options": [
+          {
+            "add": 0,
+            "label": "Black"
+          },
+          {
+            "add": 0,
+            "label": "White"
+          }
+        ],
+        "label": "Color"
+      }
+    ],
+    "createdAt": "2026-02-25T07:26:44.460Z",
+    "stock": 7
+  },
+  {
+    "id": "prod_1772085479772_c50243059b04f",
+    "sellerId": "urbanWear",
+    "name": "Urban Hoodie",
+    "price": 1499,
+    "images": [],
+    "variants": [],
+    "createdAt": "2026-02-26T05:57:59.773Z"
+  },
+  {
+    "id": "prod_1772088369216_eb3f0cfd14d3c",
+    "sellerId": "demoSeller",
+    "name": "Receipt Test Tee",
+    "price": 699,
+    "images": [],
+    "variants": [
+      {
+        "options": [
+          {
+            "add": 0,
+            "label": "M"
+          },
+          {
+            "add": 0,
+            "label": "L"
+          }
+        ],
+        "label": "Size"
+      },
+      {
+        "options": [
+          {
+            "add": 0,
+            "label": "Black"
+          },
+          {
+            "add": 0,
+            "label": "White"
+          }
+        ],
+        "label": "Color"
+      }
+    ],
+    "createdAt": "2026-02-26T06:46:09.217Z",
+    "stock": 4
+  }
+]

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zentr · Receipt</title>
+  <!-- stops favicon 404 -->
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --bg: #071013;
+      --card: rgba(255, 255, 255, .08);
+      --stroke: rgba(255, 255, 255, .12);
+      --txt: rgba(255, 255, 255, .92);
+      --muted: rgba(255, 255, 255, .62);
+      --accent: #2EE9C6;
+      --danger: #ff5a7a;
+      --ok: #5CFFB0;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .45);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--txt);
+      background:
+        radial-gradient(900px 600px at 15% 15%, rgba(46, 233, 198, .18), transparent 60%),
+        radial-gradient(900px 600px at 85% 25%, rgba(46, 140, 233, .12), transparent 60%),
+        radial-gradient(1200px 800px at 50% 90%, rgba(255, 255, 255, .06), transparent 60%),
+        var(--bg);
+      padding: 32px 18px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(46, 233, 198, .9), rgba(0, 0, 0, .2));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+    }
+
+    .title {
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid var(--stroke);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(46, 233, 198, .6);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+    }
+
+    @media(max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(14px);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .field {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(0, 0, 0, .14);
+    }
+
+    .k {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .12em
+    }
+
+    .v {
+      margin-top: 6px;
+      font-weight: 700
+    }
+
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .08);
+      color: var(--txt);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 700;
+    }
+
+    button.primary {
+      background: rgba(46, 233, 198, .16);
+      border-color: rgba(46, 233, 198, .35)
+    }
+
+    button.danger {
+      background: rgba(255, 90, 122, .14);
+      border-color: rgba(255, 90, 122, .35)
+    }
+
+    .items {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(0, 0, 0, .14);
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(0, 0, 0, .14);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ok {
+      color: var(--ok)
+    }
+
+    .bad {
+      color: var(--danger)
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .hr {
+      height: 1px;
+      background: rgba(255, 255, 255, .10);
+      margin: 12px 0
+    }
+
+    .help {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .55);
+      border: 1px solid var(--stroke);
+      padding: 10px 12px;
+      border-radius: 14px;
+      display: none;
+      gap: 8px;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      display: flex
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a href="/" class="brand">
+        <img src="logo.png" alt="Zentr" style="height:32px; border-radius:8px;">
+        <div>
+          <div class="title">Zentr</div>
+          <div class="sub">Receipt · buyer-safe</div>
+        </div>
+      </a>
+      <div class="pill"><span class="dot"></span><span id="liveText">Live</span></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div style="font-weight:900;font-size:18px">Receipt</div>
+        <div class="sub">Shareable link. No login needed.</div>
+        <div class="hr"></div>
+
+        <div class="row">
+          <div class="field">
+            <div class="k">Seller</div>
+            <div class="v mono" id="sellerId">—</div>
+          </div>
+          <div class="field">
+            <div class="k">Order</div>
+            <div class="v mono" id="orderId">—</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="field">
+            <div class="k">Receipt ID</div>
+            <div class="v mono" id="receiptId">—</div>
+          </div>
+          <div class="field">
+            <div class="k">Issued</div>
+            <div class="v" id="issuedAt">—</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="field">
+            <div class="k">Total</div>
+            <div class="v" id="total">—</div>
+          </div>
+          <div class="field">
+            <div class="k">Payment</div>
+            <div class="v" id="payment">—</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="field">
+            <div class="k">Buyer Name</div>
+            <div class="v" id="buyerName">—</div>
+          </div>
+          <div class="field">
+            <div class="k">Buyer Phone</div>
+            <div class="v" id="buyerPhone">—</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="field" style="flex: 1; min-width: 100%;">
+            <div class="k">Delivery Address</div>
+            <div class="v" id="buyerAddress">—</div>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="copyLink">Copy receipt link</button>
+          <button id="downloadJson">Download JSON</button>
+          <button class="danger" id="verifyBtn">Verify receipt</button>
+        </div>
+
+        <div class="hr"></div>
+        <div class="help">
+          Verification is the anti-fake step. If someone edits the receipt JSON, verification must fail.
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-weight:900;font-size:18px">Items</div>
+          <div class="status" id="verifyBadge">Not verified</div>
+        </div>
+        <div class="items" id="items"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot"></span><span id="toastText"></span></div>
+
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const sellerId = qs.get("sellerId") || "demoSeller";
+    const orderId = qs.get("orderId") || "";
+    const apiBase = location.origin;
+
+    let receipt = null;
+
+    const el = (id) => document.getElementById(id);
+    const toast = (msg) => {
+      el("toastText").textContent = msg;
+      el("toast").classList.add("show");
+      setTimeout(() => el("toast").classList.remove("show"), 1400);
+    };
+
+    function money(n) {
+      if (n == null) return "—";
+      try { return "₹" + Number(n).toLocaleString("en-IN"); } catch { return "₹" + n; }
+    }
+
+    function renderItems(items) {
+      const root = el("items");
+      root.innerHTML = "";
+      (items || []).forEach(i => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:900">${i.name || i.productId}</div>
+            <div class="muted">Variant: ${i.variant || "—"} · Size: ${i.size || "—"}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="mono">x${i.qty ?? 1}</div>
+            <div class="muted">${money(i.unitPrice)}</div>
+          </div>
+        `;
+        root.appendChild(div);
+      });
+    }
+
+    async function loadReceipt() {
+      if (!orderId) {
+        el("liveText").textContent = "Missing orderId";
+        toast("Add ?sellerId=...&orderId=...");
+        return;
+      }
+
+      el("sellerId").textContent = sellerId;
+      el("orderId").textContent = orderId;
+      el("liveText").textContent = "Loading...";
+
+      // IMPORTANT: change this path ONLY if your server route differs
+      const url = `${apiBase}/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}/receipt`;
+
+      try {
+        const r = await fetch(url);
+
+        if (!r.ok) {
+          throw new Error(`Server error: ${r.status} ${r.statusText}`);
+        }
+
+        const j = await r.json();
+        if (!j.ok) {
+          el("liveText").textContent = "Error";
+          toast(j.error || "Receipt not found");
+          return;
+        }
+
+        receipt = j.receipt || j; // support either shape
+        el("receiptId").textContent = receipt.receiptId || receipt.id || "—";
+        el("issuedAt").textContent = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString() : "—";
+
+        const ord = receipt.order || receipt;
+        el("total").textContent = money(ord.total);
+        el("payment").textContent = ord.paymentStatus || "—";
+
+        // Display buyer information
+        el("buyerName").textContent = ord.buyerName || ord.delivery?.name || "—";
+        el("buyerPhone").textContent = ord.buyerPhone || ord.delivery?.phone || "—";
+        el("buyerAddress").textContent = ord.buyerAddress || ord.delivery?.address || "—";
+
+        renderItems(ord.items);
+        el("liveText").textContent = "Live";
+        toast("Receipt loaded");
+      } catch (error) {
+        el("liveText").textContent = "Error";
+        toast(error.message || "Failed to load receipt");
+      }
+    }
+
+    function download(filename, obj) {
+      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 500);
+    }
+
+    async function verify() {
+      if (!receipt) { toast("Load receipt first"); return; }
+
+      // IMPORTANT: change this path ONLY if your verify route differs
+      const url = `${apiBase}/api/receipt/verify`;
+      const body = {
+        receiptId: receipt.receiptId || receipt.id,
+        signature: receipt.signature
+      };
+
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const j = await r.json();
+      const ok = !!(j.ok ?? j.verified);
+
+      el("verifyBadge").textContent = ok ? "Verified" : "Invalid";
+      el("verifyBadge").classList.toggle("ok", ok);
+      el("verifyBadge").classList.toggle("bad", !ok);
+
+      toast(ok ? "Verified ✅" : "Invalid ❌");
+    }
+
+    el("copyLink").onclick = async () => {
+      await navigator.clipboard.writeText(location.href);
+      toast("Link copied");
+    };
+
+    el("downloadJson").onclick = () => {
+      if (!receipt) { toast("Load receipt first"); return; }
+      download(`zentr-receipt-${orderId}.json`, receipt);
+    };
+
+    el("verifyBtn").onclick = verify;
+
+    loadReceipt();
+  </script>
+</body>
+
+</html>

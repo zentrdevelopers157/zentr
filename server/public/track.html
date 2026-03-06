@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zentr • Track Order</title>
+  <!-- stops favicon 404 -->
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --bg0: #070b10;
+      --bg1: #0b1220;
+      --glass: rgba(255, 255, 255, .06);
+      --glass2: rgba(255, 255, 255, .10);
+      --stroke: rgba(255, 255, 255, .14);
+      --text: rgba(255, 255, 255, .92);
+      --muted: rgba(255, 255, 255, .65);
+      --muted2: rgba(255, 255, 255, .45);
+      --shadow: 0 20px 50px rgba(0, 0, 0, .45);
+      --tq: #20e3d6;
+      --tq2: #38bdf8;
+      --warn: #ffcc66;
+      --bad: #ff5d73;
+      --ok: #39f0a4;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(32, 227, 214, .18), transparent 55%),
+        radial-gradient(900px 600px at 90% 25%, rgba(56, 189, 248, .15), transparent 55%),
+        radial-gradient(700px 500px at 40% 95%, rgba(32, 227, 214, .08), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 22px 16px 60px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(140deg, rgba(32, 227, 214, .95), rgba(0, 0, 0, .0) 55%),
+        linear-gradient(225deg, rgba(0, 0, 0, .85), rgba(56, 189, 248, .35));
+      border: 1px solid rgba(255, 255, 255, .14);
+      box-shadow: 0 10px 30px rgba(32, 227, 214, .10);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo:after {
+      content: "";
+      position: absolute;
+      inset: -60%;
+      background: conic-gradient(from 90deg, transparent, rgba(32, 227, 214, .25), transparent);
+      animation: spin 5s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+
+    .title b {
+      font-size: 16px;
+      letter-spacing: .3px
+    }
+
+    .title span {
+      font-size: 12px;
+      color: var(--muted2)
+    }
+
+    .pill {
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .05);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 255, 255, .08), transparent 35%, rgba(32, 227, 214, .06));
+      pointer-events: none;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, .92);
+      letter-spacing: .2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sub {
+      color: var(--muted2);
+      font-size: 12px
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .field {
+      flex: 1 1 220px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(0, 0, 0, .22);
+    }
+
+    .field input {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .field label {
+      font-size: 11px;
+      color: var(--muted2);
+      white-space: nowrap;
+    }
+
+    .btn {
+      border: 0;
+      padding: 11px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 650;
+      font-size: 13px;
+      color: #061016;
+      background: linear-gradient(135deg, var(--tq), var(--tq2));
+      box-shadow: 0 10px 26px rgba(32, 227, 214, .20);
+      transition: transform .08s ease;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(.99)
+    }
+
+    .btn.ghost {
+      background: rgba(255, 255, 255, .06);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, .14);
+      box-shadow: none;
+      font-weight: 600;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      background: rgba(0, 0, 0, .18);
+      color: var(--muted);
+    }
+
+    .chip.good {
+      border-color: rgba(57, 240, 164, .35);
+      background: rgba(57, 240, 164, .08);
+      color: rgba(57, 240, 164, .95)
+    }
+
+    .chip.bad {
+      border-color: rgba(255, 93, 115, .35);
+      background: rgba(255, 93, 115, .10);
+      color: rgba(255, 93, 115, .92)
+    }
+
+    .chip.warn {
+      border-color: rgba(255, 204, 102, .35);
+      background: rgba(255, 204, 102, .10);
+      color: rgba(255, 204, 102, .95)
+    }
+
+    .chip.tq {
+      border-color: rgba(32, 227, 214, .35);
+      background: rgba(32, 227, 214, .08);
+      color: rgba(32, 227, 214, .95)
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, .10);
+      margin: 14px 0;
+    }
+
+    /* Timeline */
+    .timeline {
+      margin-top: 10px;
+      position: relative;
+      padding: 14px 10px 6px;
+    }
+
+    .line {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 26px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .12);
+      overflow: hidden;
+    }
+
+    .line .fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(32, 227, 214, .95), rgba(56, 189, 248, .85));
+      box-shadow: 0 0 18px rgba(32, 227, 214, .22);
+      position: relative;
+    }
+
+    .line .fill:after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, rgba(255, 255, 255, .12) 0 10px, transparent 10px 20px);
+      opacity: .25;
+      animation: move 1.2s linear infinite;
+    }
+
+    @keyframes move {
+      to {
+        transform: translateX(40px)
+      }
+    }
+
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step {
+      width: 22%;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted2);
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      margin: 0 auto 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      background: rgba(0, 0, 0, .25);
+      box-shadow: none;
+      position: relative;
+    }
+
+    .step.active .dot {
+      border-color: rgba(32, 227, 214, .55);
+      background: rgba(32, 227, 214, .18);
+      box-shadow: 0 0 18px rgba(32, 227, 214, .18);
+    }
+
+    .step.done .dot {
+      border-color: rgba(57, 240, 164, .55);
+      background: rgba(57, 240, 164, .18);
+      box-shadow: 0 0 18px rgba(57, 240, 164, .14);
+    }
+
+    .step.bad .dot {
+      border-color: rgba(255, 93, 115, .55);
+      background: rgba(255, 93, 115, .18);
+      box-shadow: 0 0 18px rgba(255, 93, 115, .14);
+    }
+
+    .step b {
+      display: block;
+      color: rgba(255, 255, 255, .88);
+      font-weight: 650
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .kv .k {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(0, 0, 0, .18);
+    }
+
+    .kv .k small {
+      display: block;
+      color: var(--muted2);
+      font-size: 11px
+    }
+
+    .kv .k div {
+      font-size: 13px;
+      margin-top: 4px
+    }
+
+    .items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .item {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(0, 0, 0, .18);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .item b {
+      font-size: 13px
+    }
+
+    .item span {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .qty {
+      align-self: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(32, 227, 214, .25);
+      background: rgba(32, 227, 214, .08);
+      color: rgba(32, 227, 214, .95);
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .err {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 93, 115, .25);
+      background: rgba(255, 93, 115, .08);
+      color: rgba(255, 255, 255, .90);
+      display: none;
+      font-size: 12px;
+    }
+
+    .foot {
+      margin-top: 12px;
+      color: var(--muted2);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+
+      .step {
+        width: 23%
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a href="/" class="brand">
+        <img src="logo.png" alt="Zentr" style="height:38px; border-radius:8px;">
+        <div class="title">
+          <b>Zentr</b>
+          <span>Track order • buyer-safe view</span>
+        </div>
+      </a>
+      <div class="pill" id="pill">
+        <span style="color:var(--tq)">●</span>
+        <span id="pillText">Ready</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Track your order <span class="sub">Paste Seller ID + Order ID</span></h3>
+
+        <div class="row">
+          <div class="field">
+            <label>sellerId</label>
+            <input id="sellerId" placeholder="demoSeller" />
+          </div>
+          <div class="field">
+            <label>orderId</label>
+            <input id="orderId" placeholder="ord_123..." />
+          </div>
+          <button class="btn" id="btnTrack">Track</button>
+          <button class="btn ghost" id="btnCopy">Copy link</button>
+        </div>
+
+        <div class="chips" id="chips">
+          <span class="chip tq" id="chipStatus">status: —</span>
+          <span class="chip" id="chipPay">payment: —</span>
+          <span class="chip" id="chipTotal">total: —</span>
+          <span class="chip" id="chipCreated">created: —</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Progress</h3>
+        <div class="timeline">
+          <div class="line">
+            <div class="fill" id="fill"></div>
+          </div>
+          <div class="steps" id="steps">
+            <div class="step" data-key="pending">
+              <div class="dot"></div>
+              <b>Pending</b>
+              <span>Order received</span>
+            </div>
+            <div class="step" data-key="confirmed">
+              <div class="dot"></div>
+              <b>Confirmed</b>
+              <span>Seller accepted</span>
+            </div>
+            <div class="step" data-key="packed">
+              <div class="dot"></div>
+              <b>Packed</b>
+              <span>Ready to ship</span>
+            </div>
+            <div class="step" data-key="shipped">
+              <div class="dot"></div>
+              <b>Shipped</b>
+              <span>On the way</span>
+            </div>
+            <div class="step" data-key="delivered">
+              <div class="dot"></div>
+              <b>Delivered</b>
+              <span>Completed</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="err" id="err"></div>
+
+        <div class="foot">
+          Tip: You can share this as a WhatsApp link. Buyer does not need login. This page calls your buyer-safe API
+          endpoint.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Order details</h3>
+
+        <div class="kv">
+          <div class="k">
+            <small>Order ID</small>
+            <div id="vOrderId">—</div>
+          </div>
+          <div class="k">
+            <small>Seller</small>
+            <div id="vSellerId">—</div>
+          </div>
+          <div class="k">
+            <small>Status</small>
+            <div id="vStatus">—</div>
+          </div>
+          <div class="k">
+            <small>Payment</small>
+            <div id="vPay">—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Items</h3>
+        <div class="items" id="items"></div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <button class="btn ghost" id="btnRefresh">Refresh</button>
+          <button class="btn ghost" id="btnTogglePoll">Auto refresh: OFF</button>
+        </div>
+        <div class="foot" id="pollNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // IMPORTANT: this must match your server endpoint:
+    // GET /api/public/sellers/:sellerId/orders/:orderId
+    function publicTrackUrl(sellerId, orderId) {
+      return `/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}`;
+    }
+
+    const STATUS_ORDER = ["pending", "confirmed", "packed", "shipped", "delivered"];
+    const TERMINAL_BAD = ["cancelled", "canceled", "failed", "rejected"];
+
+    const elSellerId = document.getElementById("sellerId");
+    const elOrderId = document.getElementById("orderId");
+    const elItems = document.getElementById("items");
+    const elErr = document.getElementById("err");
+
+    const pillText = document.getElementById("pillText");
+    const chipStatus = document.getElementById("chipStatus");
+    const chipPay = document.getElementById("chipPay");
+    const chipTotal = document.getElementById("chipTotal");
+    const chipCreated = document.getElementById("chipCreated");
+
+    const vOrderId = document.getElementById("vOrderId");
+    const vSellerId = document.getElementById("vSellerId");
+    const vStatus = document.getElementById("vStatus");
+    const vPay = document.getElementById("vPay");
+
+    const fill = document.getElementById("fill");
+    const steps = Array.from(document.querySelectorAll(".step"));
+
+    const btnTrack = document.getElementById("btnTrack");
+    const btnCopy = document.getElementById("btnCopy");
+    const btnRefresh = document.getElementById("btnRefresh");
+    const btnTogglePoll = document.getElementById("btnTogglePoll");
+    const pollNote = document.getElementById("pollNote");
+
+    let pollTimer = null;
+    let lastOkKey = "";
+
+    function setPill(text, color) {
+      pillText.textContent = text;
+      // simple color indicator: use dot color via inline text emoji spot already colored by tq
+      // If you want, you can extend to change the dot too.
+      if (color) pillText.style.color = color;
+      else pillText.style.color = "var(--muted)";
+    }
+
+    function showError(msg) {
+      elErr.style.display = "block";
+      elErr.textContent = msg;
+    }
+    function clearError() {
+      elErr.style.display = "none";
+      elErr.textContent = "";
+    }
+
+    function fmtMoney(n) {
+      if (typeof n !== "number") return "—";
+      return "₹" + n.toFixed(0);
+    }
+
+    function resetUI() {
+      chipStatus.className = "chip tq";
+      chipStatus.textContent = "status: —";
+      chipPay.className = "chip";
+      chipPay.textContent = "payment: —";
+      chipTotal.textContent = "total: —";
+      chipCreated.textContent = "created: —";
+
+      vOrderId.textContent = "—";
+      vSellerId.textContent = "—";
+      vStatus.textContent = "—";
+      vPay.textContent = "—";
+
+      elItems.innerHTML = "";
+      renderTimeline("pending");
+    }
+
+    function renderItems(items) {
+      elItems.innerHTML = "";
+      (items || []).forEach(i => {
+        const name = i.name || i.productId || "Item";
+        const variant = i.variant ? ` • ${i.variant}` : "";
+        const size = i.size ? ` • Size ${i.size}` : "";
+        const price = (typeof i.unitPrice === "number") ? ` • ${fmtMoney(i.unitPrice)}` : "";
+        const qty = (typeof i.qty === "number") ? i.qty : 1;
+
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div>
+            <b>${escapeHtml(name)}</b>
+            <div><span>${escapeHtml((i.productId || ""))}${escapeHtml(variant)}${escapeHtml(size)}${escapeHtml(price)}</span></div>
+          </div>
+          <div class="qty">x ${qty}</div>
+        `;
+        elItems.appendChild(div);
+      });
+
+      if (!items || items.length === 0) {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `<div><b>No items</b><div><span>Items array is empty</span></div></div><div class="qty">—</div>`;
+        elItems.appendChild(div);
+      }
+    }
+
+    function renderTimeline(statusRaw) {
+      const status = (statusRaw || "pending").toLowerCase();
+
+      // cancelled / failed etc
+      if (TERMINAL_BAD.includes(status)) {
+        steps.forEach(s => s.className = "step bad");
+        fill.style.width = "100%";
+        return;
+      }
+
+      const idx = STATUS_ORDER.indexOf(status);
+      const safeIdx = idx >= 0 ? idx : 0;
+
+      // Fill % based on step index
+      const pct = (safeIdx / (STATUS_ORDER.length - 1)) * 100;
+      fill.style.width = pct + "%";
+
+      steps.forEach((s, i) => {
+        s.className = "step";
+        if (i < safeIdx) s.classList.add("done");
+        if (i === safeIdx) s.classList.add("active");
+      });
+    }
+
+    function chipifyStatus(statusRaw) {
+      const status = (statusRaw || "pending").toLowerCase();
+      chipStatus.textContent = `status: ${status}`;
+
+      if (TERMINAL_BAD.includes(status)) {
+        chipStatus.className = "chip bad";
+      } else if (status === "delivered") {
+        chipStatus.className = "chip good";
+      } else if (status === "confirmed" || status === "packed" || status === "shipped") {
+        chipStatus.className = "chip tq";
+      } else {
+        chipStatus.className = "chip warn";
+      }
+    }
+
+    function chipifyPayment(payRaw) {
+      const pay = (payRaw || "unpaid").toLowerCase();
+      chipPay.textContent = `payment: ${pay}`;
+      if (pay === "paid") chipPay.className = "chip good";
+      else chipPay.className = "chip warn";
+    }
+
+    async function fetchOrder(sellerId, orderId) {
+      clearError();
+      setPill("Fetching…", "var(--tq)");
+
+      const url = publicTrackUrl(sellerId, orderId);
+      const res = await fetch(url);
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data || data.ok !== true) {
+        const msg = (data && data.error) ? data.error : `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+      return data.order;
+    }
+
+    function applyOrderToUI(sellerId, order) {
+      const id = order?.id || "—";
+      const st = order?.status || "pending";
+      const pay = order?.paymentStatus || "unpaid";
+      const total = order?.total;
+      const createdAt = order?.createdAt;
+
+      vOrderId.textContent = id;
+      vSellerId.textContent = sellerId;
+      vStatus.textContent = st;
+      vPay.textContent = pay;
+
+      chipifyStatus(st);
+      chipifyPayment(pay);
+      chipTotal.textContent = `total: ${fmtMoney(total)}`;
+      chipCreated.textContent = `created: ${createdAt ? new Date(createdAt).toLocaleString() : "—"}`;
+
+      renderTimeline(st);
+      renderItems(order?.items || []);
+
+      setPill("Live", "var(--ok)");
+    }
+
+    function readQuery() {
+      const q = new URLSearchParams(location.search);
+      const sellerId = q.get("sellerId") || q.get("seller") || "";
+      const orderId = q.get("orderId") || q.get("order") || "";
+      return { sellerId, orderId };
+    }
+
+    function writeQuery(sellerId, orderId) {
+      const u = new URL(location.href);
+      u.searchParams.set("sellerId", sellerId);
+      u.searchParams.set("orderId", orderId);
+      history.replaceState({}, "", u.toString());
+    }
+
+    function currentKey() {
+      return `${elSellerId.value.trim()}::${elOrderId.value.trim()}`;
+    }
+
+    async function trackOnce() {
+      const sellerId = elSellerId.value.trim();
+      const orderId = elOrderId.value.trim();
+      if (!sellerId || !orderId) {
+        showError("sellerId and orderId both required.");
+        setPill("Missing IDs", "var(--warn)");
+        return;
+      }
+
+      writeQuery(sellerId, orderId);
+      const key = `${sellerId}::${orderId}`;
+      lastOkKey = key;
+
+      try {
+        const order = await fetchOrder(sellerId, orderId);
+        applyOrderToUI(sellerId, order);
+      } catch (e) {
+        setPill("Not found / error", "var(--bad)");
+        showError("Could not fetch order: " + (e?.message || e));
+        // Keep timeline in pending for "unknown"
+        renderTimeline("pending");
+      }
+    }
+
+    function setPolling(on) {
+      if (on) {
+        if (pollTimer) return;
+        pollTimer = setInterval(() => {
+          // Poll only if we have valid inputs
+          if (elSellerId.value.trim() && elOrderId.value.trim()) trackOnce();
+        }, 8000);
+        btnTogglePoll.textContent = "Auto refresh: ON";
+        pollNote.textContent = "Auto refresh is ON (every 8 seconds).";
+      } else {
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = null;
+        btnTogglePoll.textContent = "Auto refresh: OFF";
+        pollNote.textContent = "";
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    btnTrack.addEventListener("click", trackOnce);
+    btnRefresh.addEventListener("click", trackOnce);
+    btnTogglePoll.addEventListener("click", () => setPolling(!pollTimer));
+
+    btnCopy.addEventListener("click", async () => {
+      const sellerId = elSellerId.value.trim();
+      const orderId = elOrderId.value.trim();
+      if (!sellerId || !orderId) {
+        showError("Fill sellerId + orderId before copying link.");
+        return;
+      }
+      const link = `${location.origin}/track.html?sellerId=${encodeURIComponent(sellerId)}&orderId=${encodeURIComponent(orderId)}`;
+      try {
+        await navigator.clipboard.writeText(link);
+        setPill("Link copied ✅", "var(--tq)");
+        setTimeout(() => setPill("Ready", ""), 1200);
+      } catch {
+        showError("Clipboard blocked. Copy manually: " + link);
+      }
+    });
+
+    // Init
+    resetUI();
+    const q = readQuery();
+    if (q.sellerId) elSellerId.value = q.sellerId;
+    if (q.orderId) elOrderId.value = q.orderId;
+
+    if (elSellerId.value.trim() && elOrderId.value.trim()) {
+      trackOnce();
+    } else {
+      setPill("Ready", "");
+    }
+  </script>
+</body>
+
+</html>

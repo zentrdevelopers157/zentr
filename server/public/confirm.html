@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zentr · Order Confirmed</title>
+  <!-- stops favicon 404 -->
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --bg0: #071114;
+      --bg1: #0b1a1f;
+      --glass: rgba(255, 255, 255, .08);
+      --glass2: rgba(255, 255, 255, .12);
+      --stroke: rgba(255, 255, 255, .16);
+      --text: rgba(255, 255, 255, .92);
+      --muted: rgba(255, 255, 255, .65);
+      --turq: #27f0d5;
+      --warn: #ffcc66;
+      --ok: #4dff88;
+      --bad: #ff6b6b;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .45);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 20% 10%, rgba(39, 240, 213, .20), transparent 60%),
+        radial-gradient(900px 500px at 80% 30%, rgba(39, 240, 213, .12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .wrap {
+      width: min(980px, 100%);
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px
+    }
+
+    @media (max-width: 900px) {
+      .wrap {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--glass), rgba(0, 0, 0, .10));
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      padding: 18px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, var(--turq), rgba(39, 240, 213, .15));
+      border: 1px solid rgba(39, 240, 213, .45);
+      box-shadow: 0 12px 30px rgba(39, 240, 213, .18);
+    }
+
+    .title {
+      font-weight: 700;
+      letter-spacing: .2px
+    }
+
+    .pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(39, 240, 213, .18);
+      background: linear-gradient(180deg, rgba(39, 240, 213, .10), rgba(255, 255, 255, .04));
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 22px
+    }
+
+    .hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px
+    }
+
+    .kv {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .k {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .v {
+      margin-top: 4px;
+      font-weight: 650;
+      overflow-wrap: anywhere
+    }
+
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px
+    }
+
+    button,
+    a.btn {
+      border: 1px solid rgba(39, 240, 213, .35);
+      background: rgba(39, 240, 213, .14);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 650;
+      transition: transform .05s ease;
+    }
+
+    button:active,
+    a.btn:active {
+      transform: translateY(1px)
+    }
+
+    .btn.secondary {
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      color: var(--text);
+    }
+
+    .items {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .err {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 107, 107, .35);
+      background: rgba(255, 107, 107, .12);
+      color: var(--text);
+      display: none;
+    }
+
+    .okline {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    .okline>div {
+      height: 100%;
+      width: 55%;
+      background: linear-gradient(90deg, rgba(39, 240, 213, .25), rgba(39, 240, 213, .85));
+      animation: slide 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes slide {
+      from {
+        transform: translateX(-10%)
+      }
+
+      to {
+        transform: translateX(10%)
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div class="brand">
+          <img src="logo.png" alt="Zentr" style="height:32px; border-radius:8px;">
+          <div>
+            <div class="title">Zentr</div>
+            <div class="muted">Order confirmation · buyer-safe</div>
+          </div>
+        </div>
+        <div class="pill" id="livePill">Fetching…</div>
+      </div>
+
+      <div class="hero">
+        <div>
+          <h1 id="h1">Order created ✅</h1>
+          <p>Keep this page. You can track status anytime. No login needed.</p>
+          <div class="okline" style="margin-top:10px">
+            <div></div>
+          </div>
+        </div>
+        <div class="pill" id="statusPill">status: —</div>
+      </div>
+
+      <div class="err" id="errBox"></div>
+
+      <div class="grid">
+        <div class="kv">
+          <div class="k">Order ID</div>
+          <div class="v" id="orderId">—</div>
+        </div>
+        <div class="kv">
+          <div class="k">Seller ID</div>
+          <div class="v" id="sellerId">—</div>
+        </div>
+        <div class="kv">
+          <div class="k">Total</div>
+          <div class="v" id="total">—</div>
+        </div>
+        <div class="kv">
+          <div class="k">Payment</div>
+          <div class="v" id="payment">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px" class="muted">Delivery Information</div>
+      <div class="grid">
+        <div class="kv">
+          <div class="k">Name</div>
+          <div class="v" id="buyerName">—</div>
+        </div>
+        <div class="kv">
+          <div class="k">Phone</div>
+          <div class="v" id="buyerPhone">—</div>
+        </div>
+        <div class="kv">
+          <div class="k">Address</div>
+          <div class="v" id="buyerAddress">—</div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <a class="btn" id="trackBtn" href="#">Open tracking</a>
+        <button class="secondary" id="copyTrack">Copy tracking link</button>
+        <a class="btn secondary" id="receiptBtn" href="#">Download receipt (JSON)</a>
+        <button class="secondary" id="refreshBtn">Refresh</button>
+      </div>
+
+      <div style="margin-top:14px" class="muted">Items</div>
+      <div class="items" id="items"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">What happens next</div>
+      <p class="muted" style="margin-top:6px; line-height:1.35">
+        Seller will confirm and move the order through steps (packed → shipped → delivered).
+        Your tracking link is shareable on WhatsApp.
+      </p>
+      <div class="kv" style="margin-top:12px">
+        <div class="k">Tip</div>
+        <div class="v" style="font-weight:600">
+          If you’re doing COD/UPI in v1, keep paymentStatus “unpaid” until seller marks it paid later.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const sellerId = qs.get("sellerId");
+    const orderId = qs.get("orderId");
+
+    const el = (id) => document.getElementById(id);
+    const errBox = el("errBox");
+
+    function showErr(msg) {
+      errBox.style.display = "block";
+      errBox.textContent = msg;
+    }
+    function hideErr() {
+      errBox.style.display = "none";
+      errBox.textContent = "";
+    }
+
+    function buildLinks() {
+      const trackUrl = `${location.origin}/track.html?sellerId=${encodeURIComponent(sellerId)}&orderId=${encodeURIComponent(orderId)}`;
+      const receiptUrl = `${location.origin}/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}/receipt`;
+
+      el("trackBtn").href = trackUrl;
+      el("receiptBtn").href = receiptUrl;
+
+      el("copyTrack").onclick = async () => {
+        await navigator.clipboard.writeText(trackUrl);
+        el("livePill").textContent = "Copied ✅";
+        setTimeout(() => el("livePill").textContent = "Live", 900);
+      };
+    }
+
+    async function load() {
+      try {
+        hideErr();
+        if (!sellerId || !orderId) {
+          showErr("Missing sellerId or orderId in URL. Example: /confirm.html?sellerId=demoSeller&orderId=ord_...");
+          return;
+        }
+
+        el("sellerId").textContent = sellerId;
+        el("orderId").textContent = orderId;
+        buildLinks();
+
+        el("livePill").textContent = "Loading...";
+
+        const url = `/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}`;
+        const r = await fetch(url);
+
+        if (!r.ok) {
+          throw new Error(`Server error: ${r.status} ${r.statusText}`);
+        }
+
+        const data = await r.json();
+
+        if (!data.ok) throw new Error(data.error || "Failed to load order");
+
+        const o = data.order;
+        el("statusPill").textContent = `status: ${o.status}`;
+        el("payment").textContent = o.paymentStatus || "unpaid";
+        el("total").textContent = (o.total != null) ? `₹${o.total}` : "—";
+
+        el("buyerName").textContent = o.buyerName || o.delivery?.name || "—";
+        el("buyerPhone").textContent = o.buyerPhone || o.delivery?.phone || "—";
+        el("buyerAddress").textContent = o.buyerAddress || o.delivery?.address || "—";
+
+        const items = el("items");
+        items.innerHTML = "";
+        (o.items || []).forEach(i => {
+          const div = document.createElement("div");
+          div.className = "item";
+          const vtxt = (i.variants || []).map(v => v.label).join(", ") || "No variants";
+          div.innerHTML = `
+          <div>
+            <div style="font-weight:650">${i.name || i.productId}</div>
+            <div class="muted">${vtxt}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:750">x${i.qty || 1}</div>
+          </div>
+        `;
+          items.appendChild(div);
+        });
+
+        el("refreshBtn").onclick = load;
+
+        el("livePill").textContent = "Live";
+
+      } catch (e) {
+        showErr(e.message);
+        el("livePill").textContent = "Error";
+      }
+    }
+
+    load();
+  </script>
+</body>
+
+</html>

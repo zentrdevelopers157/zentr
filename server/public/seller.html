@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zentr | Seller</title>
+  <!-- stops favicon 404 -->
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --bg0: #071114;
+      --bg1: #0b1a1f;
+      --glass: rgba(255, 255, 255, .08);
+      --glass2: rgba(255, 255, 255, .12);
+      --stroke: rgba(255, 255, 255, .16);
+      --text: rgba(255, 255, 255, .92);
+      --muted: rgba(255, 255, 255, .55);
+      --turq: #27f0d5;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .45);
+      --shadow2: 0 10px 28px rgba(0, 0, 0, .35);
+      --radius: 18px;
+
+      /* status colours */
+      --ok-bg: rgba(39, 240, 213, .14);
+      --ok: #27f0d5;
+      --warn-bg: rgba(255, 204, 102, .14);
+      --warn: #ffcc66;
+      --bad-bg: rgba(255, 107, 107, .14);
+      --bad: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 15% 10%, rgba(39, 240, 213, .20), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(39, 240, 213, .12), transparent 55%),
+        radial-gradient(800px 500px at 50% 90%, rgba(39, 240, 213, .07), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+
+    /* ── Header / Topbar ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(7, 17, 20, .72);
+      border-bottom: 1px solid var(--stroke);
+    }
+
+    .topbar {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+
+    .logo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--turq);
+      box-shadow: 0 0 0 6px rgba(39, 240, 213, .18);
+    }
+
+    .brand span {
+      font-size: 18px;
+      text-transform: lowercase;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .pill.good {
+      background: var(--ok-bg);
+      border-color: rgba(39, 240, 213, .30);
+      color: var(--turq);
+      font-weight: 800;
+    }
+
+    /* ── Layout ── */
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 18px;
+    }
+
+    @media (max-width: 1060px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static !important;
+      }
+    }
+
+    .glass {
+      background: linear-gradient(180deg, var(--glass), rgba(0, 0, 0, .12));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .section {
+      padding: 14px 14px 16px 14px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 16px 10px 16px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: .2px;
+      color: var(--text);
+    }
+
+    .section-title p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 0 16px 16px 16px;
+    }
+
+    @media (max-width: 760px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+      padding: 12px;
+      transition: border-color .2s ease;
+    }
+
+    .stat:hover {
+      border-color: rgba(39, 240, 213, .30);
+    }
+
+    .stat .k {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat .v {
+      font-size: 18px;
+      font-weight: 1000;
+      color: var(--turq);
+    }
+
+    /* ── Grid + Panels ── */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      padding: 0 16px 16px 16px;
+    }
+
+    @media (max-width: 980px) {
+      .grid2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 12px 12px 10px 12px;
+      border-bottom: 1px solid var(--stroke);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-head b {
+      font-size: 13px;
+      letter-spacing: .2px;
+      color: var(--text);
+    }
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .07);
+      outline: none;
+      font-size: 13px;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    select option {
+      background: #0b1a1f;
+      color: var(--text);
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(39, 240, 213, .55);
+      box-shadow: 0 0 0 4px rgba(39, 240, 213, .12);
+    }
+
+    /* ── Buttons ── */
+    .btnbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .btn {
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .07);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 13px;
+      flex: 1;
+      transition: background .15s ease, transform .05s ease;
+    }
+
+    .btn.primary {
+      background: rgba(39, 240, 213, .16);
+      border-color: rgba(39, 240, 213, .38);
+      color: var(--turq);
+    }
+
+    .btn.primary:hover {
+      background: rgba(39, 240, 213, .24);
+    }
+
+    .btn.danger {
+      background: rgba(255, 107, 107, .12);
+      border-color: rgba(255, 107, 107, .28);
+      color: var(--bad);
+    }
+
+    .btn.danger:hover {
+      background: rgba(255, 107, 107, .20);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    /* ── Misc ── */
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .hint strong {
+      color: var(--text);
+    }
+
+    /* ── Image preview thumb ── */
+    .thumb {
+      width: 100%;
+      height: 150px;
+      border-radius: 14px;
+      border: 1px solid rgba(39, 240, 213, .18);
+      background:
+        radial-gradient(260px 140px at 30% 40%, rgba(39, 240, 213, .18), transparent 60%),
+        rgba(255, 255, 255, .04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb .empty {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 0 12px;
+      text-align: center;
+    }
+
+    /* ── Lists ── */
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .item {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .05);
+      align-items: flex-start;
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .item:hover {
+      border-color: rgba(39, 240, 213, .25);
+      background: rgba(39, 240, 213, .05);
+    }
+
+    .mini {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid rgba(39, 240, 213, .20);
+      background: rgba(39, 240, 213, .10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+
+    .mini img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .item .txt {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item .t {
+      font-weight: 1000;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .item .s {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.25;
+    }
+
+    .right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    /* ── Status chips ── */
+    .chip {
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      color: var(--muted);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .chip.ok {
+      background: var(--ok-bg);
+      border-color: rgba(39, 240, 213, .30);
+      color: var(--ok);
+    }
+
+    .chip.warn {
+      background: var(--warn-bg);
+      border-color: rgba(255, 204, 102, .30);
+      color: var(--warn);
+    }
+
+    .chip.bad {
+      background: var(--bad-bg);
+      border-color: rgba(255, 107, 107, .28);
+      color: var(--bad);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .iconbtn {
+      cursor: pointer;
+      font-weight: 1000;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      transition: background .15s ease;
+    }
+
+    .iconbtn:hover {
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .iconbtn.danger {
+      color: var(--bad);
+    }
+
+    .iconbtn.danger:hover {
+      background: rgba(255, 107, 107, .12);
+    }
+
+    /* ── Sidebar ── */
+    .side {
+      position: sticky;
+      top: 82px;
+      align-self: start;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      padding: 10px 16px;
+      border-radius: 14px;
+      background: rgba(7, 17, 20, .92);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      color: var(--text);
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+      z-index: 50;
+      max-width: calc(100vw - 24px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* ── Dividers / tiny text ── */
+    .divider {
+      height: 1px;
+      background: var(--stroke);
+      margin: 12px 0;
+    }
+
+    .small {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+    }
+
+    /* ── Order cards (rendered via JS) ── */
+    .card {
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      transition: border-color .2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(39, 240, 213, .25);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* make inline-style text readable on dark bg */
+    b {
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="topbar">
+      <a href="/" class="brand" style="text-decoration:none; color:inherit;">
+        <img src="logo.png" alt="Zentr" style="height:28px; border-radius:6px;">
+        <span>zentr</span>
+        <div class="pill">Seller</div>
+      </a>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="pill good" id="sellerBadge">Verified Seller</div>
+        <div class="pill" id="storeNamePill">Store: Demo Shop</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- MAIN COLUMN -->
+    <section class="glass">
+      <div class="section-title">
+        <div>
+          <h2>Seller Dashboard</h2>
+          <p>Manage products, prices, and delivery status.</p>
+        </div>
+        <div class="pill" id="todayPill">Today</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Products</div>
+          <div class="v" id="statProducts">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Orders (total)</div>
+          <div class="v" id="statOrders">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Pending</div>
+          <div class="v" id="statPending">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Revenue</div>
+          <div class="v" id="statRevenue">₹0</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <!-- PRODUCTS LIST -->
+        <div class="panel">
+          <div class="panel-head">
+            <b>Products</b>
+            <div class="pill" id="productCountPill">0 items</div>
+          </div>
+          <div class="panel-body">
+            <div class="field" style="margin-bottom:12px;">
+              <label>Search products</label>
+              <input id="productSearch" placeholder="Search by name, category..." />
+            </div>
+
+            <div class="list" id="productList"></div>
+            <div id="products"></div>
+
+            <div class="divider"></div>
+            <div class="hint">
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ORDERS LIST -->
+        <div class="panel">
+          <div class="panel-head">
+            <b>Orders</b>
+            <div class="pill" id="orderCountPill">0 orders</div>
+          </div>
+          <div class="panel-body">
+            <div class="field" style="margin-bottom:12px;">
+              <label>Filter</label>
+              <select id="orderFilter">
+                <option value="ALL">All</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div class="list" id="orderList"></div>
+
+            <div class="divider"></div>
+            <div class="small">
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="row between">
+          <div>
+            <h2 style="margin:0">Orders</h2>
+            <div class="muted" id="ordersMeta">Loading…</div>
+          </div>
+
+          <div class="row" style="gap:10px">
+            <button class="btn" id="btnRefreshOrders">Refresh</button>
+          </div>
+        </div>
+
+        <div id="ordersList" style="margin-top:14px; display:flex; flex-direction:column; gap:12px;"></div>
+      </section>
+    </section>
+
+    <!-- SIDE COLUMN (Add Product + Store Settings) -->
+    <aside class="glass side">
+      <div class="section">
+
+        <div class="panel" style="margin-bottom:14px;">
+          <div class="panel-head">
+            <b id="formTitle">Add Product</b>
+            <button class="iconbtn danger" id="resetFormBtn" title="Reset form">Reset</button>
+          </div>
+          <div class="panel-body">
+            <div class="thumb" id="previewBox">
+              <div class="empty" id="previewEmpty">Upload an image (optional).</div>
+              <img id="previewImg" alt="" style="display:none;" />
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="field">
+              <label>Product Image</label>
+              <input type="file" id="imageInput" accept="image/*" />
+              <div class="hint">Optional. Stored in browser (base64).</div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label>Product Name *</label>
+                <input id="pName" placeholder="e.g., Premium Cotton Tee" />
+              </div>
+              <div class="field">
+                <label>Category</label>
+                <input id="pCategory" placeholder="e.g., Apparel" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label>Base Price (₹) *</label>
+                <input id="pPrice" type="number" min="0" step="1" placeholder="e.g., 499" />
+              </div>
+              <div class="field">
+                <label>Stock</label>
+                <input id="pStock" type="number" min="0" step="1" placeholder="e.g., 50" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Sizes (comma separated)</label>
+              <input id="pSizes" placeholder="e.g., S, M, L, XL" />
+              <div class="hint">Zentr style: size selection can be mandatory on buyer side.</div>
+            </div>
+
+            <div class="field">
+              <label>Variants (comma separated)</label>
+              <input id="pVariants" placeholder="e.g., Black, White, Mint" />
+            </div>
+
+            <div class="field">
+              <label>Description</label>
+              <textarea id="pDesc" placeholder="Short description for buyers..."></textarea>
+            </div>
+
+            <div class="btnbar">
+              <button class="btn primary" id="saveProductBtn">Save Product</button>
+              <button class="btn danger" id="deleteProductBtn" style="display:none;">Delete</button>
+            </div>
+
+            <div class="small">
+
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <b>Store Settings</b>
+            <div class="pill">Prototype</div>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Store Name</label>
+              <input id="storeName" placeholder="e.g., Ashis Wear" />
+            </div>
+            <div class="field">
+              <label>UPI ID (for Direct Pay)</label>
+              <input id="upiId" placeholder="e.g., shop@upi" />
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Delivery ETA (days)</label>
+                <input id="etaDays" type="number" min="0" step="1" placeholder="e.g., 3" />
+              </div>
+              <div class="field">
+                <label>Support WhatsApp</label>
+                <input id="supportWa" placeholder="e.g., +91XXXXXXXXXX" />
+              </div>
+            </div>
+            <button class="btn primary" id="saveSettingsBtn">Save Settings</button>
+
+            <div class="divider"></div>
+
+            <div class="small">
+              Zentr 2026<br />
+
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="small mono" id="debugInfo"></div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---------------------------
+    // Storage keys
+    // ---------------------------
+    const KEY_PRODUCTS = "zentr_seller_products_v1";
+    const KEY_ORDERS = "zentr_seller_orders_v1";
+    const KEY_SETTINGS = "zentr_seller_settings_v1";
+
+    // ---------------------------
+    // Helpers
+    // ---------------------------
+    const $ = (id) => document.getElementById(id);
+    const formatINR = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
+    const uid = () => "P" + Math.random().toString(16).slice(2, 10).toUpperCase();
+
+    function showToast(msg) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1800);
+    }
+
+    function loadJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function saveJSON(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    // ---------------------------
+    // State
+    // ---------------------------
+    let products = loadJSON(KEY_PRODUCTS, []);
+    let orders = loadJSON(KEY_ORDERS, null);
+    let settings = loadJSON(KEY_SETTINGS, {
+      storeName: "Demo Shop",
+      upiId: "",
+      etaDays: 3,
+      supportWa: "",
+      verified: true
+    });
+
+    // seed demo orders if none
+    if (!orders) {
+      orders = [
+        {
+          orderId: "ZNT" + Math.floor(100000 + Math.random() * 900000),
+          buyerName: "Rahul Sharma",
+          buyerPhone: "+91 98XXXXXX12",
+          buyerAddress: "123 Main St, Mumbai",
+          items: [
+            { name: "Premium Cotton Tee", size: "M", variant: "Black", qty: 1, price: 499 }
+          ],
+          total: 548,
+          paymentStatus: "unpaid",
+          status: "pending",
+          createdAt: Date.now() - 1000 * 60 * 60 * 2
+        },
+        {
+          orderId: "ZNT" + Math.floor(100000 + Math.random() * 900000),
+          buyerName: "Priya Das",
+          buyerPhone: "+91 87XXXXXX34",
+          buyerAddress: "456 Park Ave, Delhi",
+          items: [
+            { name: "Street Hoodie", size: "L", variant: "Jet Black", qty: 1, price: 1299 }
+          ],
+          total: 1299,
+          paymentStatus: "paid",
+          status: "confirmed",
+          createdAt: Date.now() - 1000 * 60 * 60 * 5
+        }
+      ];
+      saveJSON(KEY_ORDERS, orders);
+    }
+
+    let editingProductId = null;
+    let imageDataUrl = null;
+
+    // ---------------------------
+    // UI: header / date
+    // ---------------------------
+    function initHeader() {
+      const d = new Date();
+      $("todayPill").textContent = d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" });
+      $("storeNamePill").textContent = "Store: " + (settings.storeName || "—");
+      $("sellerBadge").textContent = settings.verified ? "Verified Seller" : "Unverified";
+      $("sellerBadge").className = settings.verified ? "pill good" : "pill";
+    }
+
+    // ---------------------------
+    // Products render
+    // ---------------------------
+    function renderProducts(products) {
+      const list = $("productList");
+      const q = $("productSearch").value.trim().toLowerCase();
+
+      const filtered = products.filter(p => {
+        if (!q) return true;
+        return (p.name || "").toLowerCase().includes(q) ||
+          (p.category || "").toLowerCase().includes(q);
+      });
+
+      $("statProducts").textContent = products.length;
+      $("productCountPill").textContent = `${products.length} items`;
+
+      list.innerHTML = "";
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="hint" style="padding:12px 0;">No products yet. Add one on the right.</div>`;
+        return;
+      }
+
+      filtered.forEach(p => {
+        const el = document.createElement("div");
+        el.className = "item";
+
+        const stockChip = (p.stock === null || p.stock === undefined || p.stock === "") ? "—" : p.stock;
+        const lowStock = (Number(p.stock) <= 5 && p.stock !== "" && p.stock !== null && p.stock !== undefined);
+
+        el.innerHTML = `
+        <div class="mini">
+          ${p.image ? `<img src="${p.image}" alt=""/>` : `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M7 7h10l1.2 5.6a3 3 0 0 1-2.9 3.6H8.7a3 3 0 0 1-2.9-3.6L7 7Z" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M9 7V5.8A2.8 2.8 0 0 1 11.8 3h.4A2.8 2.8 0 0 1 15 5.8V7" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          `}
+        </div>
+
+        <div class="txt">
+          <div class="t">${escapeHtml(p.name || "Untitled")}</div>
+          <div class="s">${escapeHtml(p.category || "Uncategorized")} • ${formatINR(p.price || 0)}</div>
+          <div class="s">Sizes: ${escapeHtml((p.sizes || []).join(", ") || "—")} | Variants: ${escapeHtml((p.variants || []).join(", ") || "—")}</div>
+          <div class="pill">Stock: ${p.stock ?? 0}</div>
+        </div>
+
+        <div class="right">
+          <div class="chip ${lowStock ? "warn" : ""}">Stock: ${escapeHtml(String(stockChip))}</div>
+          <input class="stockInput" type="number" min="0" value="${p.stock ?? 0}" />
+          <button class="btnUpdateStock" data-product-id="${p.id}">Update stock</button>
+          <div class="actions">
+            <button class="iconbtn" data-act="edit">Edit</button>
+            <button class="iconbtn danger" data-act="del">Delete</button>
+          </div>
+        </div>
+      `;
+
+        el.querySelector('[data-act="edit"]').addEventListener("click", () => loadProductIntoForm(p.id));
+        el.querySelector('[data-act="del"]').addEventListener("click", () => deleteProduct(p.id));
+
+        list.appendChild(el);
+      });
+
+      updateDebug();
+    }
+
+    // ---------------------------
+    // Orders render
+    // ---------------------------
+    function statusChip(status) {
+      switch (status) {
+        case "pending": return `<span class="chip warn">Pending</span>`;
+        case "confirmed": return `<span class="chip ok">Confirmed</span>`;
+        case "shipped": return `<span class="chip">Shipped</span>`;
+        case "delivered": return `<span class="chip ok">Delivered</span>`;
+        case "cancelled": return `<span class="chip bad">Cancelled</span>`;
+        default: return `<span class="chip">${status || "Unknown"}</span>`;
+      }
+    }
+
+    function renderOrders() {
+      const list = $("orderList");
+      const filter = $("orderFilter").value;
+
+      const filtered = orders.filter(o => filter === "ALL" ? true : o.status === filter);
+
+      $("statOrders").textContent = orders.length;
+      $("orderCountPill").textContent = `${orders.length} orders`;
+
+      const pending = orders.filter(o => o.status === "pending" || o.status === "confirmed").length;
+      $("statPending").textContent = pending;
+
+      const revenue = orders
+        .filter(o => o.paymentStatus === "paid" && (o.status === "confirmed" || o.status === "shipped" || o.status === "delivered"))
+        .reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+      $("statRevenue").textContent = formatINR(revenue);
+
+      list.innerHTML = "";
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="hint">No orders in this filter.</div>`;
+        return;
+      }
+
+      filtered
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .forEach(o => {
+          const el = document.createElement("div");
+          el.className = "item";
+
+          const itemsTxt = o.items.map(it => `${it.name} (${it.size || "-"} • ${it.variant || "-"}) ×${it.qty}`).join(" | ");
+          const created = new Date(o.createdAt).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+
+          el.innerHTML = `
+          <div class="mini">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M4 7h16l-1 11H5L4 7Z" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M9 7V5a3 3 0 0 1 6 0v2" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <div class="txt">
+            <div class="t">${escapeHtml(o.orderId)} • ${escapeHtml(o.buyerName || o.buyer || "Guest")}</div>
+            <div class="s">${escapeHtml(itemsTxt)}</div>
+            <div class="s">Total: <b>${formatINR(o.total)}</b> • ${o.paymentStatus === "paid" ? "<b>Paid</b>" : "<b>Unpaid</b>"} • ${escapeHtml(created)}</div>
+            <div class="s">📞 ${escapeHtml(o.buyerPhone || "—")} • 📍 ${escapeHtml(o.buyerAddress || "—")}</div>
+          </div>
+
+          <div class="right">
+            ${statusChip(o.status)}
+            <div class="actions">
+              <button class="iconbtn" data-act="next">Next</button>
+              <button class="iconbtn" data-act="menu">Set</button>
+            </div>
+          </div>
+        `;
+
+          el.querySelector('[data-act="next"]').addEventListener("click", () => advanceOrderStatus(o.orderId));
+          el.querySelector('[data-act="menu"]').addEventListener("click", () => setOrderStatusPrompt(o.orderId));
+
+          list.appendChild(el);
+        });
+
+      updateDebug();
+    }
+
+    function advanceOrderStatus(orderId) {
+      const o = orders.find(x => x.orderId === orderId);
+      if (!o) return;
+
+      // minimal sane progression:
+      // pending -> confirmed -> shipped -> delivered
+      if (o.status === "pending") {
+        o.status = "confirmed";
+        o.paymentStatus = "paid"; // in real life you'd verify payment, not assume
+      } else if (o.status === "confirmed") {
+        o.status = "shipped";
+      } else if (o.status === "shipped") {
+        o.status = "delivered";
+      } else {
+        showToast("Already final state.");
+        return;
+      }
+
+      saveJSON(KEY_ORDERS, orders);
+      renderOrders();
+      showToast(`Order ${orderId} → ${o.status}`);
+    }
+
+    function setOrderStatusPrompt(orderId) {
+      const o = orders.find(x => x.orderId === orderId);
+      if (!o) return;
+
+      const v = prompt(
+        `Set status for ${orderId}\npending / confirmed / shipped / delivered / cancelled`,
+        o.status
+      );
+
+      if (!v) return;
+
+      const next = v.trim().toLowerCase();
+      const allowed = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
+      if (!allowed.includes(next)) {
+        showToast("Invalid status. Use: pending / confirmed / shipped / delivered / cancelled");
+        return;
+      }
+      o.status = next;
+      if (next === "cancelled") o.paymentStatus = o.paymentStatus || "unpaid";
+      saveJSON(KEY_ORDERS, orders);
+      renderOrders();
+      showToast(`Order ${orderId} set to ${next}`);
+    }
+
+    // ---------------------------
+    // Product form logic
+    // ---------------------------
+    function resetForm() {
+      editingProductId = null;
+      imageDataUrl = null;
+
+      $("formTitle").textContent = "Add Product";
+      $("deleteProductBtn").style.display = "none";
+
+      $("pName").value = "";
+      $("pCategory").value = "";
+      $("pPrice").value = "";
+      $("pStock").value = "";
+      $("pSizes").value = "";
+      $("pVariants").value = "";
+      $("pDesc").value = "";
+      $("imageInput").value = "";
+
+      $("previewImg").style.display = "none";
+      $("previewImg").src = "";
+      $("previewEmpty").style.display = "block";
+    }
+
+    function loadProductIntoForm(productId) {
+      const p = products.find(x => x.id === productId);
+      if (!p) return;
+
+      editingProductId = p.id;
+      imageDataUrl = p.image || null;
+
+      $("formTitle").textContent = "Edit Product";
+      $("deleteProductBtn").style.display = "inline-block";
+
+      $("pName").value = p.name || "";
+      $("pCategory").value = p.category || "";
+      $("pPrice").value = p.price ?? "";
+      $("pStock").value = (p.stock ?? "");
+      $("pSizes").value = (p.sizes || []).join(", ");
+      $("pVariants").value = (p.variants || []).join(", ");
+      $("pDesc").value = p.desc || "";
+
+      if (p.image) {
+        $("previewEmpty").style.display = "none";
+        $("previewImg").style.display = "block";
+        $("previewImg").src = p.image;
+      } else {
+        $("previewImg").style.display = "none";
+        $("previewImg").src = "";
+        $("previewEmpty").style.display = "block";
+      }
+
+      showToast("Editing product.");
+    }
+
+    function parseCSV(input) {
+      return input
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function saveProduct() {
+      const name = $("pName").value.trim();
+      const category = $("pCategory").value.trim();
+      const priceRaw = $("pPrice").value;
+      const stockRaw = $("pStock").value;
+
+      const price = Number(priceRaw);
+      const stock = stockRaw === "" ? "" : Number(stockRaw);
+
+      const sizes = parseCSV($("pSizes").value);
+      const variants = parseCSV($("pVariants").value);
+      const desc = $("pDesc").value.trim();
+
+      if (!name) {
+        showToast("Product name required.");
+        return;
+      }
+      if (!Number.isFinite(price) || price < 0) {
+        showToast("Valid price required.");
+        return;
+      }
+      if (stock !== "" && (!Number.isFinite(stock) || stock < 0)) {
+        showToast("Stock must be empty or >= 0.");
+        return;
+      }
+
+      if (editingProductId) {
+        const idx = products.findIndex(x => x.id === editingProductId);
+        if (idx === -1) {
+          showToast("Edit target not found.");
+          return;
+        }
+        products[idx] = {
+          ...products[idx],
+          name, category, price, stock,
+          sizes, variants, desc,
+          image: imageDataUrl
+        };
+        showToast("Product updated.");
+      } else {
+        products.unshift({
+          id: uid(),
+          name, category, price, stock,
+          sizes, variants, desc,
+          image: imageDataUrl,
+          createdAt: Date.now()
+        });
+        showToast("Product added.");
+      }
+
+      saveJSON(KEY_PRODUCTS, products);
+      renderProducts(products);
+      resetForm();
+    }
+
+    function deleteProduct(productId) {
+      const p = products.find(x => x.id === productId);
+      if (!p) return;
+
+      const ok = confirm(`Delete product: "${p.name}" ?`);
+      if (!ok) return;
+
+      products = products.filter(x => x.id !== productId);
+      saveJSON(KEY_PRODUCTS, products);
+      renderProducts(products);
+
+      if (editingProductId === productId) resetForm();
+      showToast("Product deleted.");
+    }
+
+    function deleteProductFromForm() {
+      if (!editingProductId) {
+        showToast("No product selected.");
+        return;
+      }
+      deleteProduct(editingProductId);
+    }
+
+    // image preview
+    $("imageInput").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) {
+        imageDataUrl = null;
+        $("previewImg").style.display = "none";
+        $("previewImg").src = "";
+        $("previewEmpty").style.display = "block";
+        return;
+      }
+      if (file.size > 1.5 * 1024 * 1024) {
+        showToast("Image too large. Use < 1.5MB.");
+        e.target.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        imageDataUrl = reader.result;
+        $("previewEmpty").style.display = "none";
+        $("previewImg").style.display = "block";
+        $("previewImg").src = imageDataUrl;
+        showToast("Image loaded.");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    $("saveProductBtn").addEventListener("click", saveProduct);
+    $("deleteProductBtn").addEventListener("click", deleteProductFromForm);
+    $("resetFormBtn").addEventListener("click", resetForm);
+
+    // search
+    $("productSearch").addEventListener("input", () => renderProducts(products));
+
+    // orders filter
+    $("orderFilter").addEventListener("change", renderOrders);
+
+    // ---------------------------
+    // Settings
+    // ---------------------------
+    function loadSettingsToForm() {
+      $("storeName").value = settings.storeName || "";
+      $("upiId").value = settings.upiId || "";
+      $("etaDays").value = settings.etaDays ?? 3;
+      $("supportWa").value = settings.supportWa || "";
+    }
+
+    function saveSettings() {
+      settings.storeName = $("storeName").value.trim() || "—";
+      settings.upiId = $("upiId").value.trim();
+      settings.etaDays = Number($("etaDays").value || 0);
+      settings.supportWa = $("supportWa").value.trim();
+
+      saveJSON(KEY_SETTINGS, settings);
+      initHeader();
+      updateDebug();
+      showToast("Settings saved.");
+    }
+
+    $("saveSettingsBtn").addEventListener("click", saveSettings);
+
+    // ---------------------------
+    // Debug / misc
+    // ---------------------------
+    function updateDebug() {
+      $("debugInfo").textContent =
+        `localStorage keys:
+- ${KEY_PRODUCTS}: ${products.length} products
+- ${KEY_ORDERS}: ${orders.length} orders
+- ${KEY_SETTINGS}: store="${settings.storeName}"`;
+      $("statProducts").textContent = products.length;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // ---------------------------
+    // Init
+    // ---------------------------
+    function init() {
+      initHeader();
+      loadSettingsToForm();
+      renderProducts(products);
+      renderOrders();
+
+      // If no products exist, seed 2 quick demos (optional)
+      if (products.length === 0) {
+        products = [
+          {
+            id: uid(),
+            name: "Premium Cotton Tee",
+            category: "Apparel",
+            price: 499,
+            stock: 40,
+            sizes: ["S", "M", "L", "XL"],
+            variants: ["Black", "White", "Mint"],
+            desc: "Clean fit, daily wear.",
+            image: null,
+            createdAt: Date.now()
+          },
+          {
+            id: uid(),
+            name: "Street Hoodie",
+            category: "Apparel",
+            price: 1299,
+            stock: 18,
+            sizes: ["M", "L", "XL"],
+            variants: ["Jet Black", "Charcoal", "Teal Accent"],
+            desc: "Warm. Heavy. Reliable.",
+            image: null,
+            createdAt: Date.now()
+          }
+        ];
+        saveJSON(KEY_PRODUCTS, products);
+        renderProducts(products);
+      }
+    }
+
+    init();
+  </script>
+  <script>
+    const API = location.origin;
+    const SELLER_ID = "demoSeller";
+    const SELLER_KEY = "demo123";
+
+    async function fetchProducts() {
+      const url = `${API}/api/sellers/${SELLER_ID}/products`;
+      const sellerKey = SELLER_KEY;
+
+      const res = await fetch(url, { headers: { "x-seller-key": sellerKey } });
+      const data = await res.json();
+
+      // if server returned an error
+      if (!res.ok) {
+        alert(data?.error || "Failed to load products");
+        return [];
+      }
+
+      // ✅ IMPORTANT: extract the array correctly
+      const productsList = Array.isArray(data)
+        ? data
+        : (data.products || data.items || []);
+
+      console.log("productsList:", productsList);
+
+      // now render safely
+      renderProducts(productsList);
+
+      return productsList;
+    }
+
+    // renderProducts for the #products div is handled by the first script block.
+    // The API block calls the same function with the fetched list:
+
+    async function updatePrice(id, price) {
+      const r = await fetch(`${API}/api/sellers/${SELLER_ID}/products/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-seller-key": SELLER_KEY
+        },
+        body: JSON.stringify({ price })
+      });
+      const data = await r.json();
+      console.log("update:", data);
+      if (!r.ok) alert(data.error || "update failed");
+      await fetchProducts(); // Refresh products list
+    }
+
+    function updatePricePrompt(id, currentPrice) {
+      const next = prompt("New price?", String(currentPrice));
+      if (!next) return;
+      const price = Number(next);
+      if (!Number.isFinite(price) || price <= 0) return alert("Invalid price");
+      updatePrice(id, price);
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Delete product?")) return;
+      const r = await fetch(`${API}/api/sellers/${SELLER_ID}/products/${id}`, {
+        method: "DELETE",
+        headers: { "x-seller-key": SELLER_KEY }
+      });
+      const data = await r.json();
+      console.log("delete:", data);
+      if (!r.ok) alert(data.error || "delete failed");
+      await fetchProducts(); // Refresh products list
+    }
+
+    fetchProducts(); // Initial load
+  </script>
+
+  <script>
+    // === Orders Panel ===
+    const elOrdersList = document.getElementById("ordersList");
+    const elOrdersMeta = document.getElementById("ordersMeta");
+    const btnRefreshOrders = document.getElementById("btnRefreshOrders");
+
+    function fmtTime(iso) {
+      try { return new Date(iso).toLocaleString(); } catch { return iso || "-"; }
+    }
+
+    function money(n) {
+      if (typeof n !== "number") return "-";
+      return "₹" + n.toString();
+    }
+
+    function orderCard(o) {
+      const items = Array.isArray(o.items) ? o.items : [];
+      const itemsHtml = items.map(i => {
+        const qty = i.qty ?? 1;
+        const size = i.size ?? "-";
+        const variant = i.variant ?? "-";
+        const pid = i.productId ?? "-";
+        return `
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <div style="opacity:.9; font-size:13px;">
+            <div style="font-weight:600">${pid}</div>
+            <div style="opacity:.75">Size: ${size} • Variant: ${variant}</div>
+          </div>
+          <div style="font-weight:700">x${qty}</div>
+        </div>
+      `;
+      }).join("");
+
+      const status = o.status || "pending";
+      const payment = o.paymentStatus || "unpaid";
+
+      const FLOW = {
+        pending: ["confirmed", "cancelled"],
+        confirmed: ["packed", "cancelled"],
+        packed: ["shipped"],
+        shipped: ["delivered"],
+        delivered: [],
+        cancelled: []
+      };
+
+      const currentStatus = o.status || "pending";
+      const allowed = FLOW[currentStatus] || [];
+
+      return `
+      <div class="card" style="padding:14px;">
+        <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+          <div>
+            <div style="font-weight:800">${o.id}</div>
+            <div class="muted" style="margin-top:4px;">Created: ${fmtTime(o.createdAt)}</div>
+            <div class="muted" style="margin-top:2px;">👤 ${o.buyerName || "Guest"}</div>
+            <div class="muted" style="margin-top:2px;">📞 ${o.buyerPhone || "—"}</div>
+            <div class="muted" style="margin-top:2px;">📍 ${o.buyerAddress || "—"}</div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span class="pill">${status}</span>
+            <span class="pill">${payment}</span>
+          </div>
+        </div>
+
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <div class="pill">Total: ${money(o.total)}</div>
+          <button class="btn" data-copy-track="${o.id}">Copy tracking link</button>
+          <button class="btn" data-copy-id="${o.id}">Copy order id</button>
+        </div>
+
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <label class="muted">Update status:</label>
+          <select class="select" data-status="${o.id}">
+            <option value="${currentStatus}" selected>${currentStatus}</option>
+            ${allowed.map(s => `<option value="${s}">${s}</option>`).join("")
+        }
+          </select>
+          <button class="btn" data-update="${o.id}">Update</button>
+          <div class="muted" id="msg-${o.id}"></div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+          ${itemsHtml || `<div class="muted">No items</div>`}
+        </div>
+      </div>
+    `;
+    }
+
+    async function fetchOrders() {
+      elOrdersMeta.textContent = "Loading…";
+      elOrdersList.innerHTML = "";
+
+      const url = `${API}/api/sellers/${encodeURIComponent(SELLER_ID)}/orders`;
+
+      const res = await fetch(url, {
+        headers: { "x-seller-key": SELLER_KEY }
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        elOrdersMeta.textContent = `Error: ${data.error || res.status}`;
+        return;
+      }
+
+      const orders = Array.isArray(data.orders) ? data.orders : [];
+      elOrdersMeta.textContent = `${orders.length} order(s)`;
+
+      elOrdersList.innerHTML = orders.map(orderCard).join("");
+    }
+
+    async function patchOrderStatus(orderId, newStatus) {
+      const url = `${API}/api/sellers/${encodeURIComponent(SELLER_ID)}/orders/${encodeURIComponent(orderId)}`;
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-seller-key": SELLER_KEY
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data.order;
+    }
+
+    function trackingLink(orderId) {
+      const base = `${location.origin}/track.html`;
+      const params = new URLSearchParams({ sellerId: SELLER_ID, orderId });
+      return `${base}?${params.toString()}`;
+    }
+
+    // Note: SELLER_ID and SELLER_KEY are defined in the previous script block
+
+    async function copyText(txt) {
+      try {
+        await navigator.clipboard.writeText(txt);
+        return true;
+      } catch {
+        const t = document.createElement("textarea");
+        t.value = txt;
+        document.body.appendChild(t);
+        t.select();
+        document.execCommand("copy");
+        document.body.removeChild(t);
+        return true;
+      }
+    }
+
+    document.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      if (btn.id === "btnRefreshOrders") {
+        fetchOrders();
+        return;
+      }
+
+      const trackId = btn.getAttribute("data-copy-track");
+      if (trackId) {
+        await copyText(trackingLink(trackId));
+        btn.textContent = "Copied ✅";
+        setTimeout(() => (btn.textContent = "Copy tracking link"), 900);
+        return;
+      }
+
+      const copyId = btn.getAttribute("data-copy-id");
+      if (copyId) {
+        await copyText(copyId);
+        btn.textContent = "Copied ✅";
+        setTimeout(() => (btn.textContent = "Copy order id"), 900);
+        return;
+      }
+
+      const updId = btn.getAttribute("data-update");
+      if (updId) {
+        const sel = document.querySelector(`select[data-status="${updId}"]`);
+        const msg = document.getElementById(`msg-${updId}`);
+        const newStatus = sel ? sel.value : "pending";
+
+        msg.textContent = "Updating…";
+
+        try {
+          await patchOrderStatus(updId, newStatus);
+          msg.textContent = "Updated ✅";
+          fetchOrders();
+        } catch (err) {
+          msg.textContent = "Error: " + err.message;
+        }
+        return;
+      }
+
+      const stockBtn = e.target.closest(".btnUpdateStock");
+      if (stockBtn) {
+        const productId = stockBtn.dataset.productId;
+        if (!productId) return alert("UI bug: missing productId");
+
+        const card = stockBtn.closest(".item");
+        const stockEl = card.querySelector(".stockInput");
+        const newStock = Number(stockEl.value);
+
+        const sellerId = "demoSeller";
+        const sellerKey = "demo123";
+
+        console.log("Updating stock for productId:", productId);
+        // IMPORTANT: use the exact route your backend actually exposes
+        const res = await fetch(`/api/sellers/${sellerId}/products/${productId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "x-seller-key": sellerKey
+          },
+          body: JSON.stringify({ stock: newStock })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(data.error || "product not found");
+          return;
+        }
+
+        // optional: refresh products list
+        alert(`Stock updated to ${data.product?.stock ?? newStock}`);
+        fetchProducts(); // refresh
+        return;
+      }
+    });
+
+    fetchOrders();
+    fetchProducts(); // Initial load — merged; only call once
+  </script>
+</body>
+
+</html>

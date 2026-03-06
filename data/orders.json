@@ -1,0 +1,745 @@
+{
+  "demoSeller": [
+    {
+      "id": "ord_1772736553100_bx7px",
+      "sellerId": "demoSeller",
+      "buyerName": "Hitesh Agarwal",
+      "buyerPhone": "8103820270",
+      "buyerAddress": "Khair,uttar pradesh",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0",
+              "label": "M"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0",
+              "label": "Black"
+            }
+          ],
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "packed",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-05T18:49:13.101Z"
+        },
+        {
+          "status": "confirmed",
+          "at": "2026-03-05T18:55:30.731Z"
+        },
+        {
+          "status": "packed",
+          "at": "2026-03-05T18:55:43.231Z"
+        }
+      ],
+      "createdAt": "2026-03-05T18:49:13.101Z",
+      "idempotencyKey": null,
+      "receiptSig": "2bbb8931b574892f971ffe88f58016f57c2fdf5cba5ed6438e557ba549f7ac52",
+      "updatedAt": "2026-03-05T18:55:43.231Z"
+    },
+    {
+      "id": "ord_1772733954561_wn1yr",
+      "sellerId": "demoSeller",
+      "buyerName": "Hitesh Agrawal",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "kahir,Uttar-Pradesh",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0",
+              "label": "M"
+            },
+            {
+              "caption": "Color",
+              "optionId": "1",
+              "label": "White"
+            }
+          ],
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-05T18:05:54.561Z"
+        }
+      ],
+      "createdAt": "2026-03-05T18:05:54.561Z",
+      "idempotencyKey": null,
+      "receiptSig": "7f00192666e8a0090d01c74621322a81fed0939962563dd2a0cdb8e78c96b017"
+    },
+    {
+      "id": "ord_1772630910457_cvhzh",
+      "sellerId": "demoSeller",
+      "buyerName": "Ashis Bhakta",
+      "buyerPhone": "8103820270",
+      "buyerAddress": "kaijuri,uluberia,Howrah-711316",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0",
+              "label": "M"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0",
+              "label": "Black"
+            }
+          ],
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "packed",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-04T13:28:30.458Z"
+        },
+        {
+          "status": "confirmed",
+          "at": "2026-03-04T13:28:58.225Z"
+        },
+        {
+          "status": "packed",
+          "at": "2026-03-04T13:29:08.730Z"
+        }
+      ],
+      "createdAt": "2026-03-04T13:28:30.458Z",
+      "idempotencyKey": null,
+      "receiptSig": "ebaf7273a1db2e823d0c31c85085337ca5f4322911ece708388a359cc93a05dd",
+      "updatedAt": "2026-03-04T13:29:08.730Z"
+    },
+    {
+      "id": "ord_1772553820577_bdosf",
+      "sellerId": "demoSeller",
+      "buyerName": "Monish Bhakta",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "Kaijuri,Uluberia,howrah-711316",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0",
+              "label": "M"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0",
+              "label": "Black"
+            }
+          ],
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-03T16:03:40.577Z"
+        }
+      ],
+      "createdAt": "2026-03-03T16:03:40.577Z",
+      "idempotencyKey": null,
+      "receiptSig": "7d27e2e05a57b7682581194f1b5b1b0d6b3e77a442f45ef0103b18d4375ce459"
+    },
+    {
+      "id": "ord_1772552570604_1k359",
+      "sellerId": "demoSeller",
+      "buyerName": "Ashis Bhakta",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "kaijuri",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0",
+              "label": "M"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0",
+              "label": "Black"
+            }
+          ],
+          "name": "Oversized Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-03T15:42:50.605Z"
+        }
+      ],
+      "createdAt": "2026-03-03T15:42:50.605Z",
+      "idempotencyKey": null,
+      "receiptSig": "a14cf7073e7f3069c95ff47dde25c81f4a8b52e5021955d7567c42680a5746ac"
+    },
+    {
+      "id": "ord_1772302658178_f008f",
+      "sellerId": "demoSeller",
+      "buyerName": "Hitesh Agrawal",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "Khair,Aligarh,Uttar-Pradesh",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0"
+            }
+          ],
+          "name": "Oversized Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "shipped",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-28T18:17:38.179Z"
+        },
+        {
+          "status": "confirmed",
+          "at": "2026-02-28T18:18:30.688Z"
+        },
+        {
+          "status": "packed",
+          "at": "2026-02-28T18:20:08.130Z"
+        },
+        {
+          "status": "shipped",
+          "at": "2026-02-28T18:20:19.110Z"
+        }
+      ],
+      "createdAt": "2026-02-28T18:17:38.185Z",
+      "idempotencyKey": null,
+      "receiptSig": "bdebb49f0c7a8f9bab14750b5288bf677552c28fa652074f03594dcf3c7cbf2c",
+      "updatedAt": "2026-02-28T18:20:19.110Z"
+    },
+    {
+      "id": "ord_1772302608549_xrw7c",
+      "sellerId": "demoSeller",
+      "buyerName": "Hitesh Agrawal",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "Khair,Aligarh,Uttar-Pradesh",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0"
+            }
+          ],
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-28T18:16:48.550Z"
+        }
+      ],
+      "createdAt": "2026-02-28T18:16:48.550Z",
+      "idempotencyKey": null,
+      "receiptSig": "17dcb3e5c29c7a5d63622bfb3dd21267ef2d0da00eee2a2c4329c243b9d057a7"
+    },
+    {
+      "id": "ord_1772283235879_aqhwr",
+      "sellerId": "demoSeller",
+      "buyerName": "Test Buyer",
+      "buyerPhone": "0000000000",
+      "buyerAddress": "N/A",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "name": "Oversized Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-28T12:53:55.880Z"
+        }
+      ],
+      "createdAt": "2026-02-28T12:53:55.880Z",
+      "idempotencyKey": null,
+      "receiptSig": "96b5c0ba6da9a0f2be5a98e0e3169adbbc3001d9cfd77c6e0c4c865df605a2c1"
+    },
+    {
+      "id": "ord_1772121783470",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Size"
+        },
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Color"
+        },
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Size"
+        }
+      ],
+      "paymentStatus": "unpaid",
+      "status": "cancelled",
+      "createdAt": "2026-02-26T16:03:03.470Z",
+      "delivery": {
+        "name": "Anya",
+        "phone": "8103820270",
+        "address": "mp bhopal"
+      },
+      "receiptSig": "d63e725003c0b69b37fde5140ac73a14850d8c16abb8788ee09e8fffbeaec05d",
+      "updatedAt": "2026-02-27T15:27:35.388Z",
+      "history": [
+        {
+          "status": "cancelled",
+          "at": "2026-02-27T15:27:35.388Z"
+        }
+      ],
+      "timeline": [
+        {
+          "at": "2026-02-27T15:27:35.388Z",
+          "status": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": "ord_1772121158907",
+      "sellerId": "demoSeller",
+      "buyerName": "Guest Buyer",
+      "buyerPhone": "0000000000",
+      "buyerAddress": "N/A",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Color",
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "finalUnitPrice": 699
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T15:52:38.907Z"
+        }
+      ],
+      "createdAt": "2026-02-26T15:52:38.907Z",
+      "idempotencyKey": null,
+      "receiptSig": "3e01fd8fc38698d7481cfa091cc39b0d04cfdb1644c86e3cc11fb0a071880e9f"
+    },
+    {
+      "id": "ord_1772117012905",
+      "sellerId": "demoSeller",
+      "buyerName": "Guest Buyer",
+      "buyerPhone": "0000000000",
+      "buyerAddress": "N/A",
+      "items": [
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Size",
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "finalUnitPrice": 699
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T14:43:32.905Z"
+        }
+      ],
+      "createdAt": "2026-02-26T14:43:32.905Z",
+      "idempotencyKey": null
+    },
+    {
+      "id": "ord_1772116691754",
+      "sellerId": "demoSeller",
+      "buyerName": "Ashis Bhakta",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "kaijuri,uluberia,howrrah-711316",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Color",
+          "name": "Oversized Tee",
+          "unitPrice": 699,
+          "finalUnitPrice": 699
+        },
+        {
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Color",
+          "name": "Receipt Test Tee",
+          "unitPrice": 699,
+          "finalUnitPrice": 699
+        }
+      ],
+      "total": 1398,
+      "paymentStatus": "unpaid",
+      "status": "shipped",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T14:38:11.754Z"
+        },
+        {
+          "status": "confirmed",
+          "at": "2026-02-26T14:38:51.065Z"
+        },
+        {
+          "status": "packed",
+          "at": "2026-02-26T14:38:56.318Z"
+        },
+        {
+          "status": "shipped",
+          "at": "2026-02-26T14:39:00.362Z"
+        }
+      ],
+      "createdAt": "2026-02-26T14:38:11.754Z",
+      "idempotencyKey": null,
+      "updatedAt": "2026-02-26T14:39:00.362Z",
+      "timeline": [
+        {
+          "at": "2026-02-26T14:38:51.065Z",
+          "status": "confirmed"
+        },
+        {
+          "at": "2026-02-26T14:38:56.318Z",
+          "status": "packed"
+        },
+        {
+          "at": "2026-02-26T14:39:00.362Z",
+          "status": "shipped"
+        }
+      ]
+    },
+    {
+      "id": "ord_1772116002707",
+      "sellerId": "demoSeller",
+      "buyerName": "Ashis Bhakta",
+      "buyerPhone": "6289499907",
+      "buyerAddress": "kaijuri",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "size": "Standard",
+          "variant": "Size",
+          "name": "Oversized Tee",
+          "unitPrice": 699,
+          "finalUnitPrice": 699
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "delivered",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T14:26:42.707Z"
+        },
+        {
+          "status": "confirmed",
+          "at": "2026-02-26T14:28:21.884Z"
+        },
+        {
+          "status": "packed",
+          "at": "2026-02-26T14:28:37.509Z"
+        },
+        {
+          "status": "shipped",
+          "at": "2026-02-26T14:28:42.215Z"
+        },
+        {
+          "status": "delivered",
+          "at": "2026-02-26T14:28:45.630Z"
+        }
+      ],
+      "createdAt": "2026-02-26T14:26:42.707Z",
+      "idempotencyKey": null,
+      "receiptSig": "4ad1f4463ef22f79c6c495b2064094368986662449d79887536af880a45c30df",
+      "updatedAt": "2026-02-26T14:28:45.630Z",
+      "timeline": [
+        {
+          "at": "2026-02-26T14:28:21.884Z",
+          "status": "confirmed"
+        },
+        {
+          "at": "2026-02-26T14:28:37.509Z",
+          "status": "packed"
+        },
+        {
+          "at": "2026-02-26T14:28:42.215Z",
+          "status": "shipped"
+        },
+        {
+          "at": "2026-02-26T14:28:45.630Z",
+          "status": "delivered"
+        }
+      ]
+    },
+    {
+      "id": "ord_1772088939372",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "size": "M",
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "variant": "Black",
+          "qty": 1
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "cancelled",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T06:55:39.372Z"
+        },
+        {
+          "status": "cancelled",
+          "at": "2026-02-26T06:58:33.342Z"
+        }
+      ],
+      "createdAt": "2026-02-26T06:55:39.372Z",
+      "receiptHash": "4636b309657bffdf3776c4fa88464d09d46c8c73da2ae3b708f6c3eda3b64427",
+      "receiptSig": "56b7c13a817ebf809b8aba1e0a6397cf84c0ee944b2fc9020ce1278103e89820",
+      "updatedAt": "2026-02-26T06:58:33.342Z",
+      "timeline": [
+        {
+          "at": "2026-02-26T06:58:33.343Z",
+          "status": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": "ord_1772088821632",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "size": "M",
+          "productId": "prod_1772088369216_eb3f0cfd14d3c",
+          "variant": "Black",
+          "qty": 2
+        }
+      ],
+      "total": 1398,
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T06:53:41.632Z"
+        }
+      ],
+      "createdAt": "2026-02-26T06:53:41.632Z",
+      "receiptHash": "051d762393a28ac21958637a7ab0cdff6fba52e9585a4a4b08e275564347ed9d",
+      "receiptSig": "632b11ffa0c1f680c630e3d1fc4839f8d9a6bebb4f46895d93133716cd54fb5d"
+    },
+    {
+      "id": "ord_1772082644668",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "size": "M",
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "variant": "Black",
+          "qty": 1
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T05:10:44.668Z"
+        }
+      ],
+      "createdAt": "2026-02-26T05:10:44.669Z"
+    },
+    {
+      "id": "ord_1772080227488",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "size": "M",
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "variant": "Black",
+          "qty": 1
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-02-26T04:30:27.488Z"
+        }
+      ],
+      "createdAt": "2026-02-26T04:30:27.488Z"
+    },
+    {
+      "id": "ord_1771959658052",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "size": "M",
+          "productId": "prod_1771958966791_c45cc2bc1b9c2",
+          "variant": "Black",
+          "qty": 2
+        }
+      ],
+      "total": 1398,
+      "paymentStatus": "unpaid",
+      "status": "cancelled",
+      "createdAt": "2026-02-24T19:00:58.052Z",
+      "updatedAt": "2026-02-25T06:21:15.350Z"
+    },
+    {
+      "id": "ord_1771955252779",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "productId": "prod_1771953997240_ab146de86cb038",
+          "qty": 1,
+          "size": "M",
+          "variant": "Black",
+          "name": "Oversized Tee",
+          "unitPrice": 699
+        }
+      ],
+      "total": 699,
+      "paymentStatus": "unpaid",
+      "status": "delivered",
+      "createdAt": "2026-02-24T17:47:32.779Z"
+    },
+    {
+      "id": "ord_1771954517523",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "productId": "prod_1771953997240_ab146de86cb038",
+          "qty": 2,
+          "size": "M",
+          "variant": "Black",
+          "name": "Oversized Tee",
+          "unitPrice": 699
+        }
+      ],
+      "total": 1398,
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "createdAt": "2026-02-24T17:35:17.523Z"
+    },
+    {
+      "id": "ord_1771954181608",
+      "sellerId": "demoSeller",
+      "items": [
+        {
+          "size": "M",
+          "productId": "prod_1771953997240_ab146de86cb038",
+          "variant": "Black",
+          "qty": 2
+        }
+      ],
+      "total": 1398,
+      "paymentStatus": "unpaid",
+      "status": "cancelled",
+      "createdAt": "2026-02-24T17:29:41.608Z",
+      "updatedAt": "2026-02-26T04:45:47.242Z",
+      "history": [
+        {
+          "status": "cancelled",
+          "at": "2026-02-26T04:45:47.242Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1382,9 +1382,9 @@
   </script>
   <script>
     const API = location.origin;
-    const SELLER_ID = "demoSeller";
-    const SELLER_KEY = "demo123";
-
+    const params = new URLSearchParams(location.search);
+const SELLER_ID = params.get("sellerId") || "demoSeller";
+const SELLER_KEY = params.get("sellerKey") || "";
     async function fetchProducts() {
       const url = `${API}/api/sellers/${SELLER_ID}/products`;
       const sellerKey = SELLER_KEY;

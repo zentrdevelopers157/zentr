@@ -846,6 +846,27 @@
       }
     }
 
+    function renderAll() {
+      renderProducts();
+      renderOrders();
+      const oPill = document.getElementById("orderCountPill");
+      if (oPill) oPill.textContent = `${state.orders.length} orders`;
+    }
+
+    window.updateOrderStatus = async function (orderId, newStatus) {
+      if (!confirm(`Mark order as ${newStatus}?`)) return;
+      try {
+        await apiFetch(`/api/sellers/${SELLER_ID}/orders/${orderId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: newStatus })
+        });
+        showToast(`Order marked ${newStatus}`);
+        loadAll();
+      } catch (err) {
+        showToast(err.message);
+      }
+    };
+
     async function saveProduct() {
       const p = {
         name: $("pName").value.trim(),

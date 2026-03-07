@@ -265,6 +265,11 @@
       box-shadow: 0 0 0 4px rgba(39, 240, 213, .1);
     }
 
+    select option {
+      background: #0d1f24;
+      color: #fff;
+    }
+
     /* ── Items ── */
     .list {
       display: flex;
@@ -478,6 +483,108 @@
       object-fit: cover;
     }
 
+    /* ── Option Group Builder ── */
+    .option-group-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+
+    .option-group-row input {
+      margin: 0;
+    }
+
+    .option-group-row .name-in {
+      width: 100px;
+      flex-shrink: 0;
+    }
+
+    .option-group-row .vals-in {
+      flex: 1;
+    }
+
+    .option-group-row .rm-btn {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 8px;
+      flex-shrink: 0;
+      font-size: 16px;
+      line-height: 1;
+      align-self: center;
+    }
+
+    /* ── Order Status UX ── */
+    .order-status-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .order-status-btn {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--stroke);
+      background: rgba(39, 240, 213, .08);
+      color: var(--turq);
+      transition: all .15s;
+      text-transform: capitalize;
+    }
+
+    .order-status-btn:hover {
+      background: rgba(39, 240, 213, .18);
+      border-color: var(--turq);
+    }
+
+    .order-status-btn.cancel {
+      color: var(--bad);
+      background: var(--bad-bg);
+      border-color: rgba(255, 107, 107, .3);
+    }
+
+    .order-status-btn.cancel:hover {
+      background: rgba(255, 107, 107, .2);
+    }
+
+    .order-detail {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .status-confirmed {
+      color: var(--turq);
+    }
+
+    .status-packed {
+      color: #80d8ff;
+    }
+
+    .status-shipped {
+      color: #b39ddb;
+    }
+
+    .status-delivered {
+      color: var(--ok);
+    }
+
+    .status-cancelled {
+      color: var(--bad);
+    }
+
+    .status-pending {
+      color: var(--warn);
+    }
+
     .toast {
       position: fixed;
       bottom: 24px;
@@ -643,7 +750,7 @@
             <div class="field">
               <label>Product Image</label>
               <input type="file" id="imageInput" accept="image/*" />
-              <div class="hint">Optional. Stored in browser (base64).</div>
+              <div class="hint">Optional. Stored as base64.</div>
             </div>
 
             <div class="row">
@@ -669,14 +776,11 @@
             </div>
 
             <div class="field">
-              <label>Sizes (comma separated)</label>
-              <input id="pSizes" placeholder="e.g., S, M, L, XL" />
-              <div class="hint">Zentr style: size selection can be mandatory on buyer side.</div>
-            </div>
-
-            <div class="field">
-              <label>Variants (comma separated)</label>
-              <input id="pVariants" placeholder="e.g., Black, White, Mint" />
+              <label>Option Groups <span style="font-weight:400;color:var(--muted)">(e.g. Size → S, M, L)</span></label>
+              <div id="optionGroupsList"></div>
+              <button class="btn" id="addOptionGroupBtn" style="margin-top:6px;font-size:12px;">+ Add Option
+                Group</button>
+              <div class="hint">Each group: give a Name (e.g. "Size") and Values (e.g. "S, M, L, XL")</div>
             </div>
 
             <div class="field">
@@ -885,8 +989,7 @@
         category: $("pCategory").value.trim(),
         price: Number($("pPrice").value),
         stock: $("pStock").value === "" ? "" : Number($("pStock").value),
-        sizes: ($("pSizes").value || "").split(",").map(s => s.trim()).filter(Boolean),
-        variants: ($("pVariants").value || "").split(",").map(s => s.trim()).filter(Boolean),
+        options: getOptionGroupsFromForm(),
         desc: $("pDesc").value.trim(),
         images: state.lastImage ? [state.lastImage] : []
       };
@@ -961,36 +1064,51 @@
 
       const filtered = state.products.filter(p => !q || p.name.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q)));
 
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="color:var(--muted);padding:12px 0">No products yet. Add one using the form →</div>';
+        return;
+      }
+
       filtered.forEach(p => {
         const div = document.createElement("div");
         div.className = "item";
-        const imgUrl = buildImageUrl((p.images && p.images[0]) || "");
+        const imgSrc = (p.images && p.images[0]) || "";
         const lowStock = p.stock !== "" && p.stock <= 5;
 
         const miniDiv = document.createElement("div");
         miniDiv.className = "mini";
-        if (imgUrl) {
-          const img = document.createElement("img");
-          img.src = imgUrl;
-          img.loading = "lazy";
-          img.style.cursor = "zoom-in";
-          img.addEventListener("click", () => {
+        if (imgSrc) {
+          const imgEl = document.createElement("img");
+          imgEl.src = imgSrc;
+          imgEl.alt = p.name || "";
+          imgEl.style.cssText = "width:100%;height:100%;object-fit:cover;cursor:zoom-in";
+          imgEl.onclick = () => {
             const z = $("zoomOverlay");
-            z.querySelector("img").src = imgUrl;
+            z.querySelector("img").src = imgSrc;
             z.style.display = "flex";
-          });
-          img.onerror = () => { miniDiv.textContent = "∅"; };
-          miniDiv.appendChild(img);
+          };
+          imgEl.onerror = () => { miniDiv.textContent = "🖴"; };
+          miniDiv.appendChild(imgEl);
         } else {
           miniDiv.textContent = "📦";
+          miniDiv.style.fontSize = "22px";
         }
         div.appendChild(miniDiv);
+
+        const optionsSummary = (() => {
+          const opts = p.options || [];
+          if (opts.length > 0) return opts.map(g => `${g.name}: ${(g.values || []).join("/")}`).join(" · ");
+          const parts = [];
+          if (p.sizes && p.sizes.length) parts.push(`Size: ${p.sizes.join("/")}`);
+          if (p.variants && p.variants.length) parts.push(`Color: ${p.variants.join("/")}`);
+          return parts.join(" · ");
+        })();
 
         div.innerHTML += `
           <div class="txt">
             <div class="t">${escapeHtml(p.name)}</div>
             <div class="s">${escapeHtml(p.category || 'No Category')} • ${formatINR(p.price)}</div>
-            <div class="s">Variants: ${(p.variants || []).map(v => typeof v === 'string' ? v : (v.label || v.name || JSON.stringify(v))).join(", ") || "-"}</div>
+            ${optionsSummary ? `<div class="s" style="color:rgba(39,240,213,.7);margin-top:2px;font-size:11px">${escapeHtml(optionsSummary)}</div>` : ''}
           </div>
           <div class="right">
             <div class="chip ${lowStock ? 'bad' : 'ok'}">Stock: ${p.stock === "" ? "∞" : p.stock}</div>
@@ -1014,33 +1132,66 @@
 
       const filtered = state.orders.filter(o => filter === 'ALL' || o.status === filter);
 
+      if (filtered.length === 0) {
+        list.innerHTML = `<div style="color:var(--muted);padding:12px 0">${filter === 'ALL' ? 'No orders yet.' : `No ${filter} orders.`}</div>`;
+        return;
+      }
+
+      const FLOW = {
+        pending: ["confirmed", "cancelled"],
+        confirmed: ["packed", "cancelled"],
+        packed: ["shipped"],
+        shipped: ["delivered"],
+        delivered: [],
+        cancelled: []
+      };
+
+      const STATUS_CLASS = {
+        pending: 'warn',
+        confirmed: 'ok',
+        packed: 'ok',
+        shipped: 'ok',
+        delivered: 'ok',
+        cancelled: 'bad'
+      };
+
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(o => {
         const div = document.createElement("div");
         div.className = "item";
-        const date = new Date(o.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' });
-        const items = (o.items || []).map(it => `${it.qty}x ${it.name}`).join(", ");
+        div.style.cssText = "flex-direction:column;gap:10px;align-items:stretch";
 
-        const FLOW = {
-          pending: ["confirmed", "cancelled"],
-          confirmed: ["packed", "cancelled"],
-          packed: ["shipped"],
-          shipped: ["delivered"]
-        };
+        const date = new Date(o.createdAt).toLocaleString("en-IN", { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+        const itemsHtml = (o.items || []).map(it => {
+          let line = `${it.qty}× ${escapeHtml(it.name)}`;
+          if (it.variants && it.variants.length) {
+            const opts = it.variants.map(v => v.label ? `${v.caption}: ${v.label}` : String(v)).join(', ');
+            line += ` <span style="color:rgba(39,240,213,.75);font-size:10px">(${escapeHtml(opts)})</span>`;
+          }
+          return `<div>${line}</div>`;
+        }).join('');
+
         const nextSteps = FLOW[o.status] || [];
+        const statusClass = STATUS_CLASS[o.status] || '';
 
         div.innerHTML = `
-          <div class="txt">
-            <div class="t">#${o.id.slice(-5)} • ${escapeHtml(o.buyerName)}</div>
-            <div class="s">${escapeHtml(items)}</div>
-            <div class="s">${date} • ${formatINR(o.total)}</div>
-          </div>
-          <div class="right">
-            <div class="chip ${o.status === 'pending' ? 'warn' : o.status === 'delivered' ? 'ok' : o.status === 'cancelled' ? 'bad' : ''}">${o.status}</div>
-            <div class="actions" style="margin-top:6px">
-              ${nextSteps.map(s => `<button class="pill" onclick="updateOrderStatus('${o.id}', '${s}')">${s}</button>`).join("")}
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div class="txt">
+              <div class="t">#${o.id.slice(-6)} · ${escapeHtml(o.buyerName)}</div>
+              <div class="order-detail">${date} · ${formatINR(o.total)}</div>
+              <div class="order-detail" style="margin-top:4px">${itemsHtml}</div>
+              ${o.buyerPhone ? `<div class="order-detail" style="margin-top:2px">📱 ${escapeHtml(o.buyerPhone)}</div>` : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div class="chip ${statusClass}" style="text-transform:capitalize">${o.status}</div>
               <button class="iconbtn" onclick="copyTrack('${o.id}')" title="Copy tracking link">🔗</button>
             </div>
           </div>
+          ${nextSteps.length > 0 ? `
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--stroke)">
+            <span style="font-size:11px;color:var(--muted)">Update status →</span>
+            ${nextSteps.map(s => `<button class="order-status-btn${s === 'cancelled' ? ' cancel' : ''}" onclick="updateOrderStatus('${o.id}', '${s}')">${s === 'confirmed' ? '✅ Confirm' : s === 'packed' ? '📦 Pack' : s === 'shipped' ? '🚚 Ship' : s === 'delivered' ? '🎉 Delivered' : s === 'cancelled' ? '✕ Cancel' : s}</button>`).join('')}
+          </div>` : `<div style="font-size:11px;color:var(--muted)">Order ${o.status === 'delivered' ? '✅ complete' : o.status === 'cancelled' ? '❌ cancelled' : `is ${o.status}`}. No further updates.</div>`}
         `;
         list.appendChild(div);
       });
@@ -1054,10 +1205,22 @@
       $("pCategory").value = p.category || "";
       $("pPrice").value = p.price;
       $("pStock").value = p.stock;
-      $("pSizes").value = (p.sizes || []).join(", ");
-      $("pVariants").value = (p.variants || []).join(", ");
       $("pDesc").value = p.desc || "";
       $("deleteProductBtn").style.display = "block";
+
+      // Load option groups
+      const optsList = $("optionGroupsList");
+      optsList.innerHTML = "";
+      const opts = p.options || [];
+      // Legacy: convert old sizes/variants to option groups
+      if (opts.length === 0) {
+        const legacyOpts = [];
+        if (p.sizes && p.sizes.length) legacyOpts.push({ name: "Size", values: p.sizes });
+        if (p.variants && p.variants.length) legacyOpts.push({ name: "Color", values: p.variants });
+        legacyOpts.forEach(g => addOptionGroupRow(g.name, g.values.join(", ")));
+      } else {
+        opts.forEach(g => addOptionGroupRow(g.name, (g.values || []).join(", ")));
+      }
 
       if (state.lastImage) {
         $("previewImg").src = state.lastImage;
@@ -1078,10 +1241,9 @@
       $("pCategory").value = "";
       $("pPrice").value = "";
       $("pStock").value = "";
-      $("pSizes").value = "";
-      $("pVariants").value = "";
       $("pDesc").value = "";
       if ($("imageInput")) $("imageInput").value = "";
+      $("optionGroupsList").innerHTML = "";
       $("previewImg").style.display = "none";
       $("previewEmpty").style.display = "block";
       $("deleteProductBtn").style.display = "none";
@@ -1089,14 +1251,41 @@
 
     window.copyTrack = (orderId) => {
       const link = `${location.origin}/track.html?sellerId=${SELLER_ID}&orderId=${orderId}`;
-      navigator.clipboard.writeText(link);
-      showToast("Tracking link copied 📋");
+      navigator.clipboard.writeText(link).then(() => showToast("Tracking link copied 📋")).catch(() => {
+        prompt("Copy this link:", link);
+      });
     };
 
+    // ── Option Group Builder ──
+    function addOptionGroupRow(name = "", vals = "") {
+      const row = document.createElement("div");
+      row.className = "option-group-row";
+      row.innerHTML = `
+        <input class="name-in" placeholder="Name (e.g. Size)" value="${escapeHtml(name)}">
+        <input class="vals-in" placeholder="Values: S, M, L, XL"  value="${escapeHtml(vals)}">
+        <button class="iconbtn danger rm-btn" title="Remove">✕</button>
+      `;
+      row.querySelector(".rm-btn").onclick = () => row.remove();
+      $("optionGroupsList").appendChild(row);
+    }
+
+    function getOptionGroupsFromForm() {
+      const rows = $("optionGroupsList").querySelectorAll(".option-group-row");
+      const opts = [];
+      rows.forEach(row => {
+        const name = row.querySelector(".name-in").value.trim();
+        const vals = row.querySelector(".vals-in").value.split(",").map(s => s.trim()).filter(Boolean);
+        if (name && vals.length) opts.push({ name, values: vals });
+      });
+      return opts;
+    }
+
     // ─── INIT ───
+    $("addOptionGroupBtn").onclick = () => addOptionGroupRow();
+
     $("zoomOverlay").addEventListener("click", function () {
       this.style.display = "none";
-      this.querySelector("img").src = ""; // Clear image src to save memory
+      this.querySelector("img").src = "";
     });
 
     $("saveProductBtn").onclick = saveProduct;

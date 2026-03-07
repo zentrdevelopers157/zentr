@@ -1,30 +1,36 @@
 (() => {
   "use strict";
 
-  // run-once guard
   if (window.__ZENTR_BUYER_INIT__) return;
   window.__ZENTR_BUYER_INIT__ = true;
 
   const $ = (id) => document.getElementById(id);
 
-  const CART_KEY = "zentr_cart_v1";
+  const CART_KEY = "zentr_cart_v2";
   const state = {
-    sellerId: "demoSeller",
+    sellerId: "",
+    storeName: "",
     catalog: [],
     productById: {},
     cart: { items: [] },
     query: ""
   };
 
-  function toast(msg, ms = 2200) {
+  // ─── TOAST ───
+  function toast(msg, ms = 2400) {
     const el = $("toast");
-    if (!el) return alert(msg);
+    if (!el) return;
     el.textContent = msg;
     el.style.display = "block";
+    el.style.opacity = "1";
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => (el.style.display = "none"), ms);
+    toast._t = setTimeout(() => {
+      el.style.opacity = "0";
+      setTimeout(() => { el.style.display = "none"; }, 300);
+    }, ms);
   }
 
+  // ─── ZOOM ───
   function showZoom(url) {
     const overlay = $("zoomOverlay");
     if (!overlay) return;
@@ -34,20 +40,20 @@
     overlay.onclick = () => { overlay.style.display = "none"; img.src = ""; };
   }
 
+  // ─── UTILS ───
   function safeJsonParse(s, fallback) {
     try { return JSON.parse(s); } catch { return fallback; }
   }
 
   function money(n) {
-    const x = Number(n || 0);
-    return `₹${x.toFixed(0)}`;
+    return `₹${Number(n || 0).toFixed(0)}`;
   }
 
   function getSellerId() {
-    const url = new URL(window.location.href);
-    return url.searchParams.get("sellerId") || "demoSeller";
+    return new URL(window.location.href).searchParams.get("sellerId") || "";
   }
 
+  // ─── CART PERSISTENCE ───
   function loadCart() {
     const raw = localStorage.getItem(CART_KEY);
     const data = raw ? safeJsonParse(raw, null) : null;
@@ -66,36 +72,30 @@
     if (pill) pill.textContent = `Cart: ${count}`;
   }
 
-  function findCartItem(productId, variants) {
-    const key = JSON.stringify({ productId, variants: variants || [] });
-    return state.cart.items.find(it => JSON.stringify({ productId: it.productId, variants: it.variants || [] }) === key);
+  function findCartItem(productId, selectedOptions) {
+    const key = JSON.stringify({ productId, selectedOptions: (selectedOptions || []).sort((a, b) => a.name.localeCompare(b.name)) });
+    return state.cart.items.find(it => {
+      const itKey = JSON.stringify({ productId: it.productId, selectedOptions: (it.selectedOptions || []).sort((a, b) => a.name.localeCompare(b.name)) });
+      return key === itKey;
+    });
   }
 
-  function variantSummary(variants) {
-    if (!Array.isArray(variants) || variants.length === 0) return "";
-    return variants.map(v => `${v.caption}: ${v.label}`).join(", ");
+  function optionSummary(selectedOptions) {
+    if (!Array.isArray(selectedOptions) || selectedOptions.length === 0) return "";
+    return selectedOptions.map(v => `${v.name}: ${v.value}`).join(", ");
   }
 
-  function buildImageUrl(pathOrUrl) {
-    if (!pathOrUrl) return "";
-    // if already absolute
-    if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-    // if starts with / then keep
-    if (pathOrUrl.startsWith("/")) return pathOrUrl;
-    // otherwise treat as relative to current origin
-    return `/${pathOrUrl}`;
-  }
-
+  // ─── PRODUCT RENDERING ───
   function renderProducts(list) {
     const grid = $("productGrid");
-    if (!grid) throw new Error("Missing #productGrid in buyer.html");
+    if (!grid) return;
     grid.innerHTML = "";
 
     const q = state.query.trim().toLowerCase();
     const filtered = !q ? list : list.filter(p => (p.name || "").toLowerCase().includes(q));
 
     if (filtered.length === 0) {
-      grid.innerHTML = `<div style="color:rgba(255,255,255,.55);padding:12px 0">No products match your search.</div>`;
+      grid.innerHTML = `<div style="color:rgba(255,255,255,.55);padding:12px 0">No products${q ? " match your search" : " in this store yet"}.${!q ? " Check back soon!" : ""}</div>`;
       return;
     }
 
@@ -103,73 +103,78 @@
       const card = document.createElement("div");
       card.className = "card";
 
-      // image
+      // Image box
       const imgbox = document.createElement("div");
       imgbox.className = "imgbox";
-
-      const imgUrl = buildImageUrl((p.images && p.images[0]) || "");
-      if (imgUrl) {
+      const imgSrc = (p.images && p.images[0]) || "";
+      if (imgSrc) {
         const img = document.createElement("img");
-        img.src = imgUrl;
+        img.src = imgSrc;
         img.alt = p.name || "product";
         img.loading = "lazy";
         img.style.cursor = "zoom-in";
-        img.addEventListener("click", () => showZoom(imgUrl));
+        img.addEventListener("click", () => showZoom(imgSrc));
         img.onerror = () => { imgbox.textContent = "No image"; };
         imgbox.appendChild(img);
       } else {
-        imgbox.textContent = "No image";
+        imgbox.innerHTML = `<div style="font-size:42px;color:rgba(255,255,255,.2)">📦</div>`;
       }
 
-      // meta
       const meta = document.createElement("div");
       meta.className = "meta";
 
-      const name = document.createElement("div");
-      name.className = "name";
-      name.textContent = p.name || "Unnamed Product";
+      const nameEl = document.createElement("div");
+      nameEl.className = "name";
+      nameEl.textContent = p.name || "Unnamed Product";
 
-      const price = document.createElement("div");
-      price.className = "price";
-      price.textContent = money(p.price);
+      const priceEl = document.createElement("div");
+      priceEl.className = "price";
+      priceEl.textContent = money(p.price);
 
-      // variants area
+      if (p.desc) {
+        const descEl = document.createElement("div");
+        descEl.style.cssText = "font-size:12px;color:rgba(255,255,255,.5);margin:4px 0;line-height:1.4";
+        descEl.textContent = p.desc;
+        meta.appendChild(descEl);
+      }
+
+      // ─── OPTION GROUPS ───
+      // New schema: p.options = [{name:"Size", values:["S","M","L"]}, ...]
+      // Legacy schema: p.sizes=[] and p.variants=[]
+      const optionGroups = buildOptionGroups(p);
       const vwrap = document.createElement("div");
       vwrap.className = "variants";
+      const selects = []; // [{name, select}]
 
-      const groups = Array.isArray(p.variants) ? p.variants : [];
-      const selects = [];
-
-      for (const g of groups) {
-        const caption = g.label || "Variant"; // Use label, not caption
-        const options = Array.isArray(g.options) ? g.options : [];
-
+      for (const group of optionGroups) {
         const field = document.createElement("div");
         field.className = "field";
 
         const lab = document.createElement("label");
-        lab.textContent = `${caption} *`;
+        lab.textContent = `${group.name} *`;
 
         const sel = document.createElement("select");
-        sel.dataset.caption = caption;
+        sel.style.cssText = "background:#0d1f24;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 12px;width:100%;font-size:13px;cursor:pointer;";
+        sel.dataset.groupName = group.name;
 
         const ph = document.createElement("option");
         ph.value = "";
-        ph.textContent = `Select ${caption}`;
+        ph.textContent = `Select ${group.name}`;
+        ph.style.color = "#aaa";
         sel.appendChild(ph);
 
-        for (const opt of options) {
+        for (const val of group.values) {
           const o = document.createElement("option");
-          // CRITICAL: value MUST be opt.add (not id)
-          o.value = String(opt.add);
-          o.textContent = opt.label;
+          o.value = val;
+          o.textContent = val;
+          o.style.background = "#0d1f24";
           sel.appendChild(o);
         }
 
         field.appendChild(lab);
         field.appendChild(sel);
         vwrap.appendChild(field);
-        selects.push(sel);
+        selects.push({ name: group.name, select: sel });
       }
 
       const btn = document.createElement("button");
@@ -178,24 +183,22 @@
 
       btn.addEventListener("click", () => {
         try {
-          const picked = [];
-          for (const sel of selects) {
-            const caption = sel.dataset.caption || "Variant";
-            if (!sel.value) throw new Error(`Select ${caption}`);
-            const label = sel.options[sel.selectedIndex]?.textContent || "";
-            // Store caption, optionId as index, and label
-            picked.push({ caption, optionId: String(sel.selectedIndex - 1), label });
+          const selectedOptions = [];
+          for (const { name, select } of selects) {
+            if (!select.value) throw new Error(`Please select ${name}`);
+            selectedOptions.push({ name, value: select.value });
           }
 
-          const existing = findCartItem(p.id, picked.map(v => ({ caption: v.caption, optionId: v.optionId })));
-          if (existing) existing.qty += 1;
-          else {
+          const existing = findCartItem(p.id, selectedOptions);
+          if (existing) {
+            existing.qty += 1;
+          } else {
             state.cart.items.push({
               productId: p.id,
               name: p.name,
               price: Number(p.price || 0),
               qty: 1,
-              variants: picked
+              selectedOptions
             });
           }
 
@@ -207,9 +210,9 @@
         }
       });
 
-      meta.appendChild(name);
-      meta.appendChild(price);
-      if (groups.length) meta.appendChild(vwrap);
+      meta.appendChild(nameEl);
+      meta.appendChild(priceEl);
+      if (optionGroups.length) meta.appendChild(vwrap);
       meta.appendChild(btn);
 
       card.appendChild(imgbox);
@@ -218,9 +221,23 @@
     }
   }
 
+  // Build normalized option groups from both old and new schema
+  function buildOptionGroups(p) {
+    // New schema (preferred)
+    if (p.options && Array.isArray(p.options) && p.options.length > 0) {
+      return p.options.map(g => ({ name: g.name || "Option", values: Array.isArray(g.values) ? g.values : [] }));
+    }
+    // Legacy: sizes + variants
+    const groups = [];
+    if (p.sizes && p.sizes.length > 0) groups.push({ name: "Size", values: p.sizes });
+    if (p.variants && p.variants.length > 0) groups.push({ name: "Color", values: typeof p.variants[0] === "string" ? p.variants : p.variants.map(v => v.label || v.name || String(v)) });
+    return groups;
+  }
+
+  // ─── CART RENDERING ───
   function renderCart() {
     const list = $("cartList");
-    if (!list) throw new Error("Missing #cartList in buyer.html");
+    if (!list) return;
     list.innerHTML = "";
 
     if (!state.cart.items.length) {
@@ -241,8 +258,8 @@
 
       const sub = document.createElement("div");
       sub.className = "ci-sub";
-      const vtxt = variantSummary(it.variants);
-      sub.textContent = vtxt ? `${vtxt}` : "No variants";
+      const vtxt = optionSummary(it.selectedOptions);
+      sub.textContent = vtxt || "No options";
 
       left.appendChild(title);
       left.appendChild(sub);
@@ -259,8 +276,7 @@
       });
 
       const qty = document.createElement("div");
-      qty.style.minWidth = "18px";
-      qty.style.textAlign = "center";
+      qty.style.cssText = "min-width:18px;text-align:center";
       qty.textContent = String(it.qty || 1);
 
       const plus = document.createElement("button");
@@ -271,20 +287,27 @@
         renderCart();
       });
 
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "×";
+      removeBtn.style.cssText = "color:rgba(255,107,107,.8);font-size:16px;padding:0 4px;background:none;border:none;cursor:pointer;";
+      removeBtn.addEventListener("click", () => {
+        state.cart.items = state.cart.items.filter(x => x !== it);
+        saveCart();
+        renderCart();
+      });
+
       right.appendChild(minus);
       right.appendChild(qty);
       right.appendChild(plus);
+      right.appendChild(removeBtn);
 
       const price = document.createElement("div");
-      price.style.minWidth = "64px";
-      price.style.textAlign = "right";
-      price.style.fontWeight = "700";
+      price.style.cssText = "min-width:64px;text-align:right;font-weight:700";
       price.textContent = money((it.price || 0) * (it.qty || 1));
 
       row.appendChild(left);
       row.appendChild(right);
       row.appendChild(price);
-
       list.appendChild(row);
     }
 
@@ -294,73 +317,66 @@
 
   function updateTotals() {
     const sub = state.cart.items.reduce((a, it) => a + (Number(it.price || 0) * Number(it.qty || 0)), 0);
-    const delivery = 0;
     const elSub = $("subTotal");
     const elDel = $("deliveryFee");
     const elGrand = $("grandTotal");
     if (elSub) elSub.textContent = money(sub);
-    if (elDel) elDel.textContent = money(delivery);
-    if (elGrand) elGrand.textContent = money(sub + delivery);
+    if (elDel) elDel.textContent = money(0);
+    if (elGrand) elGrand.textContent = money(sub);
   }
 
+  // ─── UI BINDING ───
   function bindUI() {
-    $("sellerPill").textContent = `seller: ${state.sellerId}`;
+    const pill = $("sellerPill");
+    if (pill) pill.textContent = state.storeName ? `Store: ${state.storeName}` : `Seller: ${state.sellerId}`;
 
-    $("searchInput").addEventListener("input", (e) => {
-      state.query = e.target.value || "";
-      renderProducts(state.catalog);
-    });
+    const searchInput = $("searchInput");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        state.query = e.target.value || "";
+        renderProducts(state.catalog);
+      });
+    }
 
-    $("clearCartBtn").addEventListener("click", () => {
+    const clearBtn = $("clearCartBtn");
+    if (clearBtn) clearBtn.addEventListener("click", () => {
       state.cart = { items: [] };
       saveCart();
       renderCart();
       toast("Cart cleared 🧹");
     });
 
-    $("checkoutBtn").addEventListener("click", proceedToPay);
+    const checkoutBtn = $("checkoutBtn");
+    if (checkoutBtn) checkoutBtn.addEventListener("click", proceedToPay);
   }
 
+  // ─── CHECKOUT ───
   function buildCheckoutPayload() {
-    const name = ($("buyerName").value || "").trim();
-    const phone = ($("buyerPhone").value || "").trim();
-    const address = ($("buyerAddress").value || "").trim();
+    const name = ($("buyerName")?.value || "").trim();
+    const phone = ($("buyerPhone")?.value || "").trim();
+    const address = ($("buyerAddress")?.value || "").trim();
 
     if (!state.cart.items.length) throw new Error("Cart is empty");
 
     const items = state.cart.items.map(it => {
       const product = state.productById[it.productId];
       if (!product) throw new Error(`Unknown product: ${it.productId}`);
-
-      const groups = Array.isArray(product.variants) ? product.variants : [];
-      const cleaned = [];
-
-      for (const group of groups) {
-        const caption = group.label || group.caption || "Variant";
-        const picked = (it.variants || []).find(v =>
-          String(v.caption).toLowerCase() === String(caption).toLowerCase()
-        );
-
-        if (!picked) throw new Error(`Missing ${caption} for ${product.name}`);
-        cleaned.push({
-          caption: caption,
-          optionId: picked.optionId,
-          label: picked.label
-        });
-      }
-
       return {
         productId: it.productId,
         qty: Number(it.qty || 1),
-        variants: cleaned
+        // Store selected options as variants array for backend compatibility
+        variants: (it.selectedOptions || []).map(opt => ({
+          caption: opt.name,
+          label: opt.value
+        }))
       };
     });
 
     return {
       items,
-      buyerName: name,
-      buyerPhone: phone,
-      buyerAddress: address,
+      buyerName: name || "Guest Buyer",
+      buyerPhone: phone || "0000000000",
+      buyerAddress: address || "N/A",
       delivery: { name, phone, address }
     };
   }
@@ -394,34 +410,58 @@
     }
   }
 
+  // ─── CATALOG LOADING ───
   async function loadCatalog() {
     const url = `/api/public/sellers/${encodeURIComponent(state.sellerId)}/products`;
-    console.log("[buyer] loading products:", url);
-
     const res = await fetch(url, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
-    console.log("[buyer] products response:", data);
 
-    if (!data.ok) throw new Error(data.error || "products fetch failed");
+    if (!data.ok) throw new Error(data.error || "Failed to load products");
 
     state.catalog = Array.isArray(data.products) ? data.products : [];
     state.productById = Object.fromEntries(state.catalog.map(p => [p.id, p]));
   }
 
-  // boot
+  async function loadStoreName() {
+    try {
+      const res = await fetch(`/api/public/sellers/${encodeURIComponent(state.sellerId)}`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok && data.storeName) {
+        state.storeName = data.storeName;
+        const pill = $("sellerPill");
+        if (pill) pill.textContent = `Store: ${data.storeName}`;
+        // Also update page title
+        if (data.storeName) document.title = `${data.storeName} | Zentr`;
+      }
+    } catch { /* non-critical */ }
+  }
+
+  // ─── BOOT ───
   window.addEventListener("DOMContentLoaded", async () => {
     try {
       state.sellerId = getSellerId();
+      if (!state.sellerId) {
+        const grid = $("productGrid");
+        if (grid) grid.innerHTML = `<div style="color:rgba(255,107,107,.8);padding:20px">⚠️ No seller ID provided in the URL. Please use the store link shared by the seller.</div>`;
+        return;
+      }
+
       loadCart();
       bindUI();
-      await loadCatalog();
+
+      // Load in parallel
+      await Promise.all([loadCatalog(), loadStoreName()]);
       renderProducts(state.catalog);
       renderCart();
       updateCartPill();
-      toast("Catalog loaded ✅", 1400);
+
+      if (state.catalog.length === 0) {
+        toast("This store has no products yet.", 3000);
+      }
     } catch (e) {
-      console.error("[buyer] failed", e);
-      alert("Buyer page JS error: " + (e?.message || e));
+      console.error("[buyer] boot error:", e);
+      const grid = $("productGrid");
+      if (grid) grid.innerHTML = `<div style="color:rgba(255,107,107,.8);padding:20px">⚠️ Failed to load products: ${e?.message || e}</div>`;
     }
   });
 

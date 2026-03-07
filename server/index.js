@@ -353,7 +353,7 @@ app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
 
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
   try {
-    const { name, price, stock, category, sizes, variants, desc, images } = req.body;
+    const { name, price, stock, category, options, sizes, variants, desc, images } = req.body;
     if (!name || isNaN(Number(price))) {
       return res.status(400).json({ ok: false, error: "name and price are required" });
     }
@@ -366,6 +366,7 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
       category: String(category || "").trim(),
       price: Number(price),
       stock: stock === "" ? "" : Number(stock) || 0,
+      options: Array.isArray(options) ? options : [],
       sizes: Array.isArray(sizes) ? sizes : [],
       variants: Array.isArray(variants) ? variants : [],
       desc: String(desc || "").trim(),
@@ -391,7 +392,7 @@ app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, 
     if (idx === -1) return res.status(404).json({ ok: false, error: "product not found" });
 
     const p = products[idx];
-    const fields = ["name", "price", "stock", "category", "sizes", "variants", "desc", "images"];
+    const fields = ["name", "price", "stock", "category", "options", "sizes", "variants", "desc", "images"];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) {
         if (f === "price") p[f] = Number(req.body[f]);

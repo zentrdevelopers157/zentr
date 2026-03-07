@@ -964,7 +964,7 @@
         <div class="txt">
           <div class="t">${escapeHtml(p.name || "Untitled")}</div>
           <div class="s">${escapeHtml(p.category || "Uncategorized")} • ${formatINR(p.price || 0)}</div>
-          <div class="s">Sizes: ${escapeHtml((p.sizes || []).join(", ") || "—")} | Variants: ${escapeHtml((p.variants || []).join(", ") || "—")}</div>
+          <div class="s">Sizes: ${escapeHtml((p.sizes || []).join(", ") || "—")} | Variants: ${Array.isArray(p.variants) ? p.variants.map(v => escapeHtml(String(v?.label || v?.name || v?.value || v?.color || v))).join(",") : "-"}</div>
           <div class="pill">Stock: ${p.stock ?? 0}</div>
         </div>
 

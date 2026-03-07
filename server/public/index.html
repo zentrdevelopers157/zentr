@@ -2,88 +2,917 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Zentr | Orders. Not DMs.</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="icon" href="data:," />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet" />
     <style>
+        :root {
+            --bg0: #050b0d;
+            --bg1: #071114;
+            --glass: rgba(255, 255, 255, .055);
+            --stroke: rgba(255, 255, 255, .11);
+            --text: rgba(255, 255, 255, .95);
+            --muted: rgba(255, 255, 255, .48);
+            --turq: #27f0d5;
+            --turq-dim: rgba(39, 240, 213, .12);
+            --turq-glow: rgba(39, 240, 213, .25);
+            --radius: 24px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
         body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+            color: var(--text);
+            background: var(--bg0);
+            overflow-x: hidden;
+        }
+
+        /* ── Animated Background ── */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 12%, rgba(39, 240, 213, .18), transparent 55%),
+                radial-gradient(circle at 85% 20%, rgba(39, 240, 213, .12), transparent 50%),
+                radial-gradient(circle at 50% 88%, rgba(39, 240, 213, .07), transparent 55%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(39, 240, 213, .07);
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: rgba(39, 240, 213, .05);
+            bottom: -80px;
+            right: -80px;
+            animation-delay: -4s;
+        }
+
+        .orb-3 {
+            width: 200px;
+            height: 200px;
+            background: rgba(39, 240, 213, .04);
+            top: 40%;
+            right: 10%;
+            animation-delay: -2s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-30px) scale(1.05);
+            }
+        }
+
+        /* Grid lines overlay */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .03;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, .8) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, .8) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ── Layout ── */
+        .page {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-            padding: 0 20px;
+            padding: 40px 20px;
         }
 
-        .hero-logo {
-            width: 120px;
-            height: 120px;
+        /* ── SCREEN 1: Hero ── */
+        #heroScreen {
+            gap: 0;
+            animation: fadeUp .8s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .logo-ring {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin-bottom: 32px;
+        }
+
+        .logo-ring img {
+            width: 100%;
+            height: 100%;
             object-fit: contain;
-            margin-bottom: 24px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
+            border-radius: 22px;
+            position: relative;
+            z-index: 1;
         }
 
-        h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin: 0 0 16px 0;
-            background: linear-gradient(90deg, #fff, #888);
+        .logo-ring::before {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 26px;
+            background: conic-gradient(from 0deg, var(--turq), transparent 40%, var(--turq) 80%, transparent);
+            animation: spin 4s linear infinite;
+            z-index: 0;
+        }
+
+        .logo-ring::after {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            border-radius: 22px;
+            background: var(--bg0);
+            z-index: 0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--turq-dim);
+            border: 1px solid rgba(39, 240, 213, .3);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--turq);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            animation: fadeUp .8s .1s ease both;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--turq);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: .5;
+                transform: scale(.8);
+            }
+        }
+
+        h1.hero-title {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 900;
+            letter-spacing: -2px;
+            line-height: 1.08;
+            margin: 0 0 20px 0;
+            text-align: center;
+            animation: fadeUp .8s .2s ease both;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, .7) 60%, var(--turq) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .tagline {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 480px;
-            line-height: 1.6;
-            margin-bottom: 40px;
+        .hero-sub {
+            font-size: clamp(.95rem, 2.5vw, 1.15rem);
+            color: var(--muted);
+            max-width: 500px;
+            line-height: 1.65;
+            text-align: center;
+            margin: 0 0 40px 0;
+            animation: fadeUp .8s .3s ease both;
         }
 
-        .cta-group {
+        .feature-pills {
             display: flex;
-            gap: 16px;
+            gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
+            margin-bottom: 40px;
+            animation: fadeUp .8s .4s ease both;
         }
 
-        .btn.primary {
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            background: var(--brand);
-            color: #000;
+        .feature-pill {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .feature-pill span {
+            color: var(--turq);
+            margin-right: 4px;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            background: var(--turq);
+            color: #050b0d;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 800;
             border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all .2s ease;
+            animation: fadeUp .8s .5s ease both;
+            letter-spacing: -0.2px;
+            box-shadow: 0 0 30px rgba(39, 240, 213, .2), 0 8px 30px rgba(0, 0, 0, .3);
+        }
+
+        .cta-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px rgba(39, 240, 213, .35), 0 12px 40px rgba(0, 0, 0, .4);
+        }
+
+        .cta-btn .arrow {
+            font-size: 18px;
+            transition: transform .2s;
+        }
+
+        .cta-btn:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* ── SCREEN 2: Form ── */
+        #formScreen {
+            display: none;
+        }
+
+        .form-card {
+            width: 100%;
+            max-width: 440px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .25));
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 36px 32px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .form-header img {
+            height: 32px;
             border-radius: 8px;
         }
 
-        .btn.secondary {
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
+        .form-header .back-btn {
+            margin-left: auto;
+            background: none;
+            border: 1px solid var(--stroke);
+            color: var(--muted);
             border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .form-header .back-btn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, .3);
+        }
+
+        .form-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 20px 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .form-sub {
+            font-size: .875rem;
+            color: var(--muted);
+            margin: 0 0 28px 0;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .field-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-left: 2px;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: .95rem;
+            outline: none;
+            transition: all .2s;
+        }
+
+        .field-group input::placeholder {
+            color: var(--muted);
+        }
+
+        .field-group input:focus {
+            background: rgba(39, 240, 213, .05);
+            border-color: var(--turq);
+            box-shadow: 0 0 0 4px rgba(39, 240, 213, .1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--turq);
+            color: #050b0d;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            margin-top: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            filter: brightness(1.08);
+            box-shadow: 0 0 20px rgba(39, 240, 213, .3);
+        }
+
+        .submit-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        /* ── SCREEN 3: Welcome Splash ── */
+        #welcomeScreen {
+            display: none;
+            text-align: center;
+        }
+
+        .welcome-ring {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 28px;
+        }
+
+        .check-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--turq-dim);
+            border: 2px solid rgba(39, 240, 213, .4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            animation: popIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ripple {
+            position: absolute;
+            inset: -12px;
+            border-radius: 50%;
+            border: 2px solid rgba(39, 240, 213, .25);
+            animation: rippleOut 1.8s ease-out infinite;
+        }
+
+        .ripple-2 {
+            position: absolute;
+            inset: -24px;
+            border-radius: 50%;
+            border: 1px solid rgba(39, 240, 213, .12);
+            animation: rippleOut 1.8s .4s ease-out infinite;
+        }
+
+        @keyframes rippleOut {
+            from {
+                transform: scale(.95);
+                opacity: 1;
+            }
+
+            to {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin: 0 0 12px 0;
+            animation: fadeUp .5s .2s ease both;
+        }
+
+        .welcome-name {
+            color: var(--turq);
+        }
+
+        .welcome-sub {
+            color: var(--muted);
+            font-size: .95rem;
+            line-height: 1.5;
+            margin: 0 0 28px 0;
+            max-width: 340px;
+            animation: fadeUp .5s .3s ease both;
+        }
+
+        .links-box {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--stroke);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            animation: fadeUp .5s .4s ease both;
+        }
+
+        .link-row {
+            margin-bottom: 16px;
+        }
+
+        .link-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .link-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            margin-bottom: 6px;
+        }
+
+        .copy-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .copy-row input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--stroke);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: monospace;
+            font-size: .78rem;
+            padding: 9px 12px;
+            outline: none;
+        }
+
+        .copy-btn {
+            padding: 0 14px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid var(--stroke);
+            border-radius: 10px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .15s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, .12);
+            color: var(--text);
+        }
+
+        .dash-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            background: var(--turq);
+            color: #050b0d;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all .2s;
+            animation: fadeUp .5s .5s ease both;
+            box-shadow: 0 0 30px rgba(39, 240, 213, .2);
+        }
+
+        .dash-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+
+        /* ── Progress Dots ── */
+        .step-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .dot-step {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--stroke);
+            transition: all .3s;
+        }
+
+        .dot-step.active {
+            width: 24px;
+            background: var(--turq);
+            box-shadow: 0 0 8px rgba(39, 240, 213, .5);
+        }
+
+        .dot-step.done {
+            background: rgba(39, 240, 213, .4);
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 40, 44, .95);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: var(--text);
+            font-size: .9rem;
+            font-weight: 600;
+            z-index: 10000;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 480px) {
+            .form-card {
+                padding: 28px 20px;
+            }
+
+            .copy-row input {
+                font-size: .72rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="glass card" style="background: transparent; border: none; box-shadow: none;">
-        <img src="logo.png" alt="Zentr Logo" class="hero-logo"
-            onerror="this.src='https://placehold.co/120x120?text=Z';">
-        <h1>Welcome to Zentr</h1>
-        <p class="tagline">Orders. Not DMs. Simplify your WhatsApp commerce with structured tracking, instant catalog
-            checking, and complete end-to-end management.</p>
+    <!-- Animated background -->
+    <div class="bg-layer"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
 
-        <div class="cta-group">
-            <button class="btn primary" onclick="location.href='create-store.html'">Start Selling</button>
+    <!-- ══════════════ SCREEN 1: HERO LANDING ══════════════ -->
+    <div class="page" id="heroScreen">
+        <div class="logo-ring">
+            <img src="logo.png" alt="Zentr"
+                onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22110%22 height=%22110%22 fill=%2227f0d5%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 2l4 4H4l4-4zm0 12L4 10h8l-4 4z%22/%3E%3C/svg%3E';" />
+        </div>
+
+        <div class="hero-badge">
+            <div class="dot"></div>
+            Now Live
+        </div>
+
+        <h1 class="hero-title">Orders. Not DMs.</h1>
+
+        <p class="hero-sub">
+            Stop managing orders over WhatsApp messages. Zentr gives your store a structured catalog, instant checkout,
+            and real-time tracking — all in one link.
+        </p>
+
+        <div class="feature-pills">
+            <div class="feature-pill"><span>✓</span> No app needed</div>
+            <div class="feature-pill"><span>✓</span> Free to start</div>
+            <div class="feature-pill"><span>✓</span> Ready in 60 sec</div>
+            <div class="feature-pill"><span>✓</span> Real-time tracking</div>
+        </div>
+
+        <button class="cta-btn" id="startSellingBtn">
+            Start Selling Free
+            <span class="arrow">→</span>
+        </button>
+    </div>
+
+    <!-- ══════════════ SCREEN 2: STORE CREATION FORM ══════════════ -->
+    <div class="page" id="formScreen">
+        <div class="form-card">
+            <div class="form-header">
+                <img src="logo.png" alt="Zentr" onerror="this.style.display='none'" />
+                <button class="back-btn" id="backBtn">← Back</button>
+            </div>
+
+            <div class="step-dots" id="stepDots">
+                <div class="dot-step active" id="dot1"></div>
+                <div class="dot-step" id="dot2"></div>
+                <div class="dot-step" id="dot3"></div>
+            </div>
+
+            <h2 class="form-title">Create your store</h2>
+            <p class="form-sub">Fill in your details to get your seller dashboard instantly.</p>
+
+            <div class="field-group">
+                <label>Store Name *</label>
+                <input type="text" id="storeName" placeholder="e.g. Trendy Fits" autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label>Your Name *</label>
+                <input type="text" id="sellerName" placeholder="e.g. Jane Doe" autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label>WhatsApp Number *</label>
+                <input type="tel" id="sellerPhone" placeholder="+91 9876543210" autocomplete="tel" />
+            </div>
+
+            <div class="field-group">
+                <label>Category <span style="font-weight:400;opacity:.6">(Optional)</span></label>
+                <input type="text" id="storeCategory" placeholder="e.g. Apparel, Electronics" autocomplete="off" />
+            </div>
+
+            <button class="submit-btn" id="createBtn">Create My Store</button>
         </div>
     </div>
+
+    <!-- ══════════════ SCREEN 3: WELCOME SPLASH ══════════════ -->
+    <div class="page" id="welcomeScreen">
+
+        <div class="welcome-ring">
+            <div class="check-circle">🎉</div>
+            <div class="ripple"></div>
+            <div class="ripple-2"></div>
+        </div>
+
+        <h2 class="welcome-title">Welcome to Zentr, <br><span class="welcome-name" id="welcomeName">Store!</span></h2>
+        <p class="welcome-sub">Your store is live. Share the buyer link — customers can start ordering right now.</p>
+
+        <div class="links-box">
+            <div class="link-row">
+                <div class="link-label">🔒 Seller Dashboard (keep secret)</div>
+                <div class="copy-row">
+                    <input type="text" id="dashLink" readonly />
+                    <button class="copy-btn" onclick="copyLink('dashLink')">Copy</button>
+                </div>
+            </div>
+            <div class="link-row">
+                <div class="link-label">🛒 Buyer Storefront (share with customers)</div>
+                <div class="copy-row">
+                    <input type="text" id="buyerLink" readonly />
+                    <button class="copy-btn" onclick="copyLink('buyerLink')">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="dash-btn" id="goDashBtn">
+            Go to My Dashboard →
+        </button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        let _dashUrl = "";
+
+        // ── Transition helpers ──
+        function show(id) {
+            const el = $(id);
+            el.style.display = "flex";
+            el.style.animation = "fadeUp .5s ease both";
+        }
+        function hide(id) {
+            $(id).style.display = "none";
+        }
+
+        function showToast(msg, ms = 2800) {
+            const t = $("toast");
+            t.textContent = msg;
+            t.classList.add("show");
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => t.classList.remove("show"), ms);
+        }
+
+        async function copyLink(inputId) {
+            const el = $(inputId);
+            try {
+                await navigator.clipboard.writeText(el.value);
+                showToast("Copied to clipboard! 📋");
+            } catch {
+                el.select();
+                document.execCommand("copy");
+                showToast("Copied via fallback!");
+            }
+        }
+
+        // ── Step 1 → 2: Hero to Form ──
+        $("startSellingBtn").addEventListener("click", () => {
+            hide("heroScreen");
+            show("formScreen");
+            setTimeout(() => $("storeName").focus(), 300);
+        });
+
+        $("backBtn").addEventListener("click", () => {
+            hide("formScreen");
+            show("heroScreen");
+        });
+
+        // Allow Enter key to submit
+        ["storeName", "sellerName", "sellerPhone", "storeCategory"].forEach(id => {
+            $(id).addEventListener("keydown", e => {
+                if (e.key === "Enter") $("createBtn").click();
+            });
+        });
+
+        // ── Step 2 → 3: Form submission ──
+        $("createBtn").addEventListener("click", async () => {
+            const name = $("storeName").value.trim();
+            const owner = $("sellerName").value.trim();
+            const phone = $("sellerPhone").value.trim();
+            const category = $("storeCategory").value.trim();
+
+            if (!name) { showToast("Please enter your store name."); $("storeName").focus(); return; }
+            if (!owner) { showToast("Please enter your name."); $("sellerName").focus(); return; }
+            if (!phone) { showToast("Please enter your WhatsApp number."); $("sellerPhone").focus(); return; }
+
+            const btn = $("createBtn");
+            btn.disabled = true;
+            btn.textContent = "Creating your store...";
+
+            // Animate progress dots
+            $("dot1").classList.add("done"); $("dot1").classList.remove("active");
+            $("dot2").classList.add("active");
+
+            try {
+                const res = await fetch("/api/onboard", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, owner, phone, category })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Failed to create store");
+
+                const base = window.location.origin;
+                const dashUrl = `${base}/seller.html?sellerId=${data.sellerId}&sellerKey=${data.sellerKey}`;
+                const buyUrl = `${base}/buyer.html?sellerId=${data.sellerId}`;
+                _dashUrl = dashUrl;
+
+                $("dashLink").value = dashUrl;
+                $("buyerLink").value = buyUrl;
+                $("welcomeName").textContent = name + "! 🌟";
+                $("goDashBtn").onclick = () => location.href = dashUrl;
+
+                // Finish dots
+                $("dot2").classList.add("done"); $("dot2").classList.remove("active");
+                $("dot3").classList.add("active");
+
+                // Transition to welcome screen
+                hide("formScreen");
+                show("welcomeScreen");
+                $("welcomeScreen").style.flexDirection = "column";
+
+                // Auto-redirect after 8 seconds
+                setTimeout(() => { if (location.href !== dashUrl) location.href = dashUrl; }, 8000);
+
+            } catch (err) {
+                showToast("❌ " + (err.message || "Something went wrong"));
+                btn.disabled = false;
+                btn.textContent = "Create My Store";
+                $("dot2").classList.remove("active", "done"); $("dot1").classList.add("active"); $("dot1").classList.remove("done");
+            }
+        });
+    </script>
+
 </body>
 
 </html>

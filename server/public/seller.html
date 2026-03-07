@@ -41,7 +41,6 @@
       font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, sans-serif;
       color: var(--text);
       background: var(--bg0);
-      background-attachment: fixed;
       overflow-x: hidden;
     }
 
@@ -273,6 +272,7 @@
       gap: 12px;
       max-height: 500px;
       overflow-y: auto;
+      overscroll-behavior-y: contain;
       padding-right: 8px;
     }
 
@@ -939,11 +939,29 @@
       filtered.forEach(p => {
         const div = document.createElement("div");
         div.className = "item";
-        const img = (p.images && p.images[0]) || "";
+        const imgUrl = buildImageUrl((p.images && p.images[0]) || "");
         const lowStock = p.stock !== "" && p.stock <= 5;
 
-        div.innerHTML = `
-          <div class="mini">${img ? `<img src="${img}"/>` : '📦'}</div>
+        const miniDiv = document.createElement("div");
+        miniDiv.className = "mini";
+        if (imgUrl) {
+          const img = document.createElement("img");
+          img.src = imgUrl;
+          img.loading = "lazy";
+          img.style.cursor = "zoom-in";
+          img.addEventListener("click", () => {
+            const z = $("zoomOverlay");
+            z.querySelector("img").src = imgUrl;
+            z.style.display = "flex";
+          });
+          img.onerror = () => { miniDiv.textContent = "∅"; };
+          miniDiv.appendChild(img);
+        } else {
+          miniDiv.textContent = "📦";
+        }
+        div.appendChild(miniDiv);
+
+        div.innerHTML += `
           <div class="txt">
             <div class="t">${escapeHtml(p.name)}</div>
             <div class="s">${escapeHtml(p.category || 'No Category')} • ${formatINR(p.price)}</div>
@@ -1051,6 +1069,11 @@
     };
 
     // ─── INIT ───
+    $("zoomOverlay").addEventListener("click", function () {
+      this.style.display = "none";
+      this.querySelector("img").src = ""; // Clear image src to save memory
+    });
+
     $("saveProductBtn").onclick = saveProduct;
     $("deleteProductBtn").onclick = deleteProduct;
     $("resetFormBtn").onclick = resetForm;

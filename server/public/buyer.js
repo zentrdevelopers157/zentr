@@ -25,6 +25,15 @@
     toast._t = setTimeout(() => (el.style.display = "none"), ms);
   }
 
+  function showZoom(url) {
+    const overlay = $("zoomOverlay");
+    if (!overlay) return;
+    const img = overlay.querySelector("img");
+    img.src = url;
+    overlay.style.display = "flex";
+    overlay.onclick = () => { overlay.style.display = "none"; img.src = ""; };
+  }
+
   function safeJsonParse(s, fallback) {
     try { return JSON.parse(s); } catch { return fallback; }
   }
@@ -104,6 +113,8 @@
         img.src = imgUrl;
         img.alt = p.name || "product";
         img.loading = "lazy";
+        img.style.cursor = "zoom-in";
+        img.addEventListener("click", () => showZoom(imgUrl));
         img.onerror = () => { imgbox.textContent = "No image"; };
         imgbox.appendChild(img);
       } else {

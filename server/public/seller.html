@@ -535,7 +535,7 @@
 
       <div style="display:flex; gap:10px; align-items:center;">
         <div class="pill good" id="sellerBadge">Verified Seller</div>
-        <div class="pill" id="storeNamePill">Store: Demo Shop</div>
+        <div class="pill" id="storeName">Store: Loading...</div>
       </div>
     </div>
   </header>
@@ -744,22 +744,26 @@
 
   <script>
     /**
-     * Zentr Seller Dashboard - Core Script v2
-     * Unifies API access, handles state, fixes jank.
+     * Zentr Seller Dashboard v3
      */
     const $ = (id) => document.getElementById(id);
     const API = location.origin;
     const params = new URLSearchParams(location.search);
-    const SELLER_ID = params.get("sellerId") || "demoSeller";
-    const SELLER_KEY = params.get("sellerKey") || "demo123";
+    const SELLER_ID = params.get("sellerId");
+    const SELLER_KEY = params.get("sellerKey");
+
+    // Redirect if missing credentials
+    if (!SELLER_ID || !SELLER_KEY) {
+      document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#fff"><h2>⚠️ Missing seller credentials</h2><p>Please use the link provided when you created your store.</p><a href="/" style="color:#27f0d5">← Back to Zentr</a></div>';
+    }
 
     // ─── STATE ───
     let state = {
       products: [],
       orders: [],
       settings: {
-        storeName: "Demo Shop",
-        verified: true
+        storeName: "Loading...",
+        verified: false
       },
       editingId: null,
       loading: false,
@@ -835,15 +839,22 @@
 
     async function loadAll() {
       try {
-        const [pData, oData] = await Promise.all([
+        const [pData, oData, infoData] = await Promise.all([
           apiFetch(`/api/sellers/${SELLER_ID}/products`),
-          apiFetch(`/api/sellers/${SELLER_ID}/orders`)
+          apiFetch(`/api/sellers/${SELLER_ID}/orders`),
+          apiFetch(`/api/sellers/${SELLER_ID}/info`)
         ]);
         state.products = pData.products || [];
         state.orders = oData.orders || [];
+        if (infoData.seller) {
+          state.settings.storeName = infoData.seller.storeName || "My Store";
+          // Update the nav store name
+          const nameEl = document.getElementById("storeName");
+          if (nameEl) nameEl.textContent = "Store: " + state.settings.storeName;
+        }
         renderAll();
       } catch (err) {
-        showToast(err.message);
+        showToast("❌ " + err.message);
       }
     }
 
@@ -855,16 +866,16 @@
     }
 
     window.updateOrderStatus = async function (orderId, newStatus) {
-      if (!confirm(`Mark order as ${newStatus}?`)) return;
+      if (!confirm(`Mark order as "${newStatus}"?`)) return;
       try {
         await apiFetch(`/api/sellers/${SELLER_ID}/orders/${orderId}`, {
           method: "PATCH",
           body: JSON.stringify({ status: newStatus })
         });
-        showToast(`Order marked ${newStatus}`);
-        loadAll();
+        showToast(`✅ Order marked as ${newStatus}`);
+        await loadAll();
       } catch (err) {
-        showToast(err.message);
+        showToast("❌ " + err.message);
       }
     };
 

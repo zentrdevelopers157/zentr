@@ -826,7 +826,8 @@
         "Content-Type": "application/json",
         ...options.headers
       };
-      const res = await fetch(`${API}${path}`, { ...options, headers });
+      const fetchOpts = { cache: "no-store", ...options, headers };
+      const res = await fetch(`${API}${path}`, fetchOpts);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
       return data;

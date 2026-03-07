@@ -38,12 +38,14 @@ app.get('/', (req, res) => res.redirect('/buyer'));
 const DATA_DIR = path.join(__dirname, "..", "data");
 const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
+const SELLERS_FILE = path.join(DATA_DIR, "sellers.json");
 
 const DB = {
   ensureFiles() {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(PRODUCTS_FILE)) fs.writeFileSync(PRODUCTS_FILE, JSON.stringify([], null, 2));
     if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, JSON.stringify({}, null, 2));
+    if (!fs.existsSync(SELLERS_FILE)) fs.writeFileSync(SELLERS_FILE, JSON.stringify({}, null, 2));
   },
 
   readJson(file, fallback = null) {
@@ -77,6 +79,14 @@ const DB = {
 
   saveOrders(orders) {
     this.writeJson(ORDERS_FILE, orders);
+  },
+
+  getSellers() {
+    return this.readJson(SELLERS_FILE, {});
+  },
+
+  saveSellers(sellers) {
+    this.writeJson(SELLERS_FILE, sellers);
   }
 };
 
@@ -162,22 +172,44 @@ const getIdempotencyKey = (req) => req.header("x-idempotency-key") || "";
 const nowIso = () => new Date().toISOString();
 
 // -------------------- AUTH --------------------
-const SELLER_KEYS = { demoSeller: "demo123", urbanWear: "urban456" };
-
 function requireSellerKey(req, res, next) {
   const { sellerId } = req.params;
   const key = req.header("x-seller-key");
-  if (!SELLER_KEYS[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
-  if (!key || key !== SELLER_KEYS[sellerId]) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const sellers = DB.getSellers();
+  if (!sellers[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
+  if (!key || key !== sellers[sellerId].sellerKey) return res.status(401).json({ ok: false, error: "unauthorized" });
   next();
 }
 
 // -------------------- PUBLIC ROUTES --------------------
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+app.post("/api/onboard", (req, res) => {
+  const { name, owner, phone, category } = req.body;
+  if (!name || !owner || !phone) return res.status(400).json({ ok: false, error: "store name, owner name, and phone required" });
+
+  const sellerId = "s_" + Math.random().toString(36).slice(2, 8);
+  const sellerKey = crypto.randomBytes(16).toString('hex');
+
+  const sellers = DB.getSellers();
+  sellers[sellerId] = {
+    sellerId,
+    sellerKey,
+    storeName: name,
+    ownerName: owner,
+    phone,
+    category: category || "",
+    createdAt: nowIso()
+  };
+  DB.saveSellers(sellers);
+
+  res.json({ ok: true, sellerId, sellerKey, storeName: name });
+});
+
 app.get("/api/public/sellers/:sellerId/products", (req, res) => {
   const { sellerId } = req.params;
-  if (!SELLER_KEYS[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
+  const sellers = DB.getSellers();
+  if (!sellers[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
   const products = DB.getProducts().filter(p => p.sellerId === sellerId);
   res.json({ ok: true, products });
 });
@@ -185,7 +217,8 @@ app.get("/api/public/sellers/:sellerId/products", (req, res) => {
 app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
   const { sellerId } = req.params;
   const { items, delivery, buyerName, buyerPhone, buyerAddress } = req.body || {};
-  if (!SELLER_KEYS[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
+  const sellers = DB.getSellers();
+  if (!sellers[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
 
   const idemKey = getIdempotencyKey(req);
   const ordersDb = DB.getOrders();

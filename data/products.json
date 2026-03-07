@@ -34,7 +34,7 @@
       }
     ],
     "createdAt": "2026-02-25T07:26:44.460Z",
-    "stock": 7
+    "stock": 6
   },
   {
     "id": "prod_1772085479772_c50243059b04f",
@@ -81,5 +81,19 @@
     ],
     "createdAt": "2026-02-26T06:46:09.217Z",
     "stock": 4
+  },
+  {
+    "id": "prod_1772879923289_eia",
+    "sellerId": "demoSeller",
+    "name": "QA Test Product",
+    "category": "Test",
+    "price": 200,
+    "stock": 10,
+    "sizes": [],
+    "variants": [],
+    "desc": "",
+    "images": [],
+    "createdAt": "2026-03-07T10:38:43.289Z",
+    "updatedAt": "2026-03-07T10:40:33.865Z"
   }
 ]

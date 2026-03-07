@@ -9,40 +9,52 @@
   <link rel="icon" href="data:," />
   <style>
     :root {
-      --bg0: #071114;
-      --bg1: #0b1a1f;
-      --glass: rgba(255, 255, 255, .08);
-      --glass2: rgba(255, 255, 255, .12);
-      --stroke: rgba(255, 255, 255, .16);
-      --text: rgba(255, 255, 255, .92);
-      --muted: rgba(255, 255, 255, .55);
+      --bg0: #050b0d;
+      --bg1: #071114;
+      --glass: rgba(255, 255, 255, .05);
+      --glass-hover: rgba(255, 255, 255, .08);
+      --stroke: rgba(255, 255, 255, .12);
+      --text: rgba(255, 255, 255, .95);
+      --muted: rgba(255, 255, 255, .50);
       --turq: #27f0d5;
-      --shadow: 0 18px 55px rgba(0, 0, 0, .45);
-      --shadow2: 0 10px 28px rgba(0, 0, 0, .35);
-      --radius: 18px;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .5);
+      --shadow2: 0 8px 30px rgba(0, 0, 0, .4);
+      --radius: 20px;
 
-      /* status colours */
-      --ok-bg: rgba(39, 240, 213, .14);
+      /* status colors */
       --ok: #27f0d5;
-      --warn-bg: rgba(255, 204, 102, .14);
+      --ok-bg: rgba(39, 240, 213, .12);
       --warn: #ffcc66;
-      --bad-bg: rgba(255, 107, 107, .14);
+      --warn-bg: rgba(255, 204, 102, .12);
       --bad: #ff6b6b;
+      --bad-bg: rgba(255, 107, 107, .12);
     }
 
     * {
       box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, sans-serif;
       color: var(--text);
+      background: var(--bg0);
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    /* Fixed backgrounds to prevent flicker during scroll */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
       background:
-        radial-gradient(1200px 600px at 15% 10%, rgba(39, 240, 213, .20), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(39, 240, 213, .12), transparent 55%),
-        radial-gradient(800px 500px at 50% 90%, rgba(39, 240, 213, .07), transparent 60%),
+        radial-gradient(circle at 15% 10%, rgba(39, 240, 213, .15), transparent 60%),
+        radial-gradient(circle at 85% 20%, rgba(39, 240, 213, .1), transparent 55%),
+        radial-gradient(circle at 50% 90%, rgba(39, 240, 213, .05), transparent 60%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
     }
 
@@ -50,17 +62,17 @@
     header {
       position: sticky;
       top: 0;
-      z-index: 20;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      background: rgba(7, 17, 20, .72);
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(5, 11, 13, .8);
       border-bottom: 1px solid var(--stroke);
     }
 
     .topbar {
-      max-width: 1240px;
+      max-width: 1300px;
       margin: 0 auto;
-      padding: 16px 18px;
+      padding: 14px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -70,52 +82,45 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-weight: 900;
-      letter-spacing: .2px;
-    }
-
-    .logo-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      background: var(--turq);
-      box-shadow: 0 0 0 6px rgba(39, 240, 213, .18);
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
     }
 
     .brand span {
-      font-size: 18px;
-      text-transform: lowercase;
+      font-size: 20px;
+      text-transform: capitalize;
     }
 
     .pill {
-      font-size: 12px;
-      padding: 7px 10px;
+      font-size: 11px;
+      padding: 6px 12px;
       border-radius: 999px;
       border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .06);
+      background: rgba(255, 255, 255, .05);
       color: var(--muted);
+      font-weight: 600;
       white-space: nowrap;
     }
 
     .pill.good {
       background: var(--ok-bg);
-      border-color: rgba(39, 240, 213, .30);
+      border-color: rgba(39, 240, 213, .3);
       color: var(--turq);
-      font-weight: 800;
     }
 
     /* ── Layout ── */
     .wrap {
-      max-width: 1240px;
+      max-width: 1300px;
       margin: 0 auto;
-      padding: 18px;
+      padding: 24px 20px;
       display: grid;
-      grid-template-columns: 1fr 420px;
-      gap: 18px;
+      grid-template-columns: 1fr 400px;
+      gap: 24px;
+      align-items: start;
     }
 
-    @media (max-width: 1060px) {
+    @media (max-width: 1100px) {
       .wrap {
         grid-template-columns: 1fr;
       }
@@ -126,36 +131,30 @@
     }
 
     .glass {
-      background: linear-gradient(180deg, var(--glass), rgba(0, 0, 0, .12));
+      background: linear-gradient(180deg, var(--glass), rgba(0, 0, 0, .2));
       border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
       border-radius: var(--radius);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-
-    .section {
-      padding: 14px 14px 16px 14px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow: hidden;
     }
 
     .section-title {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 16px 16px 10px 16px;
+      padding: 20px 20px 0 20px;
+      margin-bottom: 20px;
     }
 
     .section-title h2 {
       margin: 0;
-      font-size: 16px;
-      letter-spacing: .2px;
+      font-size: 22px;
+      font-weight: 700;
       color: var(--text);
     }
 
     .section-title p {
-      margin: 0;
-      font-size: 12px;
+      margin: 4px 0 0;
+      font-size: 13px;
       color: var(--muted);
     }
 
@@ -163,8 +162,8 @@
     .stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      padding: 0 16px 16px 16px;
+      gap: 16px;
+      padding: 0 20px 24px 20px;
     }
 
     @media (max-width: 760px) {
@@ -174,423 +173,352 @@
     }
 
     .stat {
-      background: rgba(255, 255, 255, .06);
+      background: rgba(255, 255, 255, .04);
       border: 1px solid var(--stroke);
-      border-radius: 16px;
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(10px);
-      padding: 12px;
-      transition: border-color .2s ease;
+      border-radius: 18px;
+      padding: 16px;
+      transition: all .2s ease;
     }
 
     .stat:hover {
-      border-color: rgba(39, 240, 213, .30);
+      border-color: rgba(39, 240, 213, .4);
+      background: rgba(39, 240, 213, .03);
     }
 
     .stat .k {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .stat .v {
-      font-size: 18px;
-      font-weight: 1000;
+      font-size: 24px;
+      font-weight: 800;
       color: var(--turq);
     }
 
-    /* ── Grid + Panels ── */
-    .grid2 {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 14px;
-      padding: 0 16px 16px 16px;
-    }
-
-    @media (max-width: 980px) {
-      .grid2 {
-        grid-template-columns: 1fr;
-      }
-    }
-
+    /* ── Panels ── */
     .panel {
-      background: rgba(255, 255, 255, .06);
+      background: rgba(255, 255, 255, .03);
       border: 1px solid var(--stroke);
-      border-radius: 16px;
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      margin: 0 20px 20px 20px;
       overflow: hidden;
     }
 
     .panel-head {
-      padding: 12px 12px 10px 12px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--stroke);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      background: rgba(255, 255, 255, .02);
     }
 
     .panel-head b {
-      font-size: 13px;
-      letter-spacing: .2px;
+      font-size: 14px;
+      font-weight: 700;
       color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .panel-body {
-      padding: 12px;
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
+      padding: 18px;
     }
 
     .field {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-      flex: 1;
-      min-width: 0;
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
     label {
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--muted);
+      margin-left: 2px;
     }
 
     input,
     textarea,
     select {
       width: 100%;
-      padding: 10px;
+      padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .07);
-      outline: none;
-      font-size: 13px;
+      background: rgba(255, 255, 255, .05);
       color: var(--text);
       font-family: inherit;
-      transition: border-color .15s ease, box-shadow .15s ease;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-      color: var(--muted);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 72px;
-    }
-
-    select option {
-      background: #0b1a1f;
-      color: var(--text);
+      font-size: 14px;
+      transition: all .2s ease;
+      outline: none;
     }
 
     input:focus,
     textarea:focus,
     select:focus {
-      border-color: rgba(39, 240, 213, .55);
-      box-shadow: 0 0 0 4px rgba(39, 240, 213, .12);
+      background: rgba(39, 240, 213, .05);
+      border-color: var(--turq);
+      box-shadow: 0 0 0 4px rgba(39, 240, 213, .1);
     }
 
-    /* ── Buttons ── */
-    .btnbar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 6px;
-    }
-
-    .btn {
-      padding: 11px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .07);
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 900;
-      font-size: 13px;
-      flex: 1;
-      transition: background .15s ease, transform .05s ease;
-    }
-
-    .btn.primary {
-      background: rgba(39, 240, 213, .16);
-      border-color: rgba(39, 240, 213, .38);
-      color: var(--turq);
-    }
-
-    .btn.primary:hover {
-      background: rgba(39, 240, 213, .24);
-    }
-
-    .btn.danger {
-      background: rgba(255, 107, 107, .12);
-      border-color: rgba(255, 107, 107, .28);
-      color: var(--bad);
-    }
-
-    .btn.danger:hover {
-      background: rgba(255, 107, 107, .20);
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-    }
-
-    /* ── Misc ── */
-    .hint {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.35;
-    }
-
-    .hint strong {
-      color: var(--text);
-    }
-
-    /* ── Image preview thumb ── */
-    .thumb {
-      width: 100%;
-      height: 150px;
-      border-radius: 14px;
-      border: 1px solid rgba(39, 240, 213, .18);
-      background:
-        radial-gradient(260px 140px at 30% 40%, rgba(39, 240, 213, .18), transparent 60%),
-        rgba(255, 255, 255, .04);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .thumb .empty {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 800;
-      padding: 0 12px;
-      text-align: center;
-    }
-
-    /* ── Lists ── */
+    /* ── Items ── */
     .list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      max-height: 420px;
-      overflow: auto;
-      padding-right: 4px;
+      gap: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    /* Custom Scrollbar */
+    .list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .list::-webkit-scrollbar-thumb {
+      background: var(--stroke);
+      border-radius: 10px;
+    }
+
+    .list::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
     }
 
     .item {
       display: flex;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 14px;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 16px;
       border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .05);
-      align-items: flex-start;
-      transition: border-color .2s ease, background .2s ease;
+      background: rgba(255, 255, 255, .03);
+      transition: all .2s ease;
+      position: relative;
     }
 
     .item:hover {
       border-color: rgba(39, 240, 213, .25);
-      background: rgba(39, 240, 213, .05);
+      background: rgba(39, 240, 213, .04);
+      transform: translateY(-2px);
     }
 
     .mini {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      border: 1px solid rgba(39, 240, 213, .20);
-      background: rgba(39, 240, 213, .10);
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(39, 240, 213, .05);
+      border: 1px solid rgba(39, 240, 213, .1);
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      flex: 0 0 auto;
+      flex-shrink: 0;
     }
 
     .mini img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
     }
 
-    .item .txt {
+    .txt {
       flex: 1;
       min-width: 0;
     }
 
-    .item .t {
-      font-weight: 1000;
-      font-size: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--text);
+    .t {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
     }
 
-    .item .s {
-      font-size: 11px;
+    .s {
+      font-size: 12px;
       color: var(--muted);
-      margin-top: 2px;
-      line-height: 1.25;
+      line-height: 1.4;
     }
 
     .right {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 8px;
+      gap: 10px;
     }
 
-    /* ── Status chips ── */
+    /* ── Chips & Buttons ── */
     .chip {
-      font-size: 11px;
-      padding: 6px 10px;
+      font-size: 10px;
+      padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .06);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255, 255, 255, .08);
       color: var(--muted);
-      font-weight: 900;
-      white-space: nowrap;
+      border: 1px solid var(--stroke);
     }
 
     .chip.ok {
       background: var(--ok-bg);
-      border-color: rgba(39, 240, 213, .30);
       color: var(--ok);
+      border-color: rgba(39, 240, 213, .3);
     }
 
     .chip.warn {
       background: var(--warn-bg);
-      border-color: rgba(255, 204, 102, .30);
       color: var(--warn);
+      border-color: rgba(255, 204, 102, .3);
     }
 
     .chip.bad {
       background: var(--bad-bg);
-      border-color: rgba(255, 107, 107, .28);
       color: var(--bad);
+      border-color: rgba(255, 107, 107, .3);
     }
 
-    .actions {
+    .btn {
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s ease;
+      border: 1px solid var(--stroke);
+      background: rgba(255, 255, 255, .06);
+      color: var(--text);
       display: flex;
+      align-items: center;
+      justify-content: center;
       gap: 8px;
     }
 
+    .btn.primary {
+      background: var(--turq);
+      color: #050b0d;
+      border: none;
+    }
+
+    .btn.primary:hover {
+      box-shadow: 0 0 20px rgba(39, 240, 213, .3);
+      filter: brightness(1.1);
+    }
+
+    .btn.danger {
+      background: var(--bad-bg);
+      color: var(--bad);
+      border-color: rgba(255, 107, 107, .2);
+    }
+
+    .btn.danger:hover {
+      background: rgba(255, 107, 107, .2);
+    }
+
     .iconbtn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 1000;
-      font-size: 12px;
-      color: var(--muted);
-      padding: 6px 8px;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, .05);
       border: 1px solid var(--stroke);
-      background: rgba(255, 255, 255, .06);
-      transition: background .15s ease;
+      color: var(--muted);
+      transition: all .2s ease;
     }
 
     .iconbtn:hover {
-      background: rgba(255, 255, 255, .12);
-    }
-
-    .iconbtn.danger {
-      color: var(--bad);
+      background: rgba(255, 255, 255, .1);
+      color: var(--text);
     }
 
     .iconbtn.danger:hover {
-      background: rgba(255, 107, 107, .12);
+      background: var(--bad-bg);
+      color: var(--bad);
     }
 
-    /* ── Sidebar ── */
+    /* ── Utilities ── */
     .side {
       position: sticky;
-      top: 82px;
+      top: 94px;
       align-self: start;
     }
 
-    /* ── Toast ── */
+    .divider {
+      height: 1px;
+      background: var(--stroke);
+      margin: 16px 0;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .03);
+      border: 2px dashed var(--stroke);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .toast {
       position: fixed;
+      bottom: 24px;
       left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      padding: 10px 16px;
-      border-radius: 14px;
-      background: rgba(7, 17, 20, .92);
-      border: 1px solid var(--stroke);
-      backdrop-filter: blur(14px);
-      color: var(--text);
-      font-size: 12px;
+      transform: translateX(-50%) translateY(20px);
+      padding: 12px 24px;
+      border-radius: 999px;
+      background: rgba(5, 11, 13, .9);
+      border: 1px solid var(--turq);
+      color: var(--turq);
+      font-weight: 700;
+      font-size: 13px;
+      z-index: 1000;
       opacity: 0;
       pointer-events: none;
-      transition: opacity .18s ease;
-      z-index: 50;
-      max-width: calc(100vw - 24px);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      box-shadow: var(--shadow);
+      transition: all .3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     }
 
     .toast.show {
       opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
-    /* ── Dividers / tiny text ── */
-    .divider {
-      height: 1px;
-      background: var(--stroke);
-      margin: 12px 0;
-    }
-
-    .small {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.35;
-    }
-
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-    }
-
-    /* ── Order cards (rendered via JS) ── */
-    .card {
-      background: rgba(255, 255, 255, .06);
-      border: 1px solid var(--stroke);
-      border-radius: 16px;
+    /* Zoom modal */
+    #zoomOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .9);
       backdrop-filter: blur(10px);
-      transition: border-color .2s ease;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      cursor: zoom-out;
     }
 
-    .card:hover {
-      border-color: rgba(39, 240, 213, .25);
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    /* make inline-style text readable on dark bg */
-    b {
-      color: var(--text);
+    #zoomOverlay img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
     }
   </style>
 </head>
@@ -827,304 +755,282 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    // ---------------------------
-    // Storage keys
-    // ---------------------------
-    const KEY_PRODUCTS = "zentr_seller_products_v1";
-    const KEY_ORDERS = "zentr_seller_orders_v1";
-    const KEY_SETTINGS = "zentr_seller_settings_v1";
+  <div id="zoomOverlay"><img src="" alt="Zoomed view" /></div>
 
-    // ---------------------------
-    // Helpers
-    // ---------------------------
+  <script>
+    /**
+     * Zentr Seller Dashboard - Core Script v2
+     * Unifies API access, handles state, fixes jank.
+     */
     const $ = (id) => document.getElementById(id);
-    const formatINR = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
-    const uid = () => "P" + Math.random().toString(16).slice(2, 10).toUpperCase();
+    const API = location.origin;
+    const params = new URLSearchParams(location.search);
+    const SELLER_ID = params.get("sellerId") || "demoSeller";
+    const SELLER_KEY = params.get("sellerKey") || "demo123";
+
+    // ─── STATE ───
+    let state = {
+      products: [],
+      orders: [],
+      settings: {
+        storeName: "Demo Shop",
+        verified: true
+      },
+      editingId: null,
+      loading: false,
+      lastImage: null
+    };
+
+    // ─── HELPERS ───
+    function formatINR(n) {
+      return "₹" + Number(n || 0).toLocaleString("en-IN");
+    }
 
     function showToast(msg) {
       const t = $("toast");
       t.textContent = msg;
       t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 1800);
+      setTimeout(() => t.classList.remove("show"), 3000);
     }
 
-    function loadJSON(key, fallback) {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (e) {
-        return fallback;
-      }
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
-    function saveJSON(key, data) {
-      localStorage.setItem(key, JSON.stringify(data));
-    }
+    // ─── IMAGE HANDLING ───
+    if ($("imageInput")) {
+      $("imageInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) return showToast("Image too large (>2MB)");
 
-    // ---------------------------
-    // State
-    // ---------------------------
-    let products = loadJSON(KEY_PRODUCTS, []);
-    let orders = loadJSON(KEY_ORDERS, null);
-    let settings = loadJSON(KEY_SETTINGS, {
-      storeName: "Demo Shop",
-      upiId: "",
-      etaDays: 3,
-      supportWa: "",
-      verified: true
-    });
-
-    // seed demo orders if none
-    if (!orders) {
-      orders = [
-        {
-          orderId: "ZNT" + Math.floor(100000 + Math.random() * 900000),
-          buyerName: "Rahul Sharma",
-          buyerPhone: "+91 98XXXXXX12",
-          buyerAddress: "123 Main St, Mumbai",
-          items: [
-            { name: "Premium Cotton Tee", size: "M", variant: "Black", qty: 1, price: 499 }
-          ],
-          total: 548,
-          paymentStatus: "unpaid",
-          status: "pending",
-          createdAt: Date.now() - 1000 * 60 * 60 * 2
-        },
-        {
-          orderId: "ZNT" + Math.floor(100000 + Math.random() * 900000),
-          buyerName: "Priya Das",
-          buyerPhone: "+91 87XXXXXX34",
-          buyerAddress: "456 Park Ave, Delhi",
-          items: [
-            { name: "Street Hoodie", size: "L", variant: "Jet Black", qty: 1, price: 1299 }
-          ],
-          total: 1299,
-          paymentStatus: "paid",
-          status: "confirmed",
-          createdAt: Date.now() - 1000 * 60 * 60 * 5
-        }
-      ];
-      saveJSON(KEY_ORDERS, orders);
-    }
-
-    let editingProductId = null;
-    let imageDataUrl = null;
-
-    // ---------------------------
-    // UI: header / date
-    // ---------------------------
-    function initHeader() {
-      const d = new Date();
-      $("todayPill").textContent = d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" });
-      $("storeNamePill").textContent = "Store: " + (settings.storeName || "—");
-      $("sellerBadge").textContent = settings.verified ? "Verified Seller" : "Unverified";
-      $("sellerBadge").className = settings.verified ? "pill good" : "pill";
-    }
-
-    // ---------------------------
-    // Products render
-    // ---------------------------
-    function renderProducts(products) {
-      const list = $("productList");
-      const q = $("productSearch").value.trim().toLowerCase();
-
-      const filtered = products.filter(p => {
-        if (!q) return true;
-        return (p.name || "").toLowerCase().includes(q) ||
-          (p.category || "").toLowerCase().includes(q);
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.lastImage = reader.result;
+          $("previewImg").src = state.lastImage;
+          $("previewImg").style.display = "block";
+          $("previewEmpty").style.display = "none";
+        };
+        reader.readAsDataURL(file);
       });
+    }
 
-      $("statProducts").textContent = products.length;
-      $("productCountPill").textContent = `${products.length} items`;
-
-      list.innerHTML = "";
-      if (filtered.length === 0) {
-        list.innerHTML = `<div class="hint" style="padding:12px 0;">No products yet. Add one on the right.</div>`;
-        return;
+    // Zoom Image
+    document.addEventListener("click", (e) => {
+      if (e.target.tagName === 'IMG' && (e.target.closest('.mini') || e.target.id === 'previewImg')) {
+        $("zoomOverlay").style.display = "flex";
+        $("zoomOverlay").querySelector("img").src = e.target.src;
       }
+    });
+    $("zoomOverlay").addEventListener("click", () => $("zoomOverlay").style.display = "none");
+
+    // ─── API ACTIONS ───
+    async function apiFetch(path, options = {}) {
+      const headers = {
+        "x-seller-key": SELLER_KEY,
+        "Content-Type": "application/json",
+        ...options.headers
+      };
+      const res = await fetch(`${API}${path}`, { ...options, headers });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+      return data;
+    }
+
+    async function loadAll() {
+      try {
+        const [pData, oData] = await Promise.all([
+          apiFetch(`/api/sellers/${SELLER_ID}/products`),
+          apiFetch(`/api/sellers/${SELLER_ID}/orders`)
+        ]);
+        state.products = pData.products || [];
+        state.orders = oData.orders || [];
+        renderAll();
+      } catch (err) {
+        showToast(err.message);
+      }
+    }
+
+    async function saveProduct() {
+      const p = {
+        name: $("pName").value.trim(),
+        category: $("pCategory").value.trim(),
+        price: Number($("pPrice").value),
+        stock: $("pStock").value === "" ? "" : Number($("pStock").value),
+        sizes: ($("pSizes").value || "").split(",").map(s => s.trim()).filter(Boolean),
+        variants: ($("pVariants").value || "").split(",").map(s => s.trim()).filter(Boolean),
+        desc: $("pDesc").value.trim(),
+        images: state.lastImage ? [state.lastImage] : []
+      };
+
+      if (!p.name || isNaN(p.price)) return showToast("Name and Price required");
+
+      try {
+        if (state.editingId) {
+          await apiFetch(`/api/sellers/${SELLER_ID}/products/${state.editingId}`, {
+            method: "PATCH",
+            body: JSON.stringify(p)
+          });
+          showToast("Product updated ✅");
+        } else {
+          await apiFetch(`/api/sellers/${SELLER_ID}/products`, {
+            method: "POST",
+            body: JSON.stringify(p)
+          });
+          showToast("Product added ✅");
+        }
+        resetForm();
+        await loadAll();
+      } catch (err) {
+        showToast(err.message);
+      }
+    }
+
+    async function deleteProduct() {
+      if (!state.editingId || !confirm("Delete this product?")) return;
+      try {
+        await apiFetch(`/api/sellers/${SELLER_ID}/products/${state.editingId}`, { method: "DELETE" });
+        showToast("Product deleted 🗑️");
+        resetForm();
+        await loadAll();
+      } catch (err) {
+        showToast(err.message);
+      }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        await apiFetch(`/api/sellers/${SELLER_ID}/orders/${orderId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: newStatus })
+        });
+        showToast("Status updated ✅");
+        await loadAll();
+      } catch (err) {
+        showToast(err.message);
+      }
+    }
+
+    // ─── UI RENDER ───
+    function renderAll() {
+      renderStats();
+      renderProducts();
+      renderOrders();
+    }
+
+    function renderStats() {
+      $("statProducts").textContent = state.products.length;
+      $("statOrders").textContent = state.orders.length;
+      $("statPending").textContent = state.orders.filter(o => o.status === 'pending').length;
+      const totalRev = state.orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
+      $("statRevenue").textContent = formatINR(totalRev);
+    }
+
+    function renderProducts() {
+      const q = $("productSearch").value.toLowerCase();
+      const list = $("productList");
+      list.innerHTML = "";
+
+      const filtered = state.products.filter(p => !q || p.name.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q)));
 
       filtered.forEach(p => {
-        const el = document.createElement("div");
-        el.className = "item";
+        const div = document.createElement("div");
+        div.className = "item";
+        const img = (p.images && p.images[0]) || "";
+        const lowStock = p.stock !== "" && p.stock <= 5;
 
-        const stockChip = (p.stock === null || p.stock === undefined || p.stock === "") ? "—" : p.stock;
-        const lowStock = (Number(p.stock) <= 5 && p.stock !== "" && p.stock !== null && p.stock !== undefined);
-
-        el.innerHTML = `
-        <div class="mini">
-          ${p.image ? `<img src="${p.image}" alt=""/>` : `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M7 7h10l1.2 5.6a3 3 0 0 1-2.9 3.6H8.7a3 3 0 0 1-2.9-3.6L7 7Z" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linejoin="round"/>
-              <path d="M9 7V5.8A2.8 2.8 0 0 1 11.8 3h.4A2.8 2.8 0 0 1 15 5.8V7" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-          `}
-        </div>
-
-        <div class="txt">
-          <div class="t">${escapeHtml(p.name || "Untitled")}</div>
-          <div class="s">${escapeHtml(p.category || "Uncategorized")} • ${formatINR(p.price || 0)}</div>
-          <div class="s">Sizes: ${escapeHtml((p.sizes || []).join(", ") || "—")} | Variants: ${Array.isArray(p.variants) ? p.variants.map(v => escapeHtml(String(v?.label || v?.name || v?.value || v?.color || v))).join(",") : "-"}</div>
-          <div class="pill">Stock: ${p.stock ?? 0}</div>
-        </div>
-
-        <div class="right">
-          <div class="chip ${lowStock ? "warn" : ""}">Stock: ${escapeHtml(String(stockChip))}</div>
-          <input class="stockInput" type="number" min="0" value="${p.stock ?? 0}" />
-          <button class="btnUpdateStock" data-product-id="${p.id}">Update stock</button>
-          <div class="actions">
-            <button class="iconbtn" data-act="edit">Edit</button>
-            <button class="iconbtn danger" data-act="del">Delete</button>
-          </div>
-        </div>
-      `;
-
-        el.querySelector('[data-act="edit"]').addEventListener("click", () => loadProductIntoForm(p.id));
-        el.querySelector('[data-act="del"]').addEventListener("click", () => deleteProduct(p.id));
-
-        list.appendChild(el);
-      });
-
-      updateDebug();
-    }
-
-    // ---------------------------
-    // Orders render
-    // ---------------------------
-    function statusChip(status) {
-      switch (status) {
-        case "pending": return `<span class="chip warn">Pending</span>`;
-        case "confirmed": return `<span class="chip ok">Confirmed</span>`;
-        case "shipped": return `<span class="chip">Shipped</span>`;
-        case "delivered": return `<span class="chip ok">Delivered</span>`;
-        case "cancelled": return `<span class="chip bad">Cancelled</span>`;
-        default: return `<span class="chip">${status || "Unknown"}</span>`;
-      }
-    }
-
-    function renderOrders() {
-      const list = $("orderList");
-      const filter = $("orderFilter").value;
-
-      const filtered = orders.filter(o => filter === "ALL" ? true : o.status === filter);
-
-      $("statOrders").textContent = orders.length;
-      $("orderCountPill").textContent = `${orders.length} orders`;
-
-      const pending = orders.filter(o => o.status === "pending" || o.status === "confirmed").length;
-      $("statPending").textContent = pending;
-
-      const revenue = orders
-        .filter(o => o.paymentStatus === "paid" && (o.status === "confirmed" || o.status === "shipped" || o.status === "delivered"))
-        .reduce((sum, o) => sum + Number(o.total || 0), 0);
-
-      $("statRevenue").textContent = formatINR(revenue);
-
-      list.innerHTML = "";
-      if (filtered.length === 0) {
-        list.innerHTML = `<div class="hint">No orders in this filter.</div>`;
-        return;
-      }
-
-      filtered
-        .sort((a, b) => b.createdAt - a.createdAt)
-        .forEach(o => {
-          const el = document.createElement("div");
-          el.className = "item";
-
-          const itemsTxt = o.items.map(it => `${it.name} (${it.size || "-"} • ${it.variant || "-"}) ×${it.qty}`).join(" | ");
-          const created = new Date(o.createdAt).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-
-          el.innerHTML = `
-          <div class="mini">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M4 7h16l-1 11H5L4 7Z" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linejoin="round"/>
-              <path d="M9 7V5a3 3 0 0 1 6 0v2" stroke="rgba(255,255,255,.55)" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-          </div>
-
+        div.innerHTML = `
+          <div class="mini">${img ? `<img src="${img}"/>` : '📦'}</div>
           <div class="txt">
-            <div class="t">${escapeHtml(o.orderId)} • ${escapeHtml(o.buyerName || o.buyer || "Guest")}</div>
-            <div class="s">${escapeHtml(itemsTxt)}</div>
-            <div class="s">Total: <b>${formatINR(o.total)}</b> • ${o.paymentStatus === "paid" ? "<b>Paid</b>" : "<b>Unpaid</b>"} • ${escapeHtml(created)}</div>
-            <div class="s">📞 ${escapeHtml(o.buyerPhone || "—")} • 📍 ${escapeHtml(o.buyerAddress || "—")}</div>
+            <div class="t">${escapeHtml(p.name)}</div>
+            <div class="s">${escapeHtml(p.category || 'No Category')} • ${formatINR(p.price)}</div>
+            <div class="s">Variants: ${(p.variants || []).map(v => typeof v === 'string' ? v : (v.label || v.name || JSON.stringify(v))).join(", ") || "-"}</div>
           </div>
-
           <div class="right">
-            ${statusChip(o.status)}
+            <div class="chip ${lowStock ? 'bad' : 'ok'}">Stock: ${p.stock === "" ? "∞" : p.stock}</div>
             <div class="actions">
-              <button class="iconbtn" data-act="next">Next</button>
-              <button class="iconbtn" data-act="menu">Set</button>
+              <button class="iconbtn edit-btn" title="Edit">✏️</button>
+              <button class="iconbtn danger del-btn" title="Delete">🗑️</button>
             </div>
           </div>
         `;
 
-          el.querySelector('[data-act="next"]').addEventListener("click", () => advanceOrderStatus(o.orderId));
-          el.querySelector('[data-act="menu"]').addEventListener("click", () => setOrderStatusPrompt(o.orderId));
-
-          list.appendChild(el);
-        });
-
-      updateDebug();
+        div.querySelector(".edit-btn").onclick = () => loadEdit(p);
+        div.querySelector(".del-btn").onclick = () => { state.editingId = p.id; deleteProduct(); };
+        list.appendChild(div);
+      });
     }
 
-    function advanceOrderStatus(orderId) {
-      const o = orders.find(x => x.orderId === orderId);
-      if (!o) return;
+    function renderOrders() {
+      const filter = $("orderFilter").value;
+      const list = $("orderList");
+      list.innerHTML = "";
 
-      // minimal sane progression:
-      // pending -> confirmed -> shipped -> delivered
-      if (o.status === "pending") {
-        o.status = "confirmed";
-        o.paymentStatus = "paid"; // in real life you'd verify payment, not assume
-      } else if (o.status === "confirmed") {
-        o.status = "shipped";
-      } else if (o.status === "shipped") {
-        o.status = "delivered";
+      const filtered = state.orders.filter(o => filter === 'ALL' || o.status === filter);
+
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(o => {
+        const div = document.createElement("div");
+        div.className = "item";
+        const date = new Date(o.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' });
+        const items = (o.items || []).map(it => `${it.qty}x ${it.name}`).join(", ");
+
+        const FLOW = {
+          pending: ["confirmed", "cancelled"],
+          confirmed: ["packed", "cancelled"],
+          packed: ["shipped"],
+          shipped: ["delivered"]
+        };
+        const nextSteps = FLOW[o.status] || [];
+
+        div.innerHTML = `
+          <div class="txt">
+            <div class="t">#${o.id.slice(-5)} • ${escapeHtml(o.buyerName)}</div>
+            <div class="s">${escapeHtml(items)}</div>
+            <div class="s">${date} • ${formatINR(o.total)}</div>
+          </div>
+          <div class="right">
+            <div class="chip ${o.status === 'pending' ? 'warn' : o.status === 'delivered' ? 'ok' : o.status === 'cancelled' ? 'bad' : ''}">${o.status}</div>
+            <div class="actions" style="margin-top:6px">
+              ${nextSteps.map(s => `<button class="pill" onclick="updateOrderStatus('${o.id}', '${s}')">${s}</button>`).join("")}
+              <button class="iconbtn" onclick="copyTrack('${o.id}')" title="Copy tracking link">🔗</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function loadEdit(p) {
+      state.editingId = p.id;
+      state.lastImage = (p.images && p.images[0]) || null;
+      $("formTitle").textContent = "Edit Product";
+      $("pName").value = p.name;
+      $("pCategory").value = p.category || "";
+      $("pPrice").value = p.price;
+      $("pStock").value = p.stock;
+      $("pSizes").value = (p.sizes || []).join(", ");
+      $("pVariants").value = (p.variants || []).join(", ");
+      $("pDesc").value = p.desc || "";
+      $("deleteProductBtn").style.display = "block";
+
+      if (state.lastImage) {
+        $("previewImg").src = state.lastImage;
+        $("previewImg").style.display = "block";
+        $("previewEmpty").style.display = "none";
       } else {
-        showToast("Already final state.");
-        return;
+        $("previewImg").style.display = "none";
+        $("previewEmpty").style.display = "block";
       }
-
-      saveJSON(KEY_ORDERS, orders);
-      renderOrders();
-      showToast(`Order ${orderId} → ${o.status}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function setOrderStatusPrompt(orderId) {
-      const o = orders.find(x => x.orderId === orderId);
-      if (!o) return;
-
-      const v = prompt(
-        `Set status for ${orderId}\npending / confirmed / shipped / delivered / cancelled`,
-        o.status
-      );
-
-      if (!v) return;
-
-      const next = v.trim().toLowerCase();
-      const allowed = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
-      if (!allowed.includes(next)) {
-        showToast("Invalid status. Use: pending / confirmed / shipped / delivered / cancelled");
-        return;
-      }
-      o.status = next;
-      if (next === "cancelled") o.paymentStatus = o.paymentStatus || "unpaid";
-      saveJSON(KEY_ORDERS, orders);
-      renderOrders();
-      showToast(`Order ${orderId} set to ${next}`);
-    }
-
-    // ---------------------------
-    // Product form logic
-    // ---------------------------
     function resetForm() {
-      editingProductId = null;
-      imageDataUrl = null;
-
+      state.editingId = null;
+      state.lastImage = null;
       $("formTitle").textContent = "Add Product";
-      $("deleteProductBtn").style.display = "none";
-
       $("pName").value = "";
       $("pCategory").value = "";
       $("pPrice").value = "";
@@ -1132,557 +1038,26 @@
       $("pSizes").value = "";
       $("pVariants").value = "";
       $("pDesc").value = "";
-      $("imageInput").value = "";
-
+      if ($("imageInput")) $("imageInput").value = "";
       $("previewImg").style.display = "none";
-      $("previewImg").src = "";
       $("previewEmpty").style.display = "block";
+      $("deleteProductBtn").style.display = "none";
     }
 
-    function loadProductIntoForm(productId) {
-      const p = products.find(x => x.id === productId);
-      if (!p) return;
-
-      editingProductId = p.id;
-      imageDataUrl = p.image || null;
-
-      $("formTitle").textContent = "Edit Product";
-      $("deleteProductBtn").style.display = "inline-block";
-
-      $("pName").value = p.name || "";
-      $("pCategory").value = p.category || "";
-      $("pPrice").value = p.price ?? "";
-      $("pStock").value = (p.stock ?? "");
-      $("pSizes").value = (p.sizes || []).join(", ");
-      $("pVariants").value = (p.variants || []).join(", ");
-      $("pDesc").value = p.desc || "";
-
-      if (p.image) {
-        $("previewEmpty").style.display = "none";
-        $("previewImg").style.display = "block";
-        $("previewImg").src = p.image;
-      } else {
-        $("previewImg").style.display = "none";
-        $("previewImg").src = "";
-        $("previewEmpty").style.display = "block";
-      }
-
-      showToast("Editing product.");
-    }
-
-    function parseCSV(input) {
-      return input
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean);
-    }
-
-    function saveProduct() {
-      const name = $("pName").value.trim();
-      const category = $("pCategory").value.trim();
-      const priceRaw = $("pPrice").value;
-      const stockRaw = $("pStock").value;
-
-      const price = Number(priceRaw);
-      const stock = stockRaw === "" ? "" : Number(stockRaw);
-
-      const sizes = parseCSV($("pSizes").value);
-      const variants = parseCSV($("pVariants").value);
-      const desc = $("pDesc").value.trim();
-
-      if (!name) {
-        showToast("Product name required.");
-        return;
-      }
-      if (!Number.isFinite(price) || price < 0) {
-        showToast("Valid price required.");
-        return;
-      }
-      if (stock !== "" && (!Number.isFinite(stock) || stock < 0)) {
-        showToast("Stock must be empty or >= 0.");
-        return;
-      }
-
-      if (editingProductId) {
-        const idx = products.findIndex(x => x.id === editingProductId);
-        if (idx === -1) {
-          showToast("Edit target not found.");
-          return;
-        }
-        products[idx] = {
-          ...products[idx],
-          name, category, price, stock,
-          sizes, variants, desc,
-          image: imageDataUrl
-        };
-        showToast("Product updated.");
-      } else {
-        products.unshift({
-          id: uid(),
-          name, category, price, stock,
-          sizes, variants, desc,
-          image: imageDataUrl,
-          createdAt: Date.now()
-        });
-        showToast("Product added.");
-      }
-
-      saveJSON(KEY_PRODUCTS, products);
-      renderProducts(products);
-      resetForm();
-    }
-
-    function deleteProduct(productId) {
-      const p = products.find(x => x.id === productId);
-      if (!p) return;
-
-      const ok = confirm(`Delete product: "${p.name}" ?`);
-      if (!ok) return;
-
-      products = products.filter(x => x.id !== productId);
-      saveJSON(KEY_PRODUCTS, products);
-      renderProducts(products);
-
-      if (editingProductId === productId) resetForm();
-      showToast("Product deleted.");
-    }
-
-    function deleteProductFromForm() {
-      if (!editingProductId) {
-        showToast("No product selected.");
-        return;
-      }
-      deleteProduct(editingProductId);
-    }
-
-    // image preview
-    $("imageInput").addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) {
-        imageDataUrl = null;
-        $("previewImg").style.display = "none";
-        $("previewImg").src = "";
-        $("previewEmpty").style.display = "block";
-        return;
-      }
-      if (file.size > 1.5 * 1024 * 1024) {
-        showToast("Image too large. Use < 1.5MB.");
-        e.target.value = "";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        imageDataUrl = reader.result;
-        $("previewEmpty").style.display = "none";
-        $("previewImg").style.display = "block";
-        $("previewImg").src = imageDataUrl;
-        showToast("Image loaded.");
-      };
-      reader.readAsDataURL(file);
-    });
-
-    $("saveProductBtn").addEventListener("click", saveProduct);
-    $("deleteProductBtn").addEventListener("click", deleteProductFromForm);
-    $("resetFormBtn").addEventListener("click", resetForm);
-
-    // search
-    $("productSearch").addEventListener("input", () => renderProducts(products));
-
-    // orders filter
-    $("orderFilter").addEventListener("change", renderOrders);
-
-    // ---------------------------
-    // Settings
-    // ---------------------------
-    function loadSettingsToForm() {
-      $("storeName").value = settings.storeName || "";
-      $("upiId").value = settings.upiId || "";
-      $("etaDays").value = settings.etaDays ?? 3;
-      $("supportWa").value = settings.supportWa || "";
-    }
-
-    function saveSettings() {
-      settings.storeName = $("storeName").value.trim() || "—";
-      settings.upiId = $("upiId").value.trim();
-      settings.etaDays = Number($("etaDays").value || 0);
-      settings.supportWa = $("supportWa").value.trim();
-
-      saveJSON(KEY_SETTINGS, settings);
-      initHeader();
-      updateDebug();
-      showToast("Settings saved.");
-    }
-
-    $("saveSettingsBtn").addEventListener("click", saveSettings);
-
-    // ---------------------------
-    // Debug / misc
-    // ---------------------------
-    function updateDebug() {
-      $("debugInfo").textContent =
-        `localStorage keys:
-- ${KEY_PRODUCTS}: ${products.length} products
-- ${KEY_ORDERS}: ${orders.length} orders
-- ${KEY_SETTINGS}: store="${settings.storeName}"`;
-      $("statProducts").textContent = products.length;
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    // ---------------------------
-    // Init
-    // ---------------------------
-    function init() {
-      initHeader();
-      loadSettingsToForm();
-      renderProducts(products);
-      renderOrders();
-
-      // If no products exist, seed 2 quick demos (optional)
-      if (products.length === 0) {
-        products = [
-          {
-            id: uid(),
-            name: "Premium Cotton Tee",
-            category: "Apparel",
-            price: 499,
-            stock: 40,
-            sizes: ["S", "M", "L", "XL"],
-            variants: ["Black", "White", "Mint"],
-            desc: "Clean fit, daily wear.",
-            image: null,
-            createdAt: Date.now()
-          },
-          {
-            id: uid(),
-            name: "Street Hoodie",
-            category: "Apparel",
-            price: 1299,
-            stock: 18,
-            sizes: ["M", "L", "XL"],
-            variants: ["Jet Black", "Charcoal", "Teal Accent"],
-            desc: "Warm. Heavy. Reliable.",
-            image: null,
-            createdAt: Date.now()
-          }
-        ];
-        saveJSON(KEY_PRODUCTS, products);
-        renderProducts(products);
-      }
-    }
-
-    init();
-  </script>
-  <script>
-    const API = location.origin;
-    const params = new URLSearchParams(location.search);
-const SELLER_ID = params.get("sellerId") || "demoSeller";
-const SELLER_KEY = params.get("sellerKey") || "";
-    async function fetchProducts() {
-      const url = `${API}/api/sellers/${SELLER_ID}/products`;
-      const sellerKey = SELLER_KEY;
-
-      const res = await fetch(url, { headers: { "x-seller-key": sellerKey } });
-      const data = await res.json();
-
-      // if server returned an error
-      if (!res.ok) {
-        alert(data?.error || "Failed to load products");
-        return [];
-      }
-
-      // ✅ IMPORTANT: extract the array correctly
-      const productsList = Array.isArray(data)
-        ? data
-        : (data.products || data.items || []);
-
-      console.log("productsList:", productsList);
-
-      // now render safely
-      renderProducts(productsList);
-
-      return productsList;
-    }
-
-    // renderProducts for the #products div is handled by the first script block.
-    // The API block calls the same function with the fetched list:
-
-    async function updatePrice(id, price) {
-      const r = await fetch(`${API}/api/sellers/${SELLER_ID}/products/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-seller-key": SELLER_KEY
-        },
-        body: JSON.stringify({ price })
-      });
-      const data = await r.json();
-      console.log("update:", data);
-      if (!r.ok) alert(data.error || "update failed");
-      await fetchProducts(); // Refresh products list
-    }
-
-    function updatePricePrompt(id, currentPrice) {
-      const next = prompt("New price?", String(currentPrice));
-      if (!next) return;
-      const price = Number(next);
-      if (!Number.isFinite(price) || price <= 0) return alert("Invalid price");
-      updatePrice(id, price);
-    }
-
-    async function deleteProduct(id) {
-      if (!confirm("Delete product?")) return;
-      const r = await fetch(`${API}/api/sellers/${SELLER_ID}/products/${id}`, {
-        method: "DELETE",
-        headers: { "x-seller-key": SELLER_KEY }
-      });
-      const data = await r.json();
-      console.log("delete:", data);
-      if (!r.ok) alert(data.error || "delete failed");
-      await fetchProducts(); // Refresh products list
-    }
-
-    fetchProducts(); // Initial load
-  </script>
-
-  <script>
-    // === Orders Panel ===
-    const elOrdersList = document.getElementById("ordersList");
-    const elOrdersMeta = document.getElementById("ordersMeta");
-    const btnRefreshOrders = document.getElementById("btnRefreshOrders");
-
-    function fmtTime(iso) {
-      try { return new Date(iso).toLocaleString(); } catch { return iso || "-"; }
-    }
-
-    function money(n) {
-      if (typeof n !== "number") return "-";
-      return "₹" + n.toString();
-    }
-
-    function orderCard(o) {
-      const items = Array.isArray(o.items) ? o.items : [];
-      const itemsHtml = items.map(i => {
-        const qty = i.qty ?? 1;
-        const size = i.size ?? "-";
-        const variant = i.variant ?? "-";
-        const pid = i.productId ?? "-";
-        return `
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <div style="opacity:.9; font-size:13px;">
-            <div style="font-weight:600">${pid}</div>
-            <div style="opacity:.75">Size: ${size} • Variant: ${variant}</div>
-          </div>
-          <div style="font-weight:700">x${qty}</div>
-        </div>
-      `;
-      }).join("");
-
-      const status = o.status || "pending";
-      const payment = o.paymentStatus || "unpaid";
-
-      const FLOW = {
-        pending: ["confirmed", "cancelled"],
-        confirmed: ["packed", "cancelled"],
-        packed: ["shipped"],
-        shipped: ["delivered"],
-        delivered: [],
-        cancelled: []
-      };
-
-      const currentStatus = o.status || "pending";
-      const allowed = FLOW[currentStatus] || [];
-
-      return `
-      <div class="card" style="padding:14px;">
-        <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
-          <div>
-            <div style="font-weight:800">${o.id}</div>
-            <div class="muted" style="margin-top:4px;">Created: ${fmtTime(o.createdAt)}</div>
-            <div class="muted" style="margin-top:2px;">👤 ${o.buyerName || "Guest"}</div>
-            <div class="muted" style="margin-top:2px;">📞 ${o.buyerPhone || "—"}</div>
-            <div class="muted" style="margin-top:2px;">📍 ${o.buyerAddress || "—"}</div>
-          </div>
-
-          <div style="display:flex; gap:10px; align-items:center;">
-            <span class="pill">${status}</span>
-            <span class="pill">${payment}</span>
-          </div>
-        </div>
-
-        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-          <div class="pill">Total: ${money(o.total)}</div>
-          <button class="btn" data-copy-track="${o.id}">Copy tracking link</button>
-          <button class="btn" data-copy-id="${o.id}">Copy order id</button>
-        </div>
-
-        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <label class="muted">Update status:</label>
-          <select class="select" data-status="${o.id}">
-            <option value="${currentStatus}" selected>${currentStatus}</option>
-            ${allowed.map(s => `<option value="${s}">${s}</option>`).join("")
-        }
-          </select>
-          <button class="btn" data-update="${o.id}">Update</button>
-          <div class="muted" id="msg-${o.id}"></div>
-        </div>
-
-        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
-          ${itemsHtml || `<div class="muted">No items</div>`}
-        </div>
-      </div>
-    `;
-    }
-
-    async function fetchOrders() {
-      elOrdersMeta.textContent = "Loading…";
-      elOrdersList.innerHTML = "";
-
-      const url = `${API}/api/sellers/${encodeURIComponent(SELLER_ID)}/orders`;
-
-      const res = await fetch(url, {
-        headers: { "x-seller-key": SELLER_KEY }
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
-        elOrdersMeta.textContent = `Error: ${data.error || res.status}`;
-        return;
-      }
-
-      const orders = Array.isArray(data.orders) ? data.orders : [];
-      elOrdersMeta.textContent = `${orders.length} order(s)`;
-
-      elOrdersList.innerHTML = orders.map(orderCard).join("");
-    }
-
-    async function patchOrderStatus(orderId, newStatus) {
-      const url = `${API}/api/sellers/${encodeURIComponent(SELLER_ID)}/orders/${encodeURIComponent(orderId)}`;
-      const res = await fetch(url, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-seller-key": SELLER_KEY
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      return data.order;
-    }
-
-    function trackingLink(orderId) {
-      const base = `${location.origin}/track.html`;
-      const params = new URLSearchParams({ sellerId: SELLER_ID, orderId });
-      return `${base}?${params.toString()}`;
-    }
-
-    // Note: SELLER_ID and SELLER_KEY are defined in the previous script block
-
-    async function copyText(txt) {
-      try {
-        await navigator.clipboard.writeText(txt);
-        return true;
-      } catch {
-        const t = document.createElement("textarea");
-        t.value = txt;
-        document.body.appendChild(t);
-        t.select();
-        document.execCommand("copy");
-        document.body.removeChild(t);
-        return true;
-      }
-    }
-
-    document.addEventListener("click", async (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-
-      if (btn.id === "btnRefreshOrders") {
-        fetchOrders();
-        return;
-      }
-
-      const trackId = btn.getAttribute("data-copy-track");
-      if (trackId) {
-        await copyText(trackingLink(trackId));
-        btn.textContent = "Copied ✅";
-        setTimeout(() => (btn.textContent = "Copy tracking link"), 900);
-        return;
-      }
-
-      const copyId = btn.getAttribute("data-copy-id");
-      if (copyId) {
-        await copyText(copyId);
-        btn.textContent = "Copied ✅";
-        setTimeout(() => (btn.textContent = "Copy order id"), 900);
-        return;
-      }
-
-      const updId = btn.getAttribute("data-update");
-      if (updId) {
-        const sel = document.querySelector(`select[data-status="${updId}"]`);
-        const msg = document.getElementById(`msg-${updId}`);
-        const newStatus = sel ? sel.value : "pending";
-
-        msg.textContent = "Updating…";
-
-        try {
-          await patchOrderStatus(updId, newStatus);
-          msg.textContent = "Updated ✅";
-          fetchOrders();
-        } catch (err) {
-          msg.textContent = "Error: " + err.message;
-        }
-        return;
-      }
-
-      const stockBtn = e.target.closest(".btnUpdateStock");
-      if (stockBtn) {
-        const productId = stockBtn.dataset.productId;
-        if (!productId) return alert("UI bug: missing productId");
-
-        const card = stockBtn.closest(".item");
-        const stockEl = card.querySelector(".stockInput");
-        const newStock = Number(stockEl.value);
-
-        const sellerId = "demoSeller";
-        const sellerKey = "demo123";
-
-        console.log("Updating stock for productId:", productId);
-        // IMPORTANT: use the exact route your backend actually exposes
-        const res = await fetch(`/api/sellers/${sellerId}/products/${productId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "x-seller-key": sellerKey
-          },
-          body: JSON.stringify({ stock: newStock })
-        });
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          alert(data.error || "product not found");
-          return;
-        }
-
-        // optional: refresh products list
-        alert(`Stock updated to ${data.product?.stock ?? newStock}`);
-        fetchProducts(); // refresh
-        return;
-      }
-    });
-
-    fetchOrders();
-    fetchProducts(); // Initial load — merged; only call once
+    window.copyTrack = (orderId) => {
+      const link = `${location.origin}/track.html?sellerId=${SELLER_ID}&orderId=${orderId}`;
+      navigator.clipboard.writeText(link);
+      showToast("Tracking link copied 📋");
+    };
+
+    // ─── INIT ───
+    $("saveProductBtn").onclick = saveProduct;
+    $("deleteProductBtn").onclick = deleteProduct;
+    $("resetFormBtn").onclick = resetForm;
+    $("productSearch").oninput = renderProducts;
+    $("orderFilter").onchange = renderOrders;
+
+    loadAll();
   </script>
 </body>
 

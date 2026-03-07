@@ -1,6 +1,58 @@
 {
   "demoSeller": [
     {
+      "id": "ord_1772880575794_4ytqt",
+      "sellerId": "demoSeller",
+      "buyerName": "QA Buyer",
+      "buyerPhone": "9999999999",
+      "buyerAddress": "QA Street",
+      "items": [
+        {
+          "productId": "prod_1772004404459_3df92077e7ebc8",
+          "qty": 1,
+          "variants": [
+            {
+              "caption": "Size",
+              "optionId": "0",
+              "label": "M"
+            },
+            {
+              "caption": "Color",
+              "optionId": "0",
+              "label": "Black"
+            }
+          ],
+          "name": "Oversized Tee",
+          "unitPrice": 699,
+          "subtotal": 699
+        }
+      ],
+      "total": 699,
+      "status": "shipped",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-07T10:49:35.794Z"
+        },
+        {
+          "status": "confirmed",
+          "at": "2026-03-07T10:51:28.716Z"
+        },
+        {
+          "status": "packed",
+          "at": "2026-03-07T10:51:42.044Z"
+        },
+        {
+          "status": "shipped",
+          "at": "2026-03-07T10:51:57.533Z"
+        }
+      ],
+      "createdAt": "2026-03-07T10:49:35.795Z",
+      "idempotencyKey": null,
+      "receiptSig": "45dd9a32ee0b072c780503a5609a6e6a868673d87bc8cdf53a459618380553a2",
+      "updatedAt": "2026-03-07T10:51:57.533Z"
+    },
+    {
       "id": "ord_1772736553100_bx7px",
       "sellerId": "demoSeller",
       "buyerName": "Hitesh Agarwal",

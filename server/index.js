@@ -176,8 +176,9 @@ function requireSellerKey(req, res, next) {
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 app.get("/api/public/sellers/:sellerId/products", (req, res) => {
-  if (!SELLER_KEYS[req.params.sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
-  const products = DB.getProducts().filter(p => p.sellerId === req.params.sellerId);
+  const { sellerId } = req.params;
+  if (!SELLER_KEYS[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
+  const products = DB.getProducts().filter(p => p.sellerId === sellerId);
   res.json({ ok: true, products });
 });
 
@@ -273,10 +274,24 @@ app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
 });
 
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
-  const { name, price, stock } = req.body;
-  if (!name || isNaN(Number(price))) return res.status(400).json({ ok: false, error: "invalid data" });
+  const { name, price, stock, category, sizes, variants, desc, images } = req.body;
+  if (!name || isNaN(Number(price))) return res.status(400).json({ ok: false, error: "invalid data: name and price required" });
+
   const products = DB.getProducts();
-  const product = { id: "prod_" + Date.now(), sellerId: req.params.sellerId, name, price: Number(price), stock: Number(stock) || 0, createdAt: nowIso() };
+  const product = {
+    id: "prod_" + Date.now() + "_" + Math.random().toString(36).slice(2, 5),
+    sellerId: req.params.sellerId,
+    name,
+    category: category || "",
+    price: Number(price),
+    stock: stock === "" ? "" : (Number(stock) || 0),
+    sizes: Array.isArray(sizes) ? sizes : [],
+    variants: Array.isArray(variants) ? variants : [],
+    desc: desc || "",
+    images: Array.isArray(images) ? images : [],
+    createdAt: nowIso()
+  };
+
   products.push(product);
   DB.saveProducts(products);
   res.json({ ok: true, product });
@@ -284,20 +299,33 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
 
 app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, res) => {
   const products = DB.getProducts();
-  const p = products.find(x => x.id === req.params.productId && x.sellerId === req.params.sellerId);
-  if (!p) return res.status(404).json({ ok: false, error: "not found" });
-  ["name", "price", "images", "variants", "stock"].forEach(f => { if (req.body[f] !== undefined) p[f] = req.body[f]; });
+  const idx = products.findIndex(x => x.id === req.params.productId && x.sellerId === req.params.sellerId);
+  if (idx === -1) return res.status(404).json({ ok: false, error: "not found" });
+
+  const p = products[idx];
+  const fields = ["name", "price", "stock", "category", "sizes", "variants", "desc", "images"];
+  fields.forEach(f => {
+    if (req.body[f] !== undefined) {
+      if (f === "price") p[f] = Number(req.body[f]);
+      else if (f === "stock") p[f] = req.body[f] === "" ? "" : Number(req.body[f]);
+      else p[f] = req.body[f];
+    }
+  });
+
+  p.updatedAt = nowIso();
   DB.saveProducts(products);
   res.json({ ok: true, product: p });
 });
 
 app.delete("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, res) => {
   const products = DB.getProducts();
-  const idx = products.findIndex(p => p.id === req.params.productId && p.sellerId === req.params.sellerId);
-  if (idx === -1) return res.status(404).json({ ok: false, error: "not found" });
-  products.splice(idx, 1);
-  DB.saveProducts(products);
-  res.json({ ok: true });
+  const initialLen = products.length;
+  const filtered = products.filter(p => !(p.id === req.params.productId && p.sellerId === req.params.sellerId));
+
+  if (filtered.length === initialLen) return res.status(404).json({ ok: false, error: "not found" });
+
+  DB.saveProducts(filtered);
+  res.json({ ok: true, message: "product deleted" });
 });
 
 app.get("/api/sellers/:sellerId/orders", requireSellerKey, (req, res) => {
@@ -310,8 +338,18 @@ app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, (req, res)
   if (!order) return res.status(404).json({ ok: false, error: "not found" });
 
   const next = String(req.body.status).toLowerCase();
-  const transitions = { pending: ["confirmed", "cancelled"], confirmed: ["packed", "cancelled"], packed: ["shipped"], shipped: ["delivered"], delivered: [], cancelled: [] };
-  if (!transitions[order.status]?.includes(next)) return res.status(400).json({ ok: false, error: "invalid transition" });
+  const transitions = {
+    pending: ["confirmed", "cancelled"],
+    confirmed: ["packed", "cancelled"],
+    packed: ["shipped"],
+    shipped: ["delivered"],
+    delivered: [],
+    cancelled: []
+  };
+
+  if (!transitions[order.status]?.includes(next)) {
+    return res.status(400).json({ ok: false, error: `invalid transition from ${order.status} to ${next}` });
+  }
 
   if (next === "cancelled") {
     const products = DB.getProducts();
@@ -321,6 +359,7 @@ app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, (req, res)
 
   order.status = next;
   order.updatedAt = nowIso();
+  if (!Array.isArray(order.history)) order.history = [];
   order.history.push({ status: next, at: order.updatedAt });
   DB.saveOrders(ordersDb);
   res.json({ ok: true, order });

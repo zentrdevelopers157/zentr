@@ -40,7 +40,13 @@ app.get("/", (req, res) => {
 });
 
 // -------------------- DATA STORAGE --------------------
-const DATA_DIR = path.join(__dirname, "..", "data");
+// Support DATA_DIR env var for Render persistent disk support.
+// On Render: set DATA_DIR to /opt/render/project/src/data (or any disk-mounted path).
+// Locally: falls back to ../data/ relative to server/
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.join(__dirname, "..", "data");
+
 const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const SELLERS_FILE = path.join(DATA_DIR, "sellers.json");
@@ -198,7 +204,13 @@ app.post("/api/onboard", (req, res) => {
       ownerName: owner,
       phone,
       category: category || "",
-      createdAt: nowIso()
+      createdAt: nowIso(),
+      // Payment info (v1) - empty by default
+      payment: {
+        codEnabled: false,
+        upiId: "",
+        paymentNote: ""
+      }
     };
     DB.saveSellers(sellers);
 
@@ -219,6 +231,15 @@ app.get("/api/public/sellers/:sellerId", (req, res) => {
   if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
   // Return only public info
   res.json({ ok: true, storeName: seller.storeName, category: seller.category, phone: seller.phone });
+});
+
+// Get public payment info (for confirm/receipt pages — no seller key required)
+app.get("/api/public/sellers/:sellerId/payment", (req, res) => {
+  const sellers = DB.getSellers();
+  const seller = sellers[req.params.sellerId];
+  if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
+  const payment = seller.payment || { codEnabled: false, upiId: "", paymentNote: "" };
+  res.json({ ok: true, payment });
 });
 
 app.get("/api/public/sellers/:sellerId/products", (req, res) => {
@@ -267,7 +288,25 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
       const unitPrice = OrderLogic.calculateItemPrice(p);
       const qty = Number(it.qty) || 1;
       total += unitPrice * qty;
-      return { ...it, name: p.name, unitPrice, subtotal: unitPrice * qty };
+      return {
+        ...it,
+        name: p.name,
+        unitPrice,
+        subtotal: unitPrice * qty,
+        // Normalize: always store as selectedOptions array [{name, value}]
+        // buyer.js sends as variants: [{caption, label}] — convert here for uniform storage
+        selectedOptions: Array.isArray(it.selectedOptions)
+          ? it.selectedOptions
+          : Array.isArray(it.variants)
+            ? it.variants.map(v => ({ name: v.caption || v.name || "Option", value: v.label || v.value || "" }))
+            : [],
+        // Keep variants for backward compatibility
+        variants: Array.isArray(it.variants) ? it.variants : (
+          Array.isArray(it.selectedOptions)
+            ? it.selectedOptions.map(o => ({ caption: o.name, label: o.value }))
+            : []
+        )
+      };
     });
 
     OrderLogic.decrementStock(products, items);
@@ -281,6 +320,7 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
       buyerAddress: buyerAddress || delivery?.address || "N/A",
       items: enrichedItems,
       total,
+      paymentStatus: "unpaid",
       status: "pending",
       history: [{ status: "pending", at: nowIso() }],
       createdAt: nowIso(),
@@ -339,6 +379,35 @@ app.post("/api/receipt/verify", (req, res) => {
 
 app.get("/api/sellers/:sellerId/info", requireSellerKey, (req, res) => {
   res.json({ ok: true, seller: req.seller });
+});
+
+// Get payment settings (seller-authenticated)
+app.get("/api/sellers/:sellerId/payment", requireSellerKey, (req, res) => {
+  const payment = req.seller.payment || { codEnabled: false, upiId: "", paymentNote: "" };
+  res.json({ ok: true, payment });
+});
+
+// Save payment settings (seller-authenticated)
+app.patch("/api/sellers/:sellerId/payment", requireSellerKey, (req, res) => {
+  try {
+    const sellers = DB.getSellers();
+    const seller = sellers[req.params.sellerId];
+    if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
+
+    const { codEnabled, upiId, paymentNote } = req.body || {};
+    if (!seller.payment) seller.payment = { codEnabled: false, upiId: "", paymentNote: "" };
+
+    if (codEnabled !== undefined) seller.payment.codEnabled = !!codEnabled;
+    if (upiId !== undefined) seller.payment.upiId = String(upiId || "").trim();
+    if (paymentNote !== undefined) seller.payment.paymentNote = String(paymentNote || "").trim();
+    seller.payment.updatedAt = nowIso();
+
+    DB.saveSellers(sellers);
+    res.json({ ok: true, payment: seller.payment });
+  } catch (err) {
+    console.error("[seller payment PATCH] error:", err);
+    res.status(500).json({ ok: false, error: "server error" });
+  }
 });
 
 app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
@@ -485,7 +554,7 @@ app.use((req, res) => res.status(404).json({ ok: false, error: "not found" }));
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`✅  Zentr running on http://localhost:${PORT}`);
-  // Seed a demoSeller so old links still work for testing
+  console.log(`📁  Data directory: ${DATA_DIR}`);
   try {
     DB.ensureFiles();
     const sellers = DB.getSellers();
@@ -497,12 +566,25 @@ app.listen(PORT, () => {
         ownerName: "Demo Owner",
         phone: "0000000000",
         category: "General",
-        createdAt: nowIso()
+        createdAt: nowIso(),
+        payment: { codEnabled: true, upiId: "demo@upi", paymentNote: "COD available. UPI payment also accepted." }
       };
       DB.saveSellers(sellers);
       console.log("[startup] demoSeller seeded");
     }
+    // Migrate existing sellers without payment field
+    let migrated = false;
+    Object.values(sellers).forEach(s => {
+      if (!s.payment) {
+        s.payment = { codEnabled: false, upiId: "", paymentNote: "" };
+        migrated = true;
+      }
+    });
+    if (migrated) {
+      DB.saveSellers(sellers);
+      console.log("[startup] migrated old sellers to include payment field");
+    }
   } catch (e) {
-    console.warn("[startup] seed failed:", e.message);
+    console.warn("[startup] seed/migrate failed:", e.message);
   }
 });

@@ -651,17 +651,33 @@
       elItems.innerHTML = "";
       (items || []).forEach(i => {
         const name = i.name || i.productId || "Item";
-        const variant = i.variant ? ` • ${i.variant}` : "";
-        const size = i.size ? ` • Size ${i.size}` : "";
-        const price = (typeof i.unitPrice === "number") ? ` • ${fmtMoney(i.unitPrice)}` : "";
+        const price = (typeof i.unitPrice === "number") ? ` · ${fmtMoney(i.unitPrice)}` : "";
         const qty = (typeof i.qty === "number") ? i.qty : 1;
+
+        // Build options string from selectedOptions (new) or variants (compat) or legacy fields
+        let optTxt = "";
+        if (Array.isArray(i.selectedOptions) && i.selectedOptions.length > 0) {
+          optTxt = i.selectedOptions.map(o => `${o.name}: ${o.value}`).join(" · ");
+        } else if (Array.isArray(i.variants) && i.variants.length > 0) {
+          optTxt = i.variants.map(v => {
+            if (v.caption && v.label) return `${v.caption}: ${v.label}`;
+            if (v.label) return v.label;
+            return String(v);
+          }).join(" · ");
+        } else {
+          // Legacy single-field fallback
+          const parts = [];
+          if (i.variant) parts.push(i.variant);
+          if (i.size) parts.push(`Size: ${i.size}`);
+          optTxt = parts.join(" · ");
+        }
 
         const div = document.createElement("div");
         div.className = "item";
         div.innerHTML = `
           <div>
             <b>${escapeHtml(name)}</b>
-            <div><span>${escapeHtml((i.productId || ""))}${escapeHtml(variant)}${escapeHtml(size)}${escapeHtml(price)}</span></div>
+            <div><span>${escapeHtml(optTxt || i.productId || "")}${escapeHtml(price)}</span></div>
           </div>
           <div class="qty">x ${qty}</div>
         `;

@@ -801,40 +801,44 @@
 
         <div class="panel">
           <div class="panel-head">
-            <b>Store Settings</b>
-            <div class="pill">Prototype</div>
+            <b>Payment Settings</b>
+            <div class="pill good" id="paymentSavedPill" style="display:none">Saved ✅</div>
           </div>
           <div class="panel-body">
-            <div class="field">
-              <label>Store Name</label>
-              <input id="storeName" placeholder="e.g., Ashis Wear" />
+            <div class="field" style="flex-direction:row;align-items:center;gap:12px;">
+              <input type="checkbox" id="codEnabled"
+                style="width:18px;height:18px;accent-color:var(--turq);flex-shrink:0;cursor:pointer;" />
+              <label for="codEnabled"
+                style="margin:0;cursor:pointer;color:var(--text);font-size:14px;font-weight:600;">Cash on Delivery (COD)
+                Available</label>
             </div>
             <div class="field">
-              <label>UPI ID (for Direct Pay)</label>
-              <input id="upiId" placeholder="e.g., shop@upi" />
+              <label>UPI ID</label>
+              <input id="upiId" placeholder="e.g., yourname@upi" />
             </div>
-            <div class="row">
-              <div class="field">
-                <label>Delivery ETA (days)</label>
-                <input id="etaDays" type="number" min="0" step="1" placeholder="e.g., 3" />
-              </div>
-              <div class="field">
-                <label>Support WhatsApp</label>
-                <input id="supportWa" placeholder="e.g., +91XXXXXXXXXX" />
-              </div>
+            <div class="field">
+              <label>Payment Note / Instructions for Buyer</label>
+              <textarea id="paymentNote"
+                placeholder="e.g., Pay via UPI before delivery. COD available for orders under ₹2000."
+                style="min-height:70px"></textarea>
             </div>
-            <button class="btn primary" id="saveSettingsBtn">Save Settings</button>
+            <button class="btn primary" id="savePaymentBtn">Save Payment Info</button>
 
             <div class="divider"></div>
 
-            <div class="small">
-              Zentr 2026<br />
-
+            <div class="panel" style="margin:0;">
+              <div class="panel-head"><b>Store Settings</b></div>
+              <div class="panel-body" style="padding:14px;">
+                <div class="field">
+                  <label>Store Name</label>
+                  <input id="storeName" placeholder="e.g., My Store" />
+                </div>
+                <div class="small mono" id="debugInfo" style="margin-top:8px;font-size:10px;color:var(--muted)"></div>
+              </div>
             </div>
 
             <div class="divider"></div>
-
-            <div class="small mono" id="debugInfo"></div>
+            <div class="small" style="color:var(--muted);font-size:12px">Zentr 2026</div>
           </div>
         </div>
 
@@ -943,18 +947,36 @@
 
     async function loadAll() {
       try {
-        const [pData, oData, infoData] = await Promise.all([
+        const [pData, oData, infoData, payData] = await Promise.all([
           apiFetch(`/api/sellers/${SELLER_ID}/products`),
           apiFetch(`/api/sellers/${SELLER_ID}/orders`),
-          apiFetch(`/api/sellers/${SELLER_ID}/info`)
+          apiFetch(`/api/sellers/${SELLER_ID}/info`),
+          apiFetch(`/api/sellers/${SELLER_ID}/payment`)
         ]);
         state.products = pData.products || [];
         state.orders = oData.orders || [];
         if (infoData.seller) {
           state.settings.storeName = infoData.seller.storeName || "My Store";
-          // Update the nav store name
-          const nameEl = document.getElementById("storeName");
-          if (nameEl) nameEl.textContent = "Store: " + state.settings.storeName;
+          const navName = $("storeName");
+          if (navName && navName.tagName === "INPUT") navName.value = state.settings.storeName;
+          const topName = document.getElementById("storeName");
+          if (topName && topName.id === "storeName") topName.value = state.settings.storeName;
+          // Update topbar display
+          const topbarName = document.querySelector("#storeName");
+          if (topbarName) topbarName.textContent = "Store: " + state.settings.storeName;
+          // Debug info
+          const di = $("debugInfo");
+          if (di) di.textContent = `ID: ${SELLER_ID}`;
+        }
+        // Populate payment settings
+        if (payData && payData.payment) {
+          const pm = payData.payment;
+          const codEl = $("codEnabled");
+          const upiEl = $("upiId");
+          const noteEl = $("paymentNote");
+          if (codEl) codEl.checked = !!pm.codEnabled;
+          if (upiEl) upiEl.value = pm.upiId || "";
+          if (noteEl) noteEl.value = pm.paymentNote || "";
         }
         renderAll();
       } catch (err) {
@@ -1293,6 +1315,27 @@
     $("resetFormBtn").onclick = resetForm;
     $("productSearch").oninput = renderProducts;
     $("orderFilter").onchange = renderOrders;
+
+    // Save payment info
+    const savePayBtn = $("savePaymentBtn");
+    if (savePayBtn) {
+      savePayBtn.onclick = async () => {
+        try {
+          const codEnabled = $("codEnabled") ? $("codEnabled").checked : false;
+          const upiId = $("upiId") ? $("upiId").value.trim() : "";
+          const paymentNote = $("paymentNote") ? $("paymentNote").value.trim() : "";
+          await apiFetch(`/api/sellers/${SELLER_ID}/payment`, {
+            method: "PATCH",
+            body: JSON.stringify({ codEnabled, upiId, paymentNote })
+          });
+          showToast("Payment settings saved ✅");
+          const pill = $("paymentSavedPill");
+          if (pill) { pill.style.display = "inline-flex"; setTimeout(() => { pill.style.display = "none"; }, 3000); }
+        } catch (err) {
+          showToast("❌ " + err.message);
+        }
+      };
+    }
 
     loadAll();
   </script>

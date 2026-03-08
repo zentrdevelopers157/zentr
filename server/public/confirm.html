@@ -30,14 +30,14 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
       color: var(--text);
       background:
         radial-gradient(1000px 600px at 20% 10%, rgba(39, 240, 213, .20), transparent 60%),
         radial-gradient(900px 500px at 80% 30%, rgba(39, 240, 213, .12), transparent 55%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       padding: 24px;
     }
@@ -76,15 +76,6 @@
       display: flex;
       align-items: center;
       gap: 10px
-    }
-
-    .logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      background: radial-gradient(circle at 30% 30%, var(--turq), rgba(39, 240, 213, .15));
-      border: 1px solid rgba(39, 240, 213, .45);
-      box-shadow: 0 12px 30px rgba(39, 240, 213, .18);
     }
 
     .title {
@@ -168,6 +159,8 @@
       text-decoration: none;
       font-weight: 650;
       transition: transform .05s ease;
+      font-family: inherit;
+      font-size: 13px;
     }
 
     button:active,
@@ -236,6 +229,67 @@
         transform: translateX(10%)
       }
     }
+
+    /* Payment info block */
+    .payment-block {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(39, 240, 213, .25);
+      background: rgba(39, 240, 213, .06);
+      display: none;
+    }
+
+    .payment-block .pb-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--turq);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .payment-block .pb-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, .15);
+      border: 1px solid rgba(255, 255, 255, .1);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .payment-block .pb-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .payment-block .pb-label {
+      font-size: 11px;
+      color: var(--muted);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .payment-block .pb-value {
+      font-weight: 600;
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .payment-block .upi-copy {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(39, 240, 213, .12);
+      border: 1px solid rgba(39, 240, 213, .3);
+      color: var(--turq);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 
@@ -272,15 +326,15 @@
           <div class="v" id="orderId">—</div>
         </div>
         <div class="kv">
-          <div class="k">Seller ID</div>
-          <div class="v" id="sellerId">—</div>
+          <div class="k">Store</div>
+          <div class="v" id="storeNameEl">—</div>
         </div>
         <div class="kv">
           <div class="k">Total</div>
           <div class="v" id="total">—</div>
         </div>
         <div class="kv">
-          <div class="k">Payment</div>
+          <div class="k">Payment Status</div>
           <div class="v" id="payment">—</div>
         </div>
       </div>
@@ -295,34 +349,50 @@
           <div class="k">Phone</div>
           <div class="v" id="buyerPhone">—</div>
         </div>
-        <div class="kv">
+        <div class="kv" style="grid-column: 1 / -1;">
           <div class="k">Address</div>
           <div class="v" id="buyerAddress">—</div>
         </div>
       </div>
 
+      <!-- Payment Info block (shown when seller has configured payment) -->
+      <div class="payment-block" id="paymentBlock">
+        <div class="pb-title">💳 How to Pay</div>
+        <div id="paymentRows"></div>
+      </div>
+
       <div class="btns">
-        <a class="btn" id="trackBtn" href="#">Open tracking</a>
+        <a class="btn" id="trackBtn" href="#">🔍 Track Order</a>
         <button class="secondary" id="copyTrack">Copy tracking link</button>
-        <a class="btn secondary" id="receiptBtn" href="#">Download receipt (JSON)</a>
+        <a class="btn secondary" id="receiptBtn" href="#">🧾 View Receipt</a>
         <button class="secondary" id="refreshBtn">Refresh</button>
       </div>
 
-      <div style="margin-top:14px" class="muted">Items</div>
+      <div style="margin-top:14px" class="muted">Items Ordered</div>
       <div class="items" id="items"></div>
     </div>
 
     <div class="card">
       <div class="title">What happens next</div>
       <p class="muted" style="margin-top:6px; line-height:1.35">
-        Seller will confirm and move the order through steps (packed → shipped → delivered).
-        Your tracking link is shareable on WhatsApp.
+        Seller will confirm and move your order through steps (confirmed → packed → shipped → delivered).
+        Your tracking link is shareable — just copy it and send on WhatsApp!
       </p>
       <div class="kv" style="margin-top:12px">
-        <div class="k">Tip</div>
-        <div class="v" style="font-weight:600">
-          If you’re doing COD/UPI in v1, keep paymentStatus “unpaid” until seller marks it paid later.
+        <div class="k">Order Status Flow</div>
+        <div class="v" style="font-weight:600; font-size:13px; margin-top:6px; line-height:1.8">
+          📥 Pending → ✅ Confirmed → 📦 Packed → 🚚 Shipped → 🎉 Delivered
         </div>
+      </div>
+      <div class="kv" style="margin-top:10px">
+        <div class="k">Tip</div>
+        <div class="v" style="font-weight:600; font-size:13px; margin-top:4px">
+          Bookmark this page or copy the tracking link to check your order status anytime — no login needed.
+        </div>
+      </div>
+      <div class="kv" style="margin-top:10px">
+        <div class="k">Seller ID</div>
+        <div class="v" id="sellerIdEl" style="font-family: monospace; font-size:12px">—</div>
       </div>
     </div>
   </div>
@@ -344,33 +414,123 @@
       errBox.textContent = "";
     }
 
+    function fmtOptions(item) {
+      // Prefer selectedOptions [{name, value}], fallback to variants [{caption, label}]
+      if (Array.isArray(item.selectedOptions) && item.selectedOptions.length > 0) {
+        return item.selectedOptions.map(o => `${o.name}: ${o.value}`).join(" · ");
+      }
+      if (Array.isArray(item.variants) && item.variants.length > 0) {
+        return item.variants.map(v => {
+          if (v.caption && v.label) return `${v.caption}: ${v.label}`;
+          if (v.label) return v.label;
+          return String(v);
+        }).join(" · ");
+      }
+      return "";
+    }
+
     function buildLinks() {
-      const trackUrl = `${location.origin}/track.html?sellerId=${encodeURIComponent(sellerId)}&orderId=${encodeURIComponent(orderId)}`;
-      const receiptUrl = `${location.origin}/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}/receipt`;
+      const trackUrl = `${location.origin}/track?sellerId=${encodeURIComponent(sellerId)}&orderId=${encodeURIComponent(orderId)}`;
+      const receiptUrl = `${location.origin}/receipt?sellerId=${encodeURIComponent(sellerId)}&orderId=${encodeURIComponent(orderId)}`;
 
       el("trackBtn").href = trackUrl;
       el("receiptBtn").href = receiptUrl;
+      el("sellerIdEl").textContent = sellerId || "—";
 
       el("copyTrack").onclick = async () => {
-        await navigator.clipboard.writeText(trackUrl);
-        el("livePill").textContent = "Copied ✅";
-        setTimeout(() => el("livePill").textContent = "Live", 900);
+        try {
+          await navigator.clipboard.writeText(trackUrl);
+          el("livePill").textContent = "Copied ✅";
+          setTimeout(() => el("livePill").textContent = "Live", 1200);
+        } catch {
+          prompt("Copy this tracking link:", trackUrl);
+        }
       };
+    }
+
+    async function loadPaymentInfo() {
+      try {
+        const r = await fetch(`/api/public/sellers/${encodeURIComponent(sellerId)}/payment`);
+        const data = await r.json().catch(() => ({}));
+        if (!data.ok || !data.payment) return;
+
+        const pm = data.payment;
+        const hasAnything = pm.codEnabled || pm.upiId || pm.paymentNote;
+        if (!hasAnything) return;
+
+        const block = el("paymentBlock");
+        const rows = el("paymentRows");
+        rows.innerHTML = "";
+
+        if (pm.codEnabled) {
+          rows.innerHTML += `
+            <div class="pb-row">
+              <span class="pb-label">COD</span>
+              <span class="pb-value">✅ Cash on Delivery available</span>
+            </div>`;
+        }
+
+        if (pm.upiId) {
+          rows.innerHTML += `
+            <div class="pb-row">
+              <span class="pb-label">UPI</span>
+              <span class="pb-value">${escHtml(pm.upiId)}</span>
+              <button class="upi-copy" onclick="copyUpi('${escHtml(pm.upiId)}')">Copy</button>
+            </div>`;
+        }
+
+        if (pm.paymentNote) {
+          rows.innerHTML += `
+            <div class="pb-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+              <span class="pb-label">Note</span>
+              <span class="pb-value" style="font-weight:500;color:rgba(255,255,255,.8)">${escHtml(pm.paymentNote)}</span>
+            </div>`;
+        }
+
+        block.style.display = "block";
+      } catch { /* non-critical */ }
+    }
+
+    window.copyUpi = async (upiId) => {
+      try {
+        await navigator.clipboard.writeText(upiId);
+        el("livePill").textContent = "UPI Copied ✅";
+        setTimeout(() => el("livePill").textContent = "Live", 1200);
+      } catch {
+        prompt("Copy UPI ID:", upiId);
+      }
+    };
+
+    async function loadStoreName() {
+      try {
+        const r = await fetch(`/api/public/sellers/${encodeURIComponent(sellerId)}`);
+        const d = await r.json().catch(() => ({}));
+        if (d.ok && d.storeName) el("storeNameEl").textContent = d.storeName;
+        else el("storeNameEl").textContent = sellerId || "—";
+      } catch { el("storeNameEl").textContent = sellerId || "—"; }
+    }
+
+    function escHtml(s) {
+      return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
     async function load() {
       try {
         hideErr();
         if (!sellerId || !orderId) {
-          showErr("Missing sellerId or orderId in URL. Example: /confirm.html?sellerId=s_123&orderId=ord_...");
+          showErr("Missing sellerId or orderId in URL.");
           return;
         }
 
-        el("sellerId").textContent = sellerId;
         el("orderId").textContent = orderId;
         buildLinks();
-
         el("livePill").textContent = "Loading...";
+
+        // Load in parallel
+        await Promise.all([
+          loadStoreName(),
+          loadPaymentInfo()
+        ]);
 
         const url = `/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}`;
         const r = await fetch(url);
@@ -380,13 +540,12 @@
         }
 
         const data = await r.json();
-
         if (!data.ok) throw new Error(data.error || "Failed to load order");
 
         const o = data.order;
         el("statusPill").textContent = `status: ${o.status}`;
         el("payment").textContent = o.paymentStatus || "unpaid";
-        el("total").textContent = (o.total != null) ? `₹${o.total}` : "—";
+        el("total").textContent = (o.total != null) ? `₹${Number(o.total).toLocaleString("en-IN")}` : "—";
 
         el("buyerName").textContent = o.buyerName || o.delivery?.name || "—";
         el("buyerPhone").textContent = o.buyerPhone || o.delivery?.phone || "—";
@@ -397,21 +556,21 @@
         (o.items || []).forEach(i => {
           const div = document.createElement("div");
           div.className = "item";
-          const vtxt = (i.variants || []).map(v => v.label).join(", ") || "No variants";
+          const optsTxt = fmtOptions(i);
           div.innerHTML = `
-          <div>
-            <div style="font-weight:650">${i.name || i.productId}</div>
-            <div class="muted">${vtxt}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-weight:750">x${i.qty || 1}</div>
-          </div>
-        `;
+            <div>
+              <div style="font-weight:700">${escHtml(i.name || i.productId)}</div>
+              ${optsTxt ? `<div class="muted" style="margin-top:3px">${escHtml(optsTxt)}</div>` : ""}
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-weight:750">×${i.qty || 1}</div>
+              <div class="muted">₹${Number(i.unitPrice || 0).toLocaleString("en-IN")}</div>
+            </div>
+          `;
           items.appendChild(div);
         });
 
         el("refreshBtn").onclick = load;
-
         el("livePill").textContent = "Live";
 
       } catch (e) {

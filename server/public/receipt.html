@@ -22,7 +22,7 @@
 
     * {
       box-sizing: border-box;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
     }
 
     body {
@@ -54,15 +54,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
-    }
-
-    .logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(46, 233, 198, .9), rgba(0, 0, 0, .2));
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: inherit;
     }
 
     .title {
@@ -117,6 +110,14 @@
       backdrop-filter: blur(14px);
     }
 
+    .card-title {
+      font-weight: 900;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .row {
       display: flex;
       gap: 10px;
@@ -125,8 +126,8 @@
 
     .field {
       flex: 1;
-      min-width: 200px;
-      padding: 12px 12px;
+      min-width: 180px;
+      padding: 12px;
       border-radius: 14px;
       border: 1px solid var(--stroke);
       background: rgba(0, 0, 0, .14);
@@ -156,19 +157,32 @@
       border: 1px solid var(--stroke);
       background: rgba(255, 255, 255, .08);
       color: var(--txt);
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-radius: 14px;
       font-weight: 700;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all .15s;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, .13);
     }
 
     button.primary {
       background: rgba(46, 233, 198, .16);
-      border-color: rgba(46, 233, 198, .35)
+      border-color: rgba(46, 233, 198, .35);
+      color: var(--accent);
+    }
+
+    button.primary:hover {
+      background: rgba(46, 233, 198, .25);
     }
 
     button.danger {
       background: rgba(255, 90, 122, .14);
-      border-color: rgba(255, 90, 122, .35)
+      border-color: rgba(255, 90, 122, .35);
+      color: var(--danger);
     }
 
     .items {
@@ -181,6 +195,7 @@
     .item {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 12px;
       padding: 12px;
       border-radius: 14px;
@@ -235,16 +250,66 @@
       transform: translateX(-50%);
       background: rgba(0, 0, 0, .55);
       border: 1px solid var(--stroke);
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-radius: 14px;
       display: none;
       gap: 8px;
       align-items: center;
       backdrop-filter: blur(10px);
+      font-size: 13px;
     }
 
     .toast.show {
       display: flex
+    }
+
+    .payment-section {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(46, 233, 198, .25);
+      background: rgba(46, 233, 198, .06);
+      display: none;
+    }
+
+    .payment-section .ps-title {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .payment-section .ps-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .payment-section .ps-label {
+      width: 60px;
+      flex-shrink: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .payment-section .ps-val {
+      font-weight: 600;
+    }
+
+    .qty-badge {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(46, 233, 198, .25);
+      background: rgba(46, 233, 198, .08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -256,7 +321,7 @@
         <img src="logo.png" alt="Zentr" style="height:32px; border-radius:8px;">
         <div>
           <div class="title">Zentr</div>
-          <div class="sub">Receipt · buyer-safe</div>
+          <div class="sub">Order Receipt · buyer-safe</div>
         </div>
       </a>
       <div class="pill"><span class="dot"></span><span id="liveText">Live</span></div>
@@ -264,39 +329,39 @@
 
     <div class="grid">
       <div class="card">
-        <div style="font-weight:900;font-size:18px">Receipt</div>
-        <div class="sub">Shareable link. No login needed.</div>
+        <div class="card-title">🧾 Order Receipt</div>
+        <div class="sub" style="margin-top:4px">Shareable link. No login needed.</div>
         <div class="hr"></div>
 
         <div class="row">
           <div class="field">
-            <div class="k">Seller</div>
-            <div class="v mono" id="sellerId">—</div>
+            <div class="k">Store</div>
+            <div class="v" id="storeNameEl">—</div>
           </div>
           <div class="field">
-            <div class="k">Order</div>
-            <div class="v mono" id="orderId">—</div>
+            <div class="k">Receipt ID</div>
+            <div class="v mono" style="font-size:11px" id="receiptId">—</div>
           </div>
         </div>
 
         <div class="row" style="margin-top:10px">
           <div class="field">
-            <div class="k">Receipt ID</div>
-            <div class="v mono" id="receiptId">—</div>
+            <div class="k">Order ID</div>
+            <div class="v mono" style="font-size:11px" id="orderId">—</div>
           </div>
           <div class="field">
-            <div class="k">Issued</div>
+            <div class="k">Issued At</div>
             <div class="v" id="issuedAt">—</div>
           </div>
         </div>
 
         <div class="row" style="margin-top:10px">
           <div class="field">
-            <div class="k">Total</div>
-            <div class="v" id="total">—</div>
+            <div class="k">Order Total</div>
+            <div class="v" id="total" style="font-size:20px;color:var(--accent)">—</div>
           </div>
           <div class="field">
-            <div class="k">Payment</div>
+            <div class="k">Payment Status</div>
             <div class="v" id="payment">—</div>
           </div>
         </div>
@@ -319,24 +384,36 @@
           </div>
         </div>
 
+        <!-- Payment methods from seller -->
+        <div class="payment-section" id="paymentSection">
+          <div class="ps-title">💳 Payment Instructions</div>
+          <div id="paymentSectionRows"></div>
+        </div>
+
         <div class="btns">
-          <button class="primary" id="copyLink">Copy receipt link</button>
-          <button id="downloadJson">Download JSON</button>
-          <button class="danger" id="verifyBtn">Verify receipt</button>
+          <button class="primary" id="copyLink">Copy Receipt Link</button>
+          <button class="primary" id="downloadReceipt">⬇ Download Receipt</button>
+          <button class="danger" id="verifyBtn">Verify Authenticity</button>
         </div>
 
         <div class="hr"></div>
         <div class="help">
-          Verification is the anti-fake step. If someone edits the receipt JSON, verification must fail.
+          This receipt is signed and verifiable. Click "Verify Authenticity" to confirm it hasn't been tampered with.
         </div>
       </div>
 
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div style="font-weight:900;font-size:18px">Items</div>
+          <div class="card-title" style="font-size:16px">📦 Items</div>
           <div class="status" id="verifyBadge">Not verified</div>
         </div>
         <div class="items" id="items"></div>
+
+        <div class="hr"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+          <span style="color:var(--muted);font-size:13px">Order Total</span>
+          <span style="font-weight:900;font-size:20px;color:var(--accent)" id="totalRight">—</span>
+        </div>
       </div>
     </div>
   </div>
@@ -350,51 +427,113 @@
     const apiBase = location.origin;
 
     let receipt = null;
+    let storeName = "";
 
     const el = (id) => document.getElementById(id);
     const toast = (msg) => {
       el("toastText").textContent = msg;
       el("toast").classList.add("show");
-      setTimeout(() => el("toast").classList.remove("show"), 1400);
+      setTimeout(() => el("toast").classList.remove("show"), 2200);
     };
+
+    function escHtml(s) {
+      return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
 
     function money(n) {
       if (n == null) return "—";
       try { return "₹" + Number(n).toLocaleString("en-IN"); } catch { return "₹" + n; }
     }
 
+    function fmtOptions(item) {
+      if (Array.isArray(item.selectedOptions) && item.selectedOptions.length > 0) {
+        return item.selectedOptions.map(o => `${o.name}: ${o.value}`).join(" · ");
+      }
+      if (Array.isArray(item.variants) && item.variants.length > 0) {
+        return item.variants.map(v => {
+          if (v.caption && v.label) return `${v.caption}: ${v.label}`;
+          if (v.label) return v.label;
+          return String(v);
+        }).join(" · ");
+      }
+      return "";
+    }
+
     function renderItems(items) {
       const root = el("items");
       root.innerHTML = "";
       (items || []).forEach(i => {
+        const optsTxt = fmtOptions(i);
         const div = document.createElement("div");
         div.className = "item";
         div.innerHTML = `
-          <div>
-            <div style="font-weight:900">${i.name || i.productId}</div>
-            <div class="muted">Variant: ${i.variant || "—"} · Size: ${i.size || "—"}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:900">${escHtml(i.name || i.productId)}</div>
+            ${optsTxt ? `<div class="muted" style="margin-top:3px;font-size:12px">${escHtml(optsTxt)}</div>` : ""}
+            <div class="muted" style="margin-top:3px">${money(i.unitPrice)} each</div>
           </div>
-          <div style="text-align:right">
-            <div class="mono">x${i.qty ?? 1}</div>
-            <div class="muted">${money(i.unitPrice)}</div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="qty-badge">×${i.qty ?? 1}</div>
+            <div style="font-weight:700;margin-top:6px">${money((i.unitPrice || 0) * (i.qty || 1))}</div>
           </div>
         `;
         root.appendChild(div);
       });
     }
 
+    async function loadPaymentInfo() {
+      try {
+        const r = await fetch(`${apiBase}/api/public/sellers/${encodeURIComponent(sellerId)}/payment`);
+        const data = await r.json().catch(() => ({}));
+        if (!data.ok || !data.payment) return;
+
+        const pm = data.payment;
+        const hasAny = pm.codEnabled || pm.upiId || pm.paymentNote;
+        if (!hasAny) return;
+
+        const sec = el("paymentSection");
+        const rows = el("paymentSectionRows");
+        rows.innerHTML = "";
+
+        if (pm.codEnabled) {
+          rows.innerHTML += `<div class="ps-row"><span class="ps-label">COD</span><span class="ps-val">✅ Cash on Delivery available</span></div>`;
+        }
+        if (pm.upiId) {
+          rows.innerHTML += `<div class="ps-row"><span class="ps-label">UPI ID</span><span class="ps-val">${escHtml(pm.upiId)}</span></div>`;
+        }
+        if (pm.paymentNote) {
+          rows.innerHTML += `<div class="ps-row" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="ps-label">Note</span><span class="ps-val" style="font-weight:500;color:rgba(255,255,255,.8)">${escHtml(pm.paymentNote)}</span></div>`;
+        }
+
+        sec.style.display = "block";
+      } catch { /* non-critical */ }
+    }
+
+    async function loadStoreName() {
+      try {
+        const r = await fetch(`${apiBase}/api/public/sellers/${encodeURIComponent(sellerId)}`);
+        const d = await r.json().catch(() => ({}));
+        if (d.ok && d.storeName) {
+          storeName = d.storeName;
+          el("storeNameEl").textContent = storeName;
+        } else {
+          el("storeNameEl").textContent = sellerId || "—";
+        }
+      } catch { el("storeNameEl").textContent = sellerId || "—"; }
+    }
+
     async function loadReceipt() {
       if (!orderId) {
         el("liveText").textContent = "Missing orderId";
-        toast("Add ?sellerId=...&orderId=...");
+        toast("Add ?sellerId=...&orderId=... to the URL");
         return;
       }
 
-      el("sellerId").textContent = sellerId;
       el("orderId").textContent = orderId;
       el("liveText").textContent = "Loading...";
 
-      // IMPORTANT: change this path ONLY if your server route differs
+      await Promise.all([loadStoreName(), loadPaymentInfo()]);
+
       const url = `${apiBase}/api/public/sellers/${encodeURIComponent(sellerId)}/orders/${encodeURIComponent(orderId)}/receipt`;
 
       try {
@@ -411,73 +550,135 @@
           return;
         }
 
-        receipt = j.receipt || j; // support either shape
+        receipt = j.receipt || j;
         el("receiptId").textContent = receipt.receiptId || receipt.id || "—";
-        el("issuedAt").textContent = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString() : "—";
+        el("issuedAt").textContent = receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString("en-IN") : "—";
 
         const ord = receipt.order || receipt;
-        el("total").textContent = money(ord.total);
-        el("payment").textContent = ord.paymentStatus || "—";
+        const totalVal = money(ord.total);
+        el("total").textContent = totalVal;
+        el("totalRight").textContent = totalVal;
+        el("payment").textContent = ord.paymentStatus || "unpaid";
 
-        // Display buyer information
         el("buyerName").textContent = ord.buyerName || ord.delivery?.name || "—";
         el("buyerPhone").textContent = ord.buyerPhone || ord.delivery?.phone || "—";
         el("buyerAddress").textContent = ord.buyerAddress || ord.delivery?.address || "—";
 
         renderItems(ord.items);
         el("liveText").textContent = "Live";
-        toast("Receipt loaded");
+        toast("Receipt loaded ✅");
       } catch (error) {
         el("liveText").textContent = "Error";
         toast(error.message || "Failed to load receipt");
       }
     }
 
-    function download(filename, obj) {
-      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    // Generate and download a clean human-readable text receipt
+    function downloadReceipt() {
+      if (!receipt) { toast("Load receipt first"); return; }
+      const ord = receipt.order || receipt;
+
+      // Build payment instructions
+      let paymentInstructions = "";
+      const paySecEl = el("paymentSectionRows");
+      if (paySecEl && paySecEl.innerText.trim()) {
+        paymentInstructions = `
+HOW TO PAY
+----------
+${paySecEl.innerText.trim()}
+`;
+      }
+
+      // Build items text
+      const itemsText = (ord.items || []).map(i => {
+        const opts = fmtOptions(i);
+        return `  • ${i.name || i.productId}${opts ? ` [${opts}]` : ""}\n    Qty: ${i.qty || 1}  |  Price: ${money(i.unitPrice || 0)}  |  Subtotal: ${money((i.unitPrice || 0) * (i.qty || 1))}`;
+      }).join("\n");
+
+      const text = `
+╔══════════════════════════════════════════════════╗
+║              ZENTR ORDER RECEIPT                 ║
+╚══════════════════════════════════════════════════╝
+
+Store:        ${storeName || sellerId}
+Receipt ID:   ${receipt.receiptId || receipt.id || "—"}
+Issued:       ${receipt.issuedAt ? new Date(receipt.issuedAt).toLocaleString("en-IN") : "—"}
+
+ORDER DETAILS
+─────────────
+Order ID:     ${ord.id || orderId}
+Date:         ${ord.createdAt ? new Date(ord.createdAt).toLocaleString("en-IN") : "—"}
+Status:       ${ord.status || "pending"}
+Payment:      ${ord.paymentStatus || "unpaid"}
+
+BUYER DETAILS
+─────────────
+Name:         ${ord.buyerName || "—"}
+Phone:        ${ord.buyerPhone || "—"}
+Address:      ${ord.buyerAddress || "—"}
+
+ITEMS ORDERED
+─────────────
+${itemsText}
+
+──────────────────────────────────────────────────
+TOTAL:        ${money(ord.total)}
+──────────────────────────────────────────────────
+${paymentInstructions}
+Verification signature (anti-tamper):
+${receipt.signature || "—"}
+
+This receipt was issued by Zentr · zentr.app
+`.trim();
+
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = filename;
+      a.download = `zentr-receipt-${orderId}.txt`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      toast("Receipt downloaded ✅");
     }
 
     async function verify() {
       if (!receipt) { toast("Load receipt first"); return; }
 
-      // IMPORTANT: change this path ONLY if your verify route differs
       const url = `${apiBase}/api/receipt/verify`;
       const body = {
         receiptId: receipt.receiptId || receipt.id,
         signature: receipt.signature
       };
 
-      const r = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      try {
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
 
-      const j = await r.json();
-      const ok = !!(j.ok ?? j.verified);
+        const j = await r.json();
+        const ok = !!(j.ok ?? j.verified);
 
-      el("verifyBadge").textContent = ok ? "Verified" : "Invalid";
-      el("verifyBadge").classList.toggle("ok", ok);
-      el("verifyBadge").classList.toggle("bad", !ok);
+        el("verifyBadge").textContent = ok ? "✅ Verified" : "❌ Invalid";
+        el("verifyBadge").classList.toggle("ok", ok);
+        el("verifyBadge").classList.toggle("bad", !ok);
 
-      toast(ok ? "Verified ✅" : "Invalid ❌");
+        toast(ok ? "Verified ✅ Authentic receipt" : "Invalid ❌ May be tampered");
+      } catch (e) {
+        toast("Verification failed: " + e.message);
+      }
     }
 
     el("copyLink").onclick = async () => {
-      await navigator.clipboard.writeText(location.href);
-      toast("Link copied");
+      try {
+        await navigator.clipboard.writeText(location.href);
+        toast("Receipt link copied ✅");
+      } catch {
+        prompt("Copy this link:", location.href);
+      }
     };
 
-    el("downloadJson").onclick = () => {
-      if (!receipt) { toast("Load receipt first"); return; }
-      download(`zentr-receipt-${orderId}.json`, receipt);
-    };
-
+    el("downloadReceipt").onclick = downloadReceipt;
     el("verifyBtn").onclick = verify;
 
     loadReceipt();

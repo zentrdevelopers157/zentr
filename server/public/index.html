@@ -859,6 +859,43 @@
 
     <script>
         const $ = id => document.getElementById(id);
+        let _dashUrl = "";
+
+        // ── Transition helpers ──
+        function show(id) {
+            const el = $(id);
+            if (el) {
+                el.style.display = "flex";
+                el.style.animation = "fadeUp .5s ease both";
+            }
+        }
+        function hide(id) {
+            const el = $(id);
+            if (el) el.style.display = "none";
+        }
+
+        function showToast(msg, ms = 2800) {
+            const t = $("toast");
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add("show");
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => t.classList.remove("show"), ms);
+        }
+
+        async function copyLink(inputId) {
+            const el = $(inputId);
+            if (!el) return;
+            try {
+                await navigator.clipboard.writeText(el.value);
+                showToast("Copied to clipboard! 📋");
+            } catch {
+                el.select();
+                document.execCommand("copy");
+                showToast("Copied via fallback!");
+            }
+        }
+
         // ── Store Persistence ──
         function checkExistingStore() {
             const store = localStorage.getItem("zentr_store");

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Zentr | Create Store</title>
+    <link rel="icon" href="data:," />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg0: #050b0d;
+            --bg1: #071114;
+            --glass: rgba(255, 255, 255, .055);
+            --stroke: rgba(255, 255, 255, .11);
+            --text: rgba(255, 255, 255, .95);
+            --muted: rgba(255, 255, 255, .48);
+            --turq: #27f0d5;
+            --turq-dim: rgba(39, 240, 213, .12);
+            --turq-glow: rgba(39, 240, 213, .25);
+            --radius: 24px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+            color: var(--text);
+            background: var(--bg0);
+            overflow-x: hidden;
+        }
+
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 12%, rgba(39, 240, 213, .18), transparent 55%),
+                radial-gradient(circle at 85% 20%, rgba(39, 240, 213, .12), transparent 50%),
+                radial-gradient(circle at 50% 88%, rgba(39, 240, 213, .07), transparent 55%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .form-card {
+            width: 100%;
+            max-width: 440px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .25));
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 36px 32px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+            animation: fadeUp .8s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .form-header img {
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .form-header .back-btn {
+            margin-left: auto;
+            background: none;
+            border: 1px solid var(--stroke);
+            color: var(--muted);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-header .back-btn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, .3);
+        }
+
+        .form-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 20px 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .form-sub {
+            font-size: .875rem;
+            color: var(--muted);
+            margin: 0 0 28px 0;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .field-group label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-left: 2px;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: .95rem;
+            outline: none;
+            transition: all .2s;
+        }
+
+        .field-group input:focus {
+            background: rgba(39, 240, 213, .05);
+            border-color: var(--turq);
+            box-shadow: 0 0 0 4px rgba(39, 240, 213, .1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--turq);
+            color: #050b0d;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            margin-top: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            filter: brightness(1.08);
+            box-shadow: 0 0 20px rgba(39, 240, 213, .3);
+        }
+
+        .submit-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .step-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .dot-step {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--stroke);
+            transition: all .3s;
+        }
+
+        .dot-step.active {
+            width: 24px;
+            background: var(--turq);
+            box-shadow: 0 0 8px rgba(39, 240, 213, .5);
+        }
+
+        .dot-step.done {
+            background: rgba(39, 240, 213, .4);
+        }
+
+        /* Success screen styles */
+        #welcomeScreen {
+            display: none;
+            text-align: center;
+            animation: fadeUp .5s ease both;
+        }
+
+        .welcome-ring {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 28px;
+        }
+
+        .check-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--turq-dim);
+            border: 2px solid rgba(39, 240, 213, .4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin: 0 0 12px 0;
+        }
+
+        .welcome-name {
+            color: var(--turq);
+        }
+
+        .welcome-sub {
+            color: var(--muted);
+            font-size: .95rem;
+            line-height: 1.5;
+            margin: 0 0 28px 0;
+            max-width: 340px;
+        }
+
+        .links-box {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--stroke);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .link-row {
+            margin-bottom: 16px;
+        }
+
+        .link-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .link-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            margin-bottom: 6px;
+        }
+
+        .copy-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .copy-row input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--stroke);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: monospace;
+            font-size: .78rem;
+            padding: 9px 12px;
+            outline: none;
+        }
+
+        .copy-btn {
+            padding: 0 14px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid var(--stroke);
+            border-radius: 10px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .15s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, .12);
+            color: var(--text);
+        }
+
+        .dash-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 15px;
+            background: var(--turq);
+            color: #050b0d;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all .2s;
+            box-shadow: 0 0 30px rgba(39, 240, 213, .2);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 40, 44, .95);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: var(--text);
+            font-size: .9rem;
+            font-weight: 600;
+            z-index: 10000;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-layer"></div>
+
+    <div class="page" id="formScreen">
+        <div class="form-card" id="formCard">
+            <div class="form-header">
+                <img src="logo.png" alt="Zentr" onerror="this.style.display='none'" />
+                <a href="/" class="back-btn">← Back</a>
+            </div>
+
+            <div class="step-dots" id="stepDots">
+                <div class="dot-step active" id="dot1"></div>
+                <div class="dot-step" id="dot2"></div>
+                <div class="dot-step" id="dot3"></div>
+            </div>
+
+            <h2 class="form-title">Create your store</h2>
+            <p class="form-sub">Fill in your details to get your seller dashboard instantly.</p>
+
+            <div class="field-group">
+                <label>Store Name *</label>
+                <input type="text" id="storeName" placeholder="e.g. Trendy Fits" autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label>Your Name *</label>
+                <input type="text" id="sellerName" placeholder="e.g. Jane Doe" autocomplete="off" />
+            </div>
+
+            <div class="field-group">
+                <label>WhatsApp Number *</label>
+                <input type="tel" id="sellerPhone" placeholder="+91 9876543210" autocomplete="tel" />
+            </div>
+
+            <div class="field-group">
+                <label>Category <span style="font-weight:400;opacity:.6">(Optional)</span></label>
+                <input type="text" id="storeCategory" placeholder="e.g. Apparel, Electronics" autocomplete="off" />
+            </div>
+
+            <button class="submit-btn" id="createBtn">Create My Store</button>
+        </div>
+
+        <div id="welcomeScreen">
+            <div class="form-card">
+                <div class="welcome-ring">
+                    <div class="check-circle">🎉</div>
+                </div>
+
+                <h2 class="welcome-title">Welcome to Zentr! <br><span class="welcome-name" id="welcomeName">Store</span>
+                </h2>
+                <p class="welcome-sub">Your store is live. Share the buyer link with customers.</p>
+
+                <div class="links-box">
+                    <div class="link-row">
+                        <div class="link-label">🔒 Seller Dashboard (keep secret)</div>
+                        <div class="copy-row">
+                            <input type="text" id="dashLink" readonly />
+                            <button class="copy-btn" onclick="copyLink('dashLink')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="link-row">
+                        <div class="link-label">🛒 Buyer Storefront</div>
+                        <div class="copy-row">
+                            <input type="text" id="buyerLink" readonly />
+                            <button class="copy-btn" onclick="copyLink('buyerLink')">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="dash-btn" id="goDashBtn">
+                    Open My Dashboard →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        function showToast(msg, ms = 2800) {
+            const t = $("toast");
+            t.textContent = msg;
+            t.classList.add("show");
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => t.classList.remove("show"), ms);
+        }
+
+        async function copyLink(inputId) {
+            const el = $(inputId);
+            try {
+                await navigator.clipboard.writeText(el.value);
+                showToast("Copied to clipboard! 📋");
+            } catch {
+                el.select();
+                document.execCommand("copy");
+                showToast("Copied via fallback!");
+            }
+        }
+
+        $("createBtn").addEventListener("click", async () => {
+            const name = $("storeName").value.trim();
+            const owner = $("sellerName").value.trim();
+            const phone = $("sellerPhone").value.trim();
+            const category = $("storeCategory").value.trim();
+
+            if (!name || !owner || !phone) return showToast("Please fill all required fields.");
+
+            const btn = $("createBtn");
+            btn.disabled = true;
+            btn.textContent = "Creating...";
+
+            $("dot1").classList.add("done"); $("dot1").classList.remove("active");
+            $("dot2").classList.add("active");
+
+            try {
+                const res = await fetch("/api/onboard", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, owner, phone, category })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Failed");
+
+                localStorage.setItem("zentr_store", JSON.stringify({
+                    sellerId: data.sellerId,
+                    sellerKey: data.sellerKey,
+                    storeName: name
+                }));
+
+                const dashUrl = `${window.location.origin}/seller?sellerId=${data.sellerId}&sellerKey=${data.sellerKey}`;
+                $("dashLink").value = dashUrl;
+                $("buyerLink").value = `${window.location.origin}/buyer?sellerId=${data.sellerId}`;
+                $("welcomeName").textContent = name;
+                $("goDashBtn").onclick = () => location.href = dashUrl;
+
+                $("dot2").classList.add("done"); $("dot2").classList.remove("active");
+                $("dot3").classList.add("active");
+
+                $("formCard").style.display = "none";
+                $("welcomeScreen").style.display = "block";
+
+                setTimeout(() => { location.href = dashUrl; }, 10000);
+            } catch (err) {
+                showToast("❌ " + err.message);
+                btn.disabled = false;
+                btn.textContent = "Create My Store";
+                $("dot2").classList.remove("active"); $("dot1").classList.add("active");
+            }
+        });
+    </script>
+</body>
+
+</html>

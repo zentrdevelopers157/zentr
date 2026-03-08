@@ -572,6 +572,25 @@ app.listen(PORT, () => {
       DB.saveSellers(sellers);
       console.log("[startup] demoSeller seeded");
     }
+    // Seed products if empty
+    const products = DB.getProducts();
+    if (products.length === 0) {
+      const demoProd = {
+        id: "prod_demo_shirt",
+        sellerId: "demoSeller",
+        name: "Premium Cotton Tee",
+        price: 499,
+        stock: 50,
+        category: "Apparel",
+        options: [{ name: "Size", values: ["S", "M", "L", "XL"] }],
+        desc: "High quality cotton t-shirt with premium finish.",
+        createdAt: nowIso()
+      };
+      products.push(demoProd);
+      DB.saveProducts(products);
+      console.log("[startup] demo product seeded");
+    }
+
     // Migrate existing sellers without payment field
     let migrated = false;
     Object.values(sellers).forEach(s => {

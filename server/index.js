@@ -157,6 +157,7 @@ const ReceiptLogic = {
 // -------------------- UTILS --------------------
 const getIdempotencyKey = (req) => req.header("x-idempotency-key") || "";
 const nowIso = () => new Date().toISOString();
+const normalizePhone = (p) => String(p || "").replace(/\D/g, "").slice(-10);
 
 // -------------------- AUTH --------------------
 function requireSellerKey(req, res, next) {
@@ -193,10 +194,21 @@ app.post("/api/onboard", (req, res) => {
       return res.status(400).json({ ok: false, error: "store name, owner name, and phone are required" });
     }
 
+    const sellers = DB.getSellers();
+
+    // Duplicate prevention: check normalized phone
+    const norm = normalizePhone(phone);
+    const existing = Object.values(sellers).find(s => normalizePhone(s.phone) === norm);
+    if (existing) {
+      return res.status(409).json({
+        ok: false,
+        error: "This phone number already has a store. Please open your existing dashboard instead."
+      });
+    }
+
     const sellerId = "s_" + Math.random().toString(36).slice(2, 10);
     const sellerKey = crypto.randomBytes(20).toString("hex");
 
-    const sellers = DB.getSellers();
     sellers[sellerId] = {
       sellerId,
       sellerKey,
@@ -558,39 +570,6 @@ app.listen(PORT, () => {
   try {
     DB.ensureFiles();
     const sellers = DB.getSellers();
-    if (!sellers["demoSeller"]) {
-      sellers["demoSeller"] = {
-        sellerId: "demoSeller",
-        sellerKey: "demo123",
-        storeName: "Demo Shop",
-        ownerName: "Demo Owner",
-        phone: "0000000000",
-        category: "General",
-        createdAt: nowIso(),
-        payment: { codEnabled: true, upiId: "demo@upi", paymentNote: "COD available. UPI payment also accepted." }
-      };
-      DB.saveSellers(sellers);
-      console.log("[startup] demoSeller seeded");
-    }
-    // Seed products if empty
-    const products = DB.getProducts();
-    if (products.length === 0) {
-      const demoProd = {
-        id: "prod_demo_shirt",
-        sellerId: "demoSeller",
-        name: "Premium Cotton Tee",
-        price: 499,
-        stock: 50,
-        category: "Apparel",
-        options: [{ name: "Size", values: ["S", "M", "L", "XL"] }],
-        desc: "High quality cotton t-shirt with premium finish.",
-        createdAt: nowIso()
-      };
-      products.push(demoProd);
-      DB.saveProducts(products);
-      console.log("[startup] demo product seeded");
-    }
-
     // Migrate existing sellers without payment field
     let migrated = false;
     Object.values(sellers).forEach(s => {
@@ -604,6 +583,6 @@ app.listen(PORT, () => {
       console.log("[startup] migrated old sellers to include payment field");
     }
   } catch (e) {
-    console.warn("[startup] seed/migrate failed:", e.message);
+    console.warn("[startup] migrate failed:", e.message);
   }
 });

@@ -456,7 +456,8 @@
       updateCartPill();
 
       if (state.catalog.length === 0) {
-        toast("This store has no products yet.", 3000);
+        // Only toast if it's the first load and not a search
+        if (!state.query) toast("Welcome! This store is currently setting up its catalog. Check back soon!", 4000);
       }
     } catch (e) {
       console.error("[buyer] boot error:", e);

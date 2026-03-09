@@ -539,8 +539,20 @@
       }
     } catch (e) {
       console.error("[buyer] boot error:", e);
-      const grid = $("productGrid");
-      if (grid) grid.innerHTML = `<div style="color:rgba(255,107,107,.8);padding:20px">⚠️ Failed to load products: ${e?.message || e}</div>`;
+      if (e && e.message && e.message.toLowerCase().includes("seller not found")) {
+        document.body.innerHTML = `
+          <div style="padding:60px 20px;text-align:center;color:#fff;font-family:var(--font-mono)">
+            <h2 style="color:var(--bad)">⚠️ Store Not Found</h2>
+            <p style="color:var(--muted);max-width:400px;margin:16px auto;line-height:1.5">
+              This store link is invalid or the store no longer exists.
+            </p>
+            <a href="/" style="display:inline-block;margin-top:20px;padding:12px 24px;background:var(--turq);color:#000;text-decoration:none;border-radius:8px;font-weight:bold;">← Go to Zentr Welcome Page</a>
+          </div>
+        `;
+      } else {
+        const grid = $("productGrid");
+        if (grid) grid.innerHTML = `<div style="color:rgba(255,107,107,.8);padding:20px">⚠️ Failed to load products: ${e?.message || e}</div>`;
+      }
     }
   });
 

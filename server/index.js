@@ -45,9 +45,9 @@ app.get("/", (req, res) => {
 });
 
 // -------------------- DATA STORAGE --------------------
-// Support DATA_DIR env var for Render persistent disk support.
-// On Render: set DATA_DIR to /opt/render/project/src/data (or any disk-mounted path).
-// Locally: falls back to ../data/ relative to server/
+// PRIMARY: MongoDB Atlas (set MONGODB_URI env var on Render)
+// FALLBACK: JSON files (local dev only — NOT persistent on Render free tier)
+
 const DATA_DIR = process.env.DATA_DIR
   ? path.resolve(process.env.DATA_DIR)
   : path.join(__dirname, "..", "data");
@@ -57,54 +57,115 @@ const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const SELLERS_FILE = path.join(DATA_DIR, "sellers.json");
 const EVENTS_FILE = path.join(DATA_DIR, "events.json");
 
-const DB = {
-  ensureFiles() {
+// ── In-memory cache (populated from MongoDB on startup) ──
+const MEM = {
+  sellers: {},
+  products: [],
+  orders: {},
+  events: []
+};
+
+// ── MongoDB client ────────────────────────────────────────
+let _mdbStore = null; // reference to MongoDB 'store' collection
+
+async function connectMongo() {
+  const MONGO_URI = process.env.MONGODB_URI;
+  if (!MONGO_URI) {
+    console.log("ℹ️  MONGODB_URI not set — using JSON file fallback (local dev only).");
+    return false;
+  }
+  try {
+    const { MongoClient } = require("mongodb");
+    const client = new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 8000 });
+    await client.connect();
+    const database = client.db("zentr");
+    _mdbStore = database.collection("store");
+
+    // Load all data from MongoDB into MEM cache
+    const docs = await _mdbStore.find({}).toArray();
+    docs.forEach(doc => {
+      if (doc._id === "sellers" && doc.data) MEM.sellers = doc.data;
+      if (doc._id === "products" && doc.data) MEM.products = doc.data;
+      if (doc._id === "orders" && doc.data) MEM.orders = doc.data;
+      if (doc._id === "events" && doc.data) MEM.events = doc.data;
+    });
+
+    console.log(`✅ MongoDB connected. Loaded: ${Object.keys(MEM.sellers).length} sellers, ${MEM.products.length} products, ${Object.keys(MEM.orders).length} order keys, ${MEM.events.length} events.`);
+    return true;
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err.message);
+    console.warn("⚠️  Falling back to JSON files (data will be lost on Render restart).");
+    return false;
+  }
+}
+
+function mdbSave(key, data) {
+  if (!_mdbStore) return;
+  _mdbStore.replaceOne({ _id: key }, { _id: key, data }, { upsert: true })
+    .catch(err => console.error(`[mongo] save ${key} failed:`, err.message));
+}
+
+// ── JSON fallback helpers ─────────────────────────────────
+const FileDB = {
+  ensure() {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(PRODUCTS_FILE)) fs.writeFileSync(PRODUCTS_FILE, "[]");
     if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, "{}");
     if (!fs.existsSync(SELLERS_FILE)) fs.writeFileSync(SELLERS_FILE, "{}");
     if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, "[]");
   },
-
-  readJson(file, fallback) {
-    this.ensureFiles();
-    try {
-      const raw = fs.readFileSync(file, "utf8").trim();
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (e) {
-      console.error(`readJson error for ${file}:`, e.message);
-      return fallback;
-    }
+  read(file, fallback) {
+    this.ensure();
+    try { const r = fs.readFileSync(file, "utf8").trim(); return r ? JSON.parse(r) : fallback; }
+    catch (e) { console.error(`readJson ${file}:`, e.message); return fallback; }
   },
+  write(file, data) { this.ensure(); fs.writeFileSync(file, JSON.stringify(data, null, 2)); }
+};
 
-  writeJson(file, data) {
-    this.ensureFiles();
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+// ── Unified DB interface (same as before — all callers unchanged) ──
+const DB = {
+  getSellers() {
+    if (_mdbStore) return { ...MEM.sellers };
+    const d = FileDB.read(SELLERS_FILE, {});
+    return (d && typeof d === "object" && !Array.isArray(d)) ? d : {};
+  },
+  saveSellers(s) {
+    if (_mdbStore) { MEM.sellers = s; mdbSave("sellers", s); }
+    else FileDB.write(SELLERS_FILE, s);
   },
 
   getProducts() {
-    const d = this.readJson(PRODUCTS_FILE, []);
+    if (_mdbStore) return [...MEM.products];
+    const d = FileDB.read(PRODUCTS_FILE, []);
     return Array.isArray(d) ? d : [];
   },
-  saveProducts(p) { this.writeJson(PRODUCTS_FILE, p); },
+  saveProducts(p) {
+    if (_mdbStore) { MEM.products = p; mdbSave("products", p); }
+    else FileDB.write(PRODUCTS_FILE, p);
+  },
 
   getOrders() {
-    const d = this.readJson(ORDERS_FILE, {});
+    if (_mdbStore) return { ...MEM.orders };
+    const d = FileDB.read(ORDERS_FILE, {});
     return (d && typeof d === "object" && !Array.isArray(d)) ? d : {};
   },
-  saveOrders(o) { this.writeJson(ORDERS_FILE, o); },
-
-  getSellers() {
-    const d = this.readJson(SELLERS_FILE, {});
-    return (d && typeof d === "object" && !Array.isArray(d)) ? d : {};
+  saveOrders(o) {
+    if (_mdbStore) { MEM.orders = o; mdbSave("orders", o); }
+    else FileDB.write(ORDERS_FILE, o);
   },
-  saveSellers(s) { this.writeJson(SELLERS_FILE, s); },
 
   getEvents() {
-    const d = this.readJson(EVENTS_FILE, []);
+    if (_mdbStore) return [...MEM.events];
+    const d = FileDB.read(EVENTS_FILE, []);
     return Array.isArray(d) ? d : [];
   },
-  saveEvents(e) { this.writeJson(EVENTS_FILE, e); }
+  saveEvents(e) {
+    if (_mdbStore) { MEM.events = e; mdbSave("events", e); }
+    else FileDB.write(EVENTS_FILE, e);
+  },
+
+  // Legacy — kept for any migration callsite
+  ensureFiles() { FileDB.ensure(); }
 };
 
 // -------------------- BUSINESS LOGIC --------------------
@@ -808,13 +869,17 @@ app.use((req, res) => res.status(404).json({ ok: false, error: "not found" }));
 
 // -------------------- START --------------------
 const PORT = process.env.PORT || 5050;
-app.listen(PORT, () => {
-  console.log(`✅  Zentr running on http://localhost:${PORT}`);
-  console.log(`📁  Data directory: ${DATA_DIR}`);
+
+async function startServer() {
+  // Connect to MongoDB and pre-load data before serving any requests
+  await connectMongo();
+
+  // Ensure local fallback files exist (no-op if MongoDB is active)
+  try { FileDB.ensure(); } catch (_) { }
+
+  // Migrate existing sellers that are missing the payment field
   try {
-    DB.ensureFiles();
     const sellers = DB.getSellers();
-    // Migrate existing sellers without payment field
     let migrated = false;
     Object.values(sellers).forEach(s => {
       if (!s.payment) {
@@ -824,9 +889,19 @@ app.listen(PORT, () => {
     });
     if (migrated) {
       DB.saveSellers(sellers);
-      console.log("[startup] migrated old sellers to include payment field");
+      console.log("[startup] migrated sellers: added missing payment field");
     }
   } catch (e) {
-    console.warn("[startup] migrate failed:", e.message);
+    console.warn("[startup] migration failed:", e.message);
   }
+
+  app.listen(PORT, () => {
+    console.log(`✅  Zentr running on http://localhost:${PORT}`);
+    console.log(`🗄️  Storage: ${_mdbStore ? "MongoDB Atlas" : "JSON files (ephemeral on Render)"}`);
+  });
+}
+
+startServer().catch(err => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
 });

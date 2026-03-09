@@ -305,6 +305,25 @@ app.get("/api/public/sellers/:sellerId/payment", (req, res) => {
   res.json({ ok: true, payment });
 });
 
+// Public event tracking (buyer-side, no auth)
+const ALLOWED_PUBLIC_EVENTS = new Set(["BUYER_PAGE_OPEN", "CART_STARTED", "STORE_VIEWED"]);
+app.post("/api/public/sellers/:sellerId/event", (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const type = String(req.body.type || "").toUpperCase();
+    if (!ALLOWED_PUBLIC_EVENTS.has(type)) {
+      return res.status(400).json({ ok: false, error: "unsupported event type" });
+    }
+    const sellers = DB.getSellers();
+    if (!sellers[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
+    Analytics.track(type, { sellerId });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[public event] error:", err);
+    res.status(500).json({ ok: false, error: "server error" });
+  }
+});
+
 app.get("/api/public/sellers/:sellerId/products", (req, res) => {
   try {
     const { sellerId } = req.params;

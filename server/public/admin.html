@@ -43,7 +43,6 @@
             background: var(--bg0);
             color: var(--text);
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
         body::before {
@@ -51,13 +50,12 @@
             position: fixed;
             inset: 0;
             z-index: -1;
-            background:
-                radial-gradient(900px 600px at 10% 5%, rgba(39, 240, 213, .12), transparent 60%),
+            background: radial-gradient(900px 600px at 10% 5%, rgba(39, 240, 213, .12), transparent 60%),
                 radial-gradient(700px 500px at 85% 15%, rgba(56, 189, 248, .08), transparent 55%),
                 linear-gradient(180deg, var(--bg0), var(--bg1));
         }
 
-        /* ── Header ── */
+        /* Topbar */
         .topbar {
             position: sticky;
             top: 0;
@@ -97,12 +95,18 @@
             letter-spacing: 1px;
         }
 
-        .ts {
+        .ts-label {
             font-size: 11px;
             color: var(--muted);
         }
 
-        /* ── Login Wall ── */
+        #topbarActions {
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Login */
         #loginWall {
             min-height: 100vh;
             display: flex;
@@ -180,7 +184,7 @@
             min-height: 16px;
         }
 
-        /* ── Dashboard ── */
+        /* Dashboard */
         #dashboard {
             display: none;
             max-width: 1400px;
@@ -188,7 +192,6 @@
             padding: 24px 20px 60px;
         }
 
-        /* Section headers */
         .sec-head {
             font-size: 11px;
             font-weight: 700;
@@ -209,7 +212,7 @@
             background: var(--stroke);
         }
 
-        /* ── Stat Grid ── */
+        /* Grid */
         .stat-grid {
             display: grid;
             gap: 12px;
@@ -228,7 +231,7 @@
             grid-template-columns: repeat(3, 1fr);
         }
 
-        @media (max-width: 1100px) {
+        @media(max-width:1100px) {
             .grid-5 {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -238,7 +241,7 @@
             }
         }
 
-        @media (max-width: 680px) {
+        @media(max-width:680px) {
 
             .grid-5,
             .grid-4,
@@ -247,6 +250,7 @@
             }
         }
 
+        /* KPI Card */
         .kpi {
             background: var(--glass);
             border: 1px solid var(--stroke);
@@ -331,7 +335,7 @@
             margin-top: 4px;
         }
 
-        /* ── Two-col layout ── */
+        /* Two-col */
         .two-col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -339,13 +343,13 @@
             margin-bottom: 28px;
         }
 
-        @media (max-width: 860px) {
+        @media(max-width:860px) {
             .two-col {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* ── Panel ── */
+        /* Panel */
         .panel {
             background: var(--glass);
             border: 1px solid var(--stroke);
@@ -374,7 +378,7 @@
             padding: 16px 18px;
         }
 
-        /* ── Bar chart ── */
+        /* Bar chart */
         .bar-chart {
             display: flex;
             flex-direction: column;
@@ -388,11 +392,14 @@
         }
 
         .bar-label {
-            width: 100px;
+            width: 90px;
             font-size: 12px;
             color: var(--muted);
             flex-shrink: 0;
             text-transform: capitalize;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .bar-track {
@@ -410,14 +417,14 @@
         }
 
         .bar-num {
-            width: 40px;
+            width: 36px;
             text-align: right;
             font-size: 12px;
             font-weight: 700;
             flex-shrink: 0;
         }
 
-        /* ── Pill group ── */
+        /* Pills */
         .pill-group {
             display: flex;
             flex-wrap: wrap;
@@ -466,7 +473,7 @@
             color: var(--blue);
         }
 
-        /* ── Alerts ── */
+        /* Alerts */
         .alert-list {
             display: flex;
             flex-direction: column;
@@ -478,18 +485,17 @@
             border-radius: 10px;
             border: 1px solid;
             font-size: 12px;
+            line-height: 1.4;
         }
 
         .alert-item.bad {
             background: var(--bad-dim);
             border-color: rgba(255, 107, 107, .25);
-            color: rgba(255, 255, 255, .85);
         }
 
         .alert-item.warn {
             background: var(--warn-dim);
             border-color: rgba(255, 204, 102, .25);
-            color: rgba(255, 255, 255, .85);
         }
 
         .alert-item b {
@@ -510,7 +516,7 @@
             padding: 8px 0;
         }
 
-        /* ── Event feed ── */
+        /* Event feed */
         .evt-feed {
             max-height: 420px;
             overflow-y: auto;
@@ -523,10 +529,6 @@
             width: 4px;
         }
 
-        .evt-feed::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
         .evt-feed::-webkit-scrollbar-thumb {
             background: var(--stroke);
             border-radius: 4px;
@@ -536,19 +538,10 @@
             display: flex;
             gap: 10px;
             align-items: flex-start;
-            font-size: 12px;
             padding: 8px 10px;
             border-radius: 8px;
             background: rgba(255, 255, 255, .03);
             border: 1px solid var(--stroke);
-        }
-
-        .evt-type {
-            font-weight: 700;
-            min-width: 130px;
-            flex-shrink: 0;
-            font-size: 11px;
-            letter-spacing: .5px;
         }
 
         .evt-time {
@@ -556,6 +549,15 @@
             min-width: 90px;
             flex-shrink: 0;
             font-size: 10px;
+            margin-top: 1px;
+        }
+
+        .evt-type {
+            font-weight: 700;
+            min-width: 140px;
+            flex-shrink: 0;
+            font-size: 11px;
+            letter-spacing: .3px;
         }
 
         .evt-meta {
@@ -566,12 +568,12 @@
             font-family: monospace;
         }
 
-        /* Event type colors */
         .evt-STORE_CREATED {
             color: var(--turq);
         }
 
-        .evt-STORE_VIEWED {
+        .evt-STORE_VIEWED,
+        .evt-BUYER_PAGE_OPEN {
             color: var(--blue);
         }
 
@@ -591,7 +593,7 @@
             color: var(--ok);
         }
 
-        /* ── Refresh btn ── */
+        /* Buttons */
         .btn-refresh {
             display: flex;
             align-items: center;
@@ -632,22 +634,26 @@
             background: rgba(255, 107, 107, .2);
         }
 
-        /* ── Divider ── */
         .spacer {
             height: 28px;
         }
 
+        /* Loading */
         .loading-overlay {
             position: fixed;
             inset: 0;
             background: rgba(5, 11, 13, .8);
             backdrop-filter: blur(6px);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             gap: 16px;
             z-index: 200;
+        }
+
+        .loading-overlay.show {
+            display: flex;
         }
 
         .spinner {
@@ -664,12 +670,28 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Error banner */
+        .error-banner {
+            background: var(--bad-dim);
+            border: 1px solid rgba(255, 107, 107, .3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: var(--bad);
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .error-banner.show {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Top Bar -->
+    <!-- Topbar -->
     <div class="topbar">
         <div class="topbar-inner">
             <div class="brand">
@@ -677,8 +699,8 @@
                 <span>Zentr</span>
                 <div class="badge">Founder Analytics</div>
             </div>
-            <div style="display:flex;gap:10px;align-items:center;" id="topbarActions" style="display:none">
-                <span class="ts" id="tsLabel">—</span>
+            <div id="topbarActions">
+                <span class="ts-label" id="tsLabel">—</span>
                 <button class="btn-refresh" onclick="fetchStats()">⟳ Refresh</button>
                 <button class="btn-lock" onclick="lock()">🔒 Lock</button>
             </div>
@@ -701,16 +723,16 @@
 
     <!-- Dashboard -->
     <div id="dashboard">
+        <div class="error-banner" id="errorBanner"></div>
 
-        <!-- CORE METRICS -->
+        <!-- CORE METRICS row 1 -->
         <div class="sec-head">📊 Core Metrics</div>
         <div class="stat-grid grid-5" id="coreGrid"></div>
-
         <div class="stat-grid grid-4" id="core2Grid"></div>
 
         <div class="spacer"></div>
 
-        <!-- SELLER HEALTH & ORDER TIME -->
+        <!-- SELLER HEALTH + TIME -->
         <div class="two-col">
             <div>
                 <div class="sec-head">🏪 Seller Health</div>
@@ -751,11 +773,11 @@
 
         <div class="spacer"></div>
 
-        <!-- OPERATIONAL ALERTS -->
+        <!-- ALERTS -->
         <div class="sec-head">🚨 Operational Alerts</div>
         <div class="two-col">
             <div class="panel">
-                <div class="panel-head"><b>⚠️ Stores: Created but No Products</b><span class="badge" id="a1Count"
+                <div class="panel-head"><b>⚠️ Created but No Products</b><span class="badge" id="a1Count"
                         style="background:var(--warn-dim);color:var(--warn);border-color:rgba(255,204,102,.25)">0</span>
                 </div>
                 <div class="panel-body">
@@ -763,7 +785,7 @@
                 </div>
             </div>
             <div class="panel">
-                <div class="panel-head"><b>⚠️ Has Products but No Orders</b><span class="badge" id="a2Count"
+                <div class="panel-head"><b>⚠️ Products but No Orders</b><span class="badge" id="a2Count"
                         style="background:var(--warn-dim);color:var(--warn);border-color:rgba(255,204,102,.25)">0</span>
                 </div>
                 <div class="panel-body">
@@ -771,7 +793,7 @@
                 </div>
             </div>
         </div>
-        <div class="two-col" style="margin-top:16px">
+        <div class="two-col" style="margin-top:0">
             <div class="panel">
                 <div class="panel-head"><b>💸 Unpaid Orders &gt; 48h</b><span class="badge" id="a3Count"
                         style="background:var(--bad-dim);color:var(--bad);border-color:rgba(255,107,107,.25)">0</span>
@@ -781,7 +803,7 @@
                 </div>
             </div>
             <div class="panel">
-                <div class="panel-head"><b>⏳ Orders Stuck Pending &gt; 72h</b><span class="badge" id="a4Count"
+                <div class="panel-head"><b>⏳ Stuck Pending &gt; 72h</b><span class="badge" id="a4Count"
                         style="background:var(--bad-dim);color:var(--bad);border-color:rgba(255,107,107,.25)">0</span>
                 </div>
                 <div class="panel-body">
@@ -789,14 +811,12 @@
                 </div>
             </div>
         </div>
-        <div style="margin-top:16px">
-            <div class="panel">
-                <div class="panel-head"><b>🔧 Sellers Missing Payment Setup</b><span class="badge" id="a5Count"
-                        style="background:var(--warn-dim);color:var(--warn);border-color:rgba(255,204,102,.25)">0</span>
-                </div>
-                <div class="panel-body">
-                    <div id="alertMissingPay" class="pill-group"></div>
-                </div>
+        <div class="panel">
+            <div class="panel-head"><b>🔧 Missing Payment Setup</b><span class="badge" id="a5Count"
+                    style="background:var(--warn-dim);color:var(--warn);border-color:rgba(255,204,102,.25)">0</span>
+            </div>
+            <div class="panel-body">
+                <div id="alertMissingPay" class="pill-group"></div>
             </div>
         </div>
 
@@ -805,203 +825,234 @@
         <!-- EVENT FEED -->
         <div class="sec-head">📡 Recent Event Feed</div>
         <div class="panel">
-            <div class="panel-head"><b>Live Events</b><span class="ts" id="evtCount">—</span></div>
+            <div class="panel-head"><b>Live Events</b><span class="ts-label" id="evtCount">0 events</span></div>
             <div class="panel-body">
                 <div class="evt-feed" id="evtFeed"></div>
             </div>
         </div>
+    </div>
 
-    </div><!-- /dashboard -->
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay" style="display:none">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
         <div style="color:var(--muted);font-size:13px">Loading analytics…</div>
     </div>
 
     <script>
-        const $ = id => document.getElementById(id);
+        'use strict';
 
-        let secret = localStorage.getItem("zentr_adm") || "";
+        const g = id => document.getElementById(id);
+
+        // ── Saved secret ──────────────────────────────────
+        let secret = '';
+        try { secret = localStorage.getItem('zentr_adm') || ''; } catch (e) { }
 
         // ── Auth ──────────────────────────────────────────
-        $("loginForm").onsubmit = e => {
+        g('loginForm').addEventListener('submit', e => {
             e.preventDefault();
-            secret = $("secretInput").value;
+            secret = g('secretInput').value.trim();
+            if (!secret) { g('errMsg').textContent = 'Enter the access key.'; return; }
             fetchStats();
-        };
+        });
 
         function lock() {
-            secret = "";
-            localStorage.removeItem("zentr_adm");
-            $("loginWall").style.display = "flex";
-            $("dashboard").style.display = "none";
-            $("topbarActions").style.display = "none";
-            $("secretInput").value = "";
+            secret = '';
+            try { localStorage.removeItem('zentr_adm'); } catch (e) { }
+            g('loginWall').style.display = 'flex';
+            g('dashboard').style.display = 'none';
+            g('topbarActions').style.display = 'none';
+            g('secretInput').value = '';
+            g('errMsg').textContent = '';
         }
 
         // ── Fetch ─────────────────────────────────────────
         async function fetchStats() {
-            $("errMsg").textContent = "";
-            $("loadingOverlay").style.display = "flex";
+            g('errMsg').textContent = '';
+            g('loadingOverlay').classList.add('show');
             try {
-                const res = await fetch("/api/admin/stats", { headers: { "x-admin-secret": secret } });
-                const data = await res.json();
-                if (!res.ok || !data.ok) throw new Error(data.error || "Authentication failed");
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'x-admin-secret': secret }
+                });
+                let data;
+                try { data = await res.json(); } catch (e) { throw new Error('Server returned non-JSON.'); }
 
-                localStorage.setItem("zentr_adm", secret);
-                $("loginWall").style.display = "none";
-                $("dashboard").style.display = "block";
-                $("topbarActions").style.removeProperty("display");
-                $("tsLabel").textContent = "Updated " + new Date(data.generatedAt).toLocaleTimeString();
+                if (res.status === 403 || (data && data.ok === false)) {
+                    throw new Error(data.error || 'Invalid access key. Please try again.');
+                }
+                if (!res.ok) throw new Error('Server error ' + res.status);
+
+                // Save secret only on success
+                try { localStorage.setItem('zentr_adm', secret); } catch (e) { }
+
+                g('loginWall').style.display = 'none';
+                g('dashboard').style.display = 'block';
+                g('topbarActions').style.display = 'flex';
+                g('errorBanner').classList.remove('show');
+
+                if (data.generatedAt) {
+                    g('tsLabel').textContent = 'Updated ' + new Date(data.generatedAt).toLocaleTimeString('en-IN');
+                }
 
                 renderDashboard(data);
             } catch (err) {
-                $("errMsg").textContent = err.message;
+                g('errMsg').textContent = err.message;
+                // If we're already on dashboard, show error banner there too
+                if (g('dashboard').style.display !== 'none') {
+                    g('errorBanner').textContent = '⚠️ Refresh failed: ' + err.message;
+                    g('errorBanner').classList.add('show');
+                }
             } finally {
-                $("loadingOverlay").style.display = "none";
+                g('loadingOverlay').classList.remove('show');
             }
         }
 
         // ── Helpers ───────────────────────────────────────
-        function inr(n) { return "₹" + Number(n || 0).toLocaleString("en-IN"); }
-        function num(n) { return Number(n || 0).toLocaleString("en-IN"); }
+        function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
+        function num(n) { return Number(n || 0).toLocaleString('en-IN'); }
         function pct(v, t) { return t > 0 ? Math.round((v / t) * 100) : 0; }
-        function escH(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-        // ── Render kpi card ───────────────────────────────
-        function kpiCard(label, val, sub, color = "turq") {
+        // ── KPI card ──────────────────────────────────────
+        function kpi(label, val, sub, color = 'turq') {
             return `<div class="kpi ${color}">
-        <div class="kpi-label">${label}</div>
-        <div class="kpi-val ${color}">${val}</div>
-        ${sub ? `<div class="kpi-sub">${sub}</div>` : ""}
-      </div>`;
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-val ${color}">${val}</div>
+      ${sub ? `<div class="kpi-sub">${sub}</div>` : ''}
+    </div>`;
         }
 
-        // ── Render bar chart ──────────────────────────────
-        function renderBarChart(el, obj, total, colors) {
+        // ── Bar chart ─────────────────────────────────────
+        function barChart(el, obj, colors) {
             if (!el) return;
-            const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+            const safeObj = obj && typeof obj === 'object' ? obj : {};
+            const entries = Object.entries(safeObj).sort((a, b) => b[1] - a[1]);
             const max = Math.max(...entries.map(e => e[1]), 1);
             el.innerHTML = entries.length === 0
                 ? `<div style="color:var(--muted);font-size:12px">No data yet.</div>`
                 : entries.map(([k, v]) => {
                     const w = Math.round((v / max) * 100);
-                    const c = colors[k.toLowerCase()] || colors.default || "var(--turq)";
+                    const c = colors[k.toLowerCase()] || colors['default'] || 'var(--turq)';
                     return `<div class="bar-row">
-            <div class="bar-label">${escH(k)}</div>
+            <div class="bar-label">${esc(k)}</div>
             <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${c}"></div></div>
             <div class="bar-num" style="color:${c}">${v}</div>
           </div>`;
-                }).join("");
+                }).join('');
         }
 
-        // ── Render alert list ─────────────────────────────
-        function renderAlerts(elId, items, cls, renderItem) {
-            const el = $(elId);
+        // ── Alert list ────────────────────────────────────
+        function alertList(elId, items, cls, fn) {
+            const el = g(elId);
             if (!el) return;
-            if (!items || items.length === 0) {
-                el.innerHTML = `<div class="alert-empty">✅ All clear.</div>`;
-                return;
-            }
-            el.innerHTML = items.slice(0, 10).map(i => `<div class="alert-item ${cls}">${renderItem(i)}</div>`).join("");
+            const safe = Array.isArray(items) ? items : [];
+            el.innerHTML = safe.length === 0
+                ? `<div class="alert-empty">✅ All clear.</div>`
+                : safe.slice(0, 10).map(i => `<div class="alert-item ${cls}">${fn(i)}</div>`).join('');
         }
 
         // ── Main render ───────────────────────────────────
-        function renderDashboard(d) {
-            const c = d.core;
-            const sh = d.sellerHealth;
-            const oa = d.orderAnalytics;
-            const al = d.alerts;
-            const evts = d.recentEvents || [];
+        function renderDashboard(data) {
+            // Safe defaults for every section
+            const c = data.core || {};
+            const sh = data.sellerHealth || {};
+            const oa = data.orderAnalytics || {};
+            const al = data.alerts || {};
 
-            // Core Row 1
-            $("coreGrid").innerHTML = [
-                kpiCard("Total Stores", num(c.totalStores), null, "turq"),
-                kpiCard("Total Products", num(c.totalProducts), null, "blue"),
-                kpiCard("Store Visits", num(c.totalStoreVisits), "all time", "blue"),
-                kpiCard("Total Orders", num(c.totalOrders), null, "turq"),
-                kpiCard("Gross Revenue", inr(c.grossRevenue), "non-cancelled orders", "turq"),
-            ].join("");
+            const totalOrders = Number(c.totalOrders || 0);
+            const totalStores = Number(c.totalStores || 0);
 
-            // Core Row 2
-            $("core2Grid").innerHTML = [
-                kpiCard("Paid Orders", num(c.paidOrders), `${pct(c.paidOrders, c.totalOrders)}% of total`, "ok"),
-                kpiCard("Delivered", num(c.deliveredOrders), `${pct(c.deliveredOrders, c.totalOrders)}% of total`, "ok"),
-                kpiCard("Avg Order Value", inr(c.avgOrderValue), "all time", "blue"),
-                kpiCard("Carts Started", c.totalCartsStarted > 0 ? num(c.totalCartsStarted) : "0", "add CART_STARTED events to track", "warn"),
-            ].join("");
+            // Core row 1
+            g('coreGrid').innerHTML = [
+                kpi('Total Stores', num(c.totalStores), null, 'turq'),
+                kpi('Total Products', num(c.totalProducts), null, 'blue'),
+                kpi('Store Visits', num(c.totalStoreVisits), 'all time', 'blue'),
+                kpi('Total Orders', num(c.totalOrders), null, 'turq'),
+                kpi('Gross Revenue', inr(c.grossRevenue), 'non-cancelled', 'turq'),
+            ].join('');
+
+            // Core row 2
+            g('core2Grid').innerHTML = [
+                kpi('Paid Orders', num(c.paidOrders), pct(c.paidOrders, totalOrders) + '% of total', 'ok'),
+                kpi('Delivered', num(c.deliveredOrders), pct(c.deliveredOrders, totalOrders) + '% of total', 'ok'),
+                kpi('Avg Order Value', inr(c.avgOrderValue), 'all time', 'blue'),
+                kpi('Buyer Page Opens', num(c.totalCartsStarted || 0), 'BUYER_PAGE_OPEN events', 'warn'),
+            ].join('');
 
             // Seller health
-            $("sellerGrid").innerHTML = [
-                kpiCard("With Product", num(sh.storesWithProduct), `${pct(sh.storesWithProduct, c.totalStores)}% of stores`, "ok"),
-                kpiCard("With Order", num(sh.storesWithOrder), `${pct(sh.storesWithOrder, c.totalStores)}% of stores`, "ok"),
-                kpiCard("Active (7d)", num(sh.storesActiveWeek), "based on events", "turq"),
-                kpiCard("No Products", num(sh.storesZeroProducts), "need attention", "warn"),
-                kpiCard("Avg Prod/Store", sh.avgProductsPerStore, null, "blue"),
-            ].join("");
+            g('sellerGrid').innerHTML = [
+                kpi('With Products', num(sh.storesWithProduct), pct(sh.storesWithProduct, totalStores) + '% of stores', 'ok'),
+                kpi('With Orders', num(sh.storesWithOrder), pct(sh.storesWithOrder, totalStores) + '% of stores', 'ok'),
+                kpi('Active 7d', num(sh.storesActiveWeek), 'by events+orders', 'turq'),
+                kpi('No Products', num(sh.storesZeroProducts), 'need attention', 'warn'),
+                kpi('Avg Prod/Store', num(sh.avgProductsPerStore), null, 'blue'),
+            ].join('');
 
-            // Time grid
-            $("timeGrid").innerHTML = [
-                kpiCard("Today", num(oa.ordToday), null, "turq"),
-                kpiCard("This Week", num(oa.ordWeek), null, "blue"),
-                kpiCard("This Month", num(oa.ordMonth), null, "ok"),
-            ].join("");
+            // Time
+            g('timeGrid').innerHTML = [
+                kpi('Today', num(oa.ordToday), null, 'turq'),
+                kpi('This Week', num(oa.ordWeek), null, 'blue'),
+                kpi('This Month', num(oa.ordMonth), null, 'ok'),
+            ].join('');
 
             // Charts
-            const statusColors = { pending: "var(--warn)", confirmed: "var(--turq)", packed: "var(--blue)", shipped: "#a78bfa", delivered: "var(--ok)", cancelled: "var(--bad)", default: "var(--turq)" };
-            renderBarChart($("statusChart"), oa.byStatus, c.totalOrders, statusColors);
-            renderBarChart($("payStatChart"), oa.byPaymentStatus, c.totalOrders, { paid: "var(--ok)", unpaid: "var(--warn)", refunded: "var(--bad)", default: "var(--muted)" });
-            renderBarChart($("payMethChart"), oa.byPaymentMethod, c.totalOrders, { COD: "var(--turq)", UPI: "#a78bfa", UNKNOWN: "var(--muted)", default: "var(--muted)" });
+            const statusColors = {
+                pending: 'var(--warn)', confirmed: 'var(--turq)', packed: 'var(--blue)',
+                shipped: '#a78bfa', delivered: 'var(--ok)', cancelled: 'var(--bad)', default: 'var(--turq)'
+            };
+            barChart(g('statusChart'), oa.byStatus || {}, statusColors);
+            barChart(g('payStatChart'), oa.byPaymentStatus || {}, { paid: 'var(--ok)', unpaid: 'var(--warn)', refunded: 'var(--bad)', default: 'var(--muted)' });
+            barChart(g('payMethChart'), oa.byPaymentMethod || {}, { cod: 'var(--turq)', upi: '#a78bfa', unknown: 'var(--muted)', default: 'var(--muted)' });
 
-            // Alerts
-            $("a1Count").textContent = al.createdNoProduct.length;
-            $("a2Count").textContent = al.productButNoOrder.length;
-            $("a3Count").textContent = al.unpaidOld.length;
-            $("a4Count").textContent = al.stuckPending.length;
-            $("a5Count").textContent = al.missingPaymentSetup.length;
+            // Alert counts
+            const saf = arr => Array.isArray(arr) ? arr : [];
+            g('a1Count').textContent = saf(al.createdNoProduct).length;
+            g('a2Count').textContent = saf(al.productButNoOrder).length;
+            g('a3Count').textContent = saf(al.unpaidOld).length;
+            g('a4Count').textContent = saf(al.stuckPending).length;
+            g('a5Count').textContent = saf(al.missingPaymentSetup).length;
 
-            renderAlerts("alertCreatedNoProd", al.createdNoProduct, "warn",
-                i => `<b>${escH(i.storeName)}</b><code>${i.sellerId}</code> · created ${new Date(i.createdAt).toLocaleDateString("en-IN")}`);
+            alertList('alertCreatedNoProd', al.createdNoProduct, 'warn',
+                i => `<b>${esc(i.storeName || i.sellerId)}</b><code>${i.sellerId}</code> · created ${new Date(i.createdAt).toLocaleDateString('en-IN')}`);
 
-            renderAlerts("alertProdNoOrder", al.productButNoOrder, "warn",
-                i => `<b>${escH(i.storeName)}</b><code>${i.sellerId}</code>`);
+            alertList('alertProdNoOrder', al.productButNoOrder, 'warn',
+                i => `<b>${esc(i.storeName || i.sellerId)}</b><code>${i.sellerId}</code>`);
 
-            renderAlerts("alertUnpaid", al.unpaidOld, "bad",
-                i => `<b>Order ${i.orderId.slice(-8)}</b> · ${inr(i.total)} · status: ${i.status}<br><code>${i.sellerId} · ${new Date(i.createdAt).toLocaleString("en-IN")}</code>`);
+            alertList('alertUnpaid', al.unpaidOld, 'bad',
+                i => `<b>Order …${String(i.orderId || '').slice(-8)}</b> · ${inr(i.total)} · status: ${i.status}<br><code>${i.sellerId} · ${new Date(i.createdAt).toLocaleString('en-IN')}</code>`);
 
-            renderAlerts("alertStuck", al.stuckPending, "bad",
-                i => `<b>Order ${i.orderId.slice(-8)}</b> pending since ${new Date(i.createdAt).toLocaleDateString("en-IN")}<br><code>${i.sellerId}</code>`);
+            alertList('alertStuck', al.stuckPending, 'bad',
+                i => `<b>Pending since ${new Date(i.createdAt).toLocaleDateString('en-IN')}</b><br><code>${i.orderId} · ${i.sellerId}</code>`);
 
-            // Missing payment
-            const mpEl = $("alertMissingPay");
-            if (al.missingPaymentSetup.length === 0) {
-                mpEl.innerHTML = `<div class="alert-empty">✅ All sellers have payment configured.</div>`;
-            } else {
-                mpEl.innerHTML = al.missingPaymentSetup.slice(0, 20).map(s =>
-                    `<div class="pill warn" title="${s.sellerId}">${escH(s.storeName)}</div>`
-                ).join("");
-            }
+            const mpEl = g('alertMissingPay');
+            const mp = saf(al.missingPaymentSetup);
+            mpEl.innerHTML = mp.length === 0
+                ? `<div class="alert-empty">✅ All sellers have payment configured.</div>`
+                : mp.slice(0, 20).map(s => `<div class="pill warn" title="${esc(s.sellerId)}">${esc(s.storeName || s.sellerId)}</div>`).join('');
 
             // Event feed
+            const evts = Array.isArray(data.recentEvents) ? data.recentEvents : [];
+            g('evtCount').textContent = evts.length + ' events';
+
             const EVT_ICON = {
-                STORE_CREATED: "🏪", STORE_VIEWED: "👁", PRODUCT_ADDED: "📦",
-                ORDER_PLACED: "🛒", ORDER_PAID: "💸", ORDER_DELIVERED: "🎉", CART_STARTED: "🛍"
+                STORE_CREATED: '🏪', STORE_VIEWED: '👁', BUYER_PAGE_OPEN: '👁',
+                PRODUCT_ADDED: '📦', ORDER_PLACED: '🛒', ORDER_PAID: '💸', ORDER_DELIVERED: '🎉'
             };
-            $("evtCount").textContent = `${evts.length} events`;
-            $("evtFeed").innerHTML = evts.length === 0
-                ? `<div style="color:var(--muted);font-family:inherit;font-size:13px">No events tracked yet. Events appear here as sellers and buyers interact.</div>`
-                : evts.slice(0, 150).map(e => {
-                    const meta = { ...e };
-                    delete meta.id; delete meta.type; delete meta.timestamp;
-                    const metaStr = Object.entries(meta).map(([k, v]) => `${k}:${v}`).join(" · ");
-                    const icon = EVT_ICON[e.type] || "•";
+
+            g('evtFeed').innerHTML = evts.length === 0
+                ? `<div style="color:var(--muted);font-size:13px;padding:8px 0">No events yet. Events appear here as users interact with stores.</div>`
+                : evts.slice(0, 200).map(e => {
+                    const meta = Object.entries(e)
+                        .filter(([k]) => !['id', 'type', 'timestamp'].includes(k))
+                        .map(([k, v]) => `${k}:${v}`).join(' · ');
+                    const icon = EVT_ICON[e.type] || '•';
+                    let dt = '—';
+                    try { dt = new Date(e.timestamp).toLocaleString('en-IN', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch (ex) { }
                     return `<div class="evt-row">
-              <div class="evt-time">${new Date(e.timestamp).toLocaleString("en-IN", { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</div>
-              <div class="evt-type evt-${e.type}">${icon} ${e.type}</div>
-              <div class="evt-meta">${escH(metaStr)}</div>
-            </div>`;
-                }).join("");
+            <div class="evt-time">${dt}</div>
+            <div class="evt-type evt-${esc(e.type)}">${icon} ${esc(e.type)}</div>
+            <div class="evt-meta">${esc(meta)}</div>
+          </div>`;
+                }).join('');
         }
 
         // ── Boot ──────────────────────────────────────────

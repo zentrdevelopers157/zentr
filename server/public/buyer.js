@@ -11,7 +11,6 @@
     sellerId: "",
     storeName: "",
     catalog: [],
-    catalog: [],
     productById: {},
     cart: { items: [] },
     query: "",
@@ -520,6 +519,13 @@
 
       loadCart();
       bindUI();
+
+      // Fire BUYER_PAGE_OPEN event (best-effort, non-blocking)
+      fetch(`/api/public/sellers/${encodeURIComponent(state.sellerId)}/event`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "BUYER_PAGE_OPEN" })
+      }).catch(() => { });
 
       // Load in parallel
       await Promise.all([loadCatalog(), loadStoreName(), loadPaymentSettings()]);

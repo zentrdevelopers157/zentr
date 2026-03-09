@@ -544,7 +544,7 @@
 
         const o = data.order;
         el("statusPill").textContent = `status: ${o.status}`;
-        el("payment").textContent = o.paymentStatus || "unpaid";
+        el("payment").innerHTML = `${o.paymentMethod ? escapeHtml(o.paymentMethod.toUpperCase()) : "COD"} &mdash; ${escapeHtml(o.paymentStatus || "unpaid")}`;
         el("total").textContent = (o.total != null) ? `₹${Number(o.total).toLocaleString("en-IN")}` : "—";
 
         el("buyerName").textContent = o.buyerName || o.delivery?.name || "—";

@@ -558,7 +558,7 @@
         const totalVal = money(ord.total);
         el("total").textContent = totalVal;
         el("totalRight").textContent = totalVal;
-        el("payment").textContent = ord.paymentStatus || "unpaid";
+        el("payment").textContent = `${ord.paymentMethod ? ord.paymentMethod.toUpperCase() : "COD"} — ${ord.paymentStatus || "unpaid"}`;
 
         el("buyerName").textContent = ord.buyerName || ord.delivery?.name || "—";
         el("buyerPhone").textContent = ord.buyerPhone || ord.delivery?.phone || "—";
@@ -609,7 +609,7 @@ ORDER DETAILS
 Order ID:     ${ord.id || orderId}
 Date:         ${ord.createdAt ? new Date(ord.createdAt).toLocaleString("en-IN") : "—"}
 Status:       ${ord.status || "pending"}
-Payment:      ${ord.paymentStatus || "unpaid"}
+Payment:      ${ord.paymentMethod ? ord.paymentMethod.toUpperCase() : "COD"} — ${ord.paymentStatus || "unpaid"}
 
 BUYER DETAILS
 ─────────────

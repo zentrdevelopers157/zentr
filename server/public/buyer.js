@@ -11,9 +11,11 @@
     sellerId: "",
     storeName: "",
     catalog: [],
+    catalog: [],
     productById: {},
     cart: { items: [] },
-    query: ""
+    query: "",
+    paymentSettings: null
   };
 
   // ─── TOAST ───
@@ -358,6 +360,22 @@
 
     if (!state.cart.items.length) throw new Error("Cart is empty");
 
+    // Validate Phone (exactly 10 digits)
+    if (phone.replace(/\D/g, '').length !== 10) {
+      throw new Error("Please enter a valid 10-digit Indian mobile number.");
+    }
+
+    // Get selected payment method
+    let paymentMethod = "";
+    const pRadios = document.querySelectorAll('input[name="payMethod"]');
+    for (const r of pRadios) {
+      if (r.checked) paymentMethod = r.value;
+    }
+
+    if (!paymentMethod) {
+      throw new Error("Please select a payment method.");
+    }
+
     const items = state.cart.items.map(it => {
       const product = state.productById[it.productId];
       if (!product) throw new Error(`Unknown product: ${it.productId}`);
@@ -377,7 +395,8 @@
       buyerName: name || "Guest Buyer",
       buyerPhone: phone || "0000000000",
       buyerAddress: address || "N/A",
-      delivery: { name, phone, address }
+      delivery: { name, phone, address },
+      paymentMethod
     };
   }
 
@@ -436,6 +455,59 @@
     } catch { /* non-critical */ }
   }
 
+  async function loadPaymentSettings() {
+    try {
+      const res = await fetch(`/api/public/sellers/${encodeURIComponent(state.sellerId)}/payment`);
+      const data = await res.json().catch(() => ({}));
+      if (data.ok && data.payment) {
+        state.paymentSettings = data.payment;
+        renderPaymentOptions();
+      }
+    } catch { /* non-critical */ }
+  }
+
+  function renderPaymentOptions() {
+    const pList = $("paymentList");
+    const pSec = $("paymentSection");
+    if (!pList || !pSec || !state.paymentSettings) return;
+
+    const pm = state.paymentSettings;
+    if (!pm.codEnabled && !pm.upiId) {
+      pList.innerHTML = `<div style="color:var(--warn); font-size:12px">Seller has not enabled any payment methods. Cannot order.</div>`;
+      pSec.style.display = "block";
+      return;
+    }
+
+    let html = "";
+    if (pm.codEnabled) {
+      html += `
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; background:rgba(255,255,255,.05); padding:10px; border-radius:8px; border:1px solid var(--stroke)">
+          <input type="radio" name="payMethod" value="cod" checked style="accent-color:var(--turq)">
+          <div style="font-size:13px; font-weight:600">Cash on Delivery (COD)</div>
+        </label>
+      `;
+    }
+    if (pm.upiId) {
+      html += `
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; background:rgba(255,255,255,.05); padding:10px; border-radius:8px; border:1px solid var(--stroke)">
+          <input type="radio" name="payMethod" value="upi" ${!pm.codEnabled ? 'checked' : ''} style="accent-color:var(--turq)">
+          <div style="font-size:13px">
+            <div style="font-weight:600">UPI / QR Payment</div>
+            <div style="color:var(--turq); font-family:monospace; margin-top:2px">${escapeHtml(pm.upiId)}</div>
+          </div>
+        </label>
+      `;
+    }
+
+    // Payment notes if any
+    if (pm.paymentNote) {
+      html += `<div style="font-size:11px; color:var(--muted); margin-top:4px; padding:8px; background:rgba(0,0,0,.2); border-radius:6px; border-left:2px solid var(--turq)">${escapeHtml(pm.paymentNote)}</div>`;
+    }
+
+    pList.innerHTML = html;
+    pSec.style.display = "block";
+  }
+
   // ─── BOOT ───
   window.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -450,7 +522,7 @@
       bindUI();
 
       // Load in parallel
-      await Promise.all([loadCatalog(), loadStoreName()]);
+      await Promise.all([loadCatalog(), loadStoreName(), loadPaymentSettings()]);
       renderProducts(state.catalog);
       renderCart();
       updateCartPill();

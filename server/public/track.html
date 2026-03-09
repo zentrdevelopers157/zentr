@@ -731,9 +731,10 @@
       }
     }
 
-    function chipifyPayment(payRaw) {
+    function chipifyPayment(payRaw, methodRaw) {
       const pay = (payRaw || "unpaid").toLowerCase();
-      chipPay.textContent = `payment: ${pay}`;
+      const method = (methodRaw || "COD").toUpperCase();
+      chipPay.textContent = `payment: ${method} — ${pay}`;
       if (pay === "paid") chipPay.className = "chip good";
       else chipPay.className = "chip warn";
     }
@@ -757,16 +758,17 @@
       const id = order?.id || "—";
       const st = order?.status || "pending";
       const pay = order?.paymentStatus || "unpaid";
+      const payMeth = order?.paymentMethod || "COD";
       const total = order?.total;
       const createdAt = order?.createdAt;
 
       vOrderId.textContent = id;
       vSellerId.textContent = sellerId;
       vStatus.textContent = st;
-      vPay.textContent = pay;
+      vPay.textContent = `${payMeth.toUpperCase()} — ${pay}`;
 
       chipifyStatus(st);
-      chipifyPayment(pay);
+      chipifyPayment(pay, payMeth);
       chipTotal.textContent = `total: ${fmtMoney(total)}`;
       chipCreated.textContent = `created: ${createdAt ? new Date(createdAt).toLocaleString() : "—"}`;
 

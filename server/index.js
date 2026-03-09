@@ -6,8 +6,13 @@ const crypto = require("crypto");
 
 // -------------------- CONFIG --------------------
 const RECEIPT_SECRET = process.env.RECEIPT_SECRET || "dev_only_change_me";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "admin_secret_dev_only";
+
 if (RECEIPT_SECRET === "dev_only_change_me") {
   console.warn("⚠️  RECEIPT_SECRET is using a dev default. Set an env var for production.");
+}
+if (ADMIN_SECRET === "admin_secret_dev_only") {
+  console.warn("⚠️  ADMIN_SECRET is using a dev default. Set an env var for production.");
 }
 
 const app = express();
@@ -31,7 +36,7 @@ app.get("/", (req, res) => {
   res.redirect("/buyer");
 });
 
-["buyer", "confirm", "track", "receipt", "seller", "create-store"].forEach((page) => {
+["buyer", "confirm", "track", "receipt", "seller", "create-store", "admin"].forEach((page) => {
   app.get(`/${page}`, (req, res) => {
     const file = resolvePublicFile(`${page}.html`);
     if (!file) return res.status(404).send(`${page} page not found`);
@@ -50,6 +55,7 @@ const DATA_DIR = process.env.DATA_DIR
 const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const SELLERS_FILE = path.join(DATA_DIR, "sellers.json");
+const EVENTS_FILE = path.join(DATA_DIR, "events.json");
 
 const DB = {
   ensureFiles() {
@@ -57,6 +63,7 @@ const DB = {
     if (!fs.existsSync(PRODUCTS_FILE)) fs.writeFileSync(PRODUCTS_FILE, "[]");
     if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, "{}");
     if (!fs.existsSync(SELLERS_FILE)) fs.writeFileSync(SELLERS_FILE, "{}");
+    if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, "[]");
   },
 
   readJson(file, fallback) {
@@ -91,7 +98,13 @@ const DB = {
     const d = this.readJson(SELLERS_FILE, {});
     return (d && typeof d === "object" && !Array.isArray(d)) ? d : {};
   },
-  saveSellers(s) { this.writeJson(SELLERS_FILE, s); }
+  saveSellers(s) { this.writeJson(SELLERS_FILE, s); },
+
+  getEvents() {
+    const d = this.readJson(EVENTS_FILE, []);
+    return Array.isArray(d) ? d : [];
+  },
+  saveEvents(e) { this.writeJson(EVENTS_FILE, e); }
 };
 
 // -------------------- BUSINESS LOGIC --------------------
@@ -157,7 +170,31 @@ const ReceiptLogic = {
 // -------------------- UTILS --------------------
 const getIdempotencyKey = (req) => req.header("x-idempotency-key") || "";
 const nowIso = () => new Date().toISOString();
-const normalizePhone = (p) => String(p || "").replace(/\D/g, "").slice(-10);
+// Only accept exactly 10 digits for Indian mobile
+const normalizePhone = (p) => {
+  const digits = String(p || "").replace(/\D/g, "");
+  return digits.length === 10 ? digits : null;
+};
+const isValidUpi = (upi) => /^[\w.-]+@[\w.-]+$/.test(String(upi || ""));
+const tString = (val, maxLen) => String(val || "").trim().slice(0, maxLen);
+
+// -------------------- EVENT TRACKING --------------------
+const Analytics = {
+  track(type, metadata = {}) {
+    try {
+      const events = DB.getEvents();
+      events.push({
+        id: "evt_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+        type,
+        timestamp: nowIso(),
+        ...metadata
+      });
+      DB.saveEvents(events);
+    } catch (err) {
+      console.error("[analytics] failed to track:", err.message);
+    }
+  }
+};
 
 // -------------------- AUTH --------------------
 function requireSellerKey(req, res, next) {
@@ -183,6 +220,14 @@ function requireSellerKey(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  const key = req.header("x-admin-secret");
+  if (!key || key !== ADMIN_SECRET) {
+    return res.status(403).json({ ok: false, error: "forbidden: invalid admin secret" });
+  }
+  next();
+}
+
 // -------------------- HEALTH CHECK --------------------
 app.get("/api/health", (req, res) => res.json({ ok: true, time: nowIso() }));
 
@@ -190,15 +235,20 @@ app.get("/api/health", (req, res) => res.json({ ok: true, time: nowIso() }));
 app.post("/api/onboard", (req, res) => {
   try {
     const { name, owner, phone, category } = req.body || {};
-    if (!name || !owner || !phone) {
-      return res.status(400).json({ ok: false, error: "store name, owner name, and phone are required" });
+
+    const storeName = tString(name, 50);
+    const ownerName = tString(owner, 50);
+    const cat = tString(category, 50);
+    const norm = normalizePhone(phone);
+
+    if (!storeName || !ownerName || !norm) {
+      return res.status(400).json({ ok: false, error: "Valid 10-digit Indian phone, store name, and owner name are required." });
     }
 
     const sellers = DB.getSellers();
 
     // Duplicate prevention: check normalized phone
-    const norm = normalizePhone(phone);
-    const existing = Object.values(sellers).find(s => normalizePhone(s.phone) === norm);
+    const existing = Object.values(sellers).find(s => s.phone === norm);
     if (existing) {
       return res.status(409).json({
         ok: false,
@@ -212,10 +262,10 @@ app.post("/api/onboard", (req, res) => {
     sellers[sellerId] = {
       sellerId,
       sellerKey,
-      storeName: name,
-      ownerName: owner,
-      phone,
-      category: category || "",
+      storeName,
+      ownerName,
+      phone: norm,
+      category: cat,
       createdAt: nowIso(),
       // Payment info (v1) - empty by default
       payment: {
@@ -225,9 +275,10 @@ app.post("/api/onboard", (req, res) => {
       }
     };
     DB.saveSellers(sellers);
+    Analytics.track("STORE_CREATED", { sellerId, storeName: name });
 
-    console.log(`[onboard] new seller created: ${sellerId} (${name})`);
-    res.json({ ok: true, sellerId, sellerKey, storeName: name });
+    console.log(`[onboard] new seller created: ${sellerId} (${storeName})`);
+    res.json({ ok: true, sellerId, sellerKey, storeName });
   } catch (err) {
     console.error("[onboard] error:", err);
     res.status(500).json({ ok: false, error: "server error during onboarding" });
@@ -262,6 +313,7 @@ app.get("/api/public/sellers/:sellerId/products", (req, res) => {
       return res.status(404).json({ ok: false, error: "seller not found" });
     }
     const products = DB.getProducts().filter((p) => p.sellerId === sellerId);
+    Analytics.track("STORE_VIEWED", { sellerId });
     res.json({ ok: true, products });
   } catch (err) {
     console.error("[public products] error:", err);
@@ -272,7 +324,7 @@ app.get("/api/public/sellers/:sellerId/products", (req, res) => {
 app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
   try {
     const { sellerId } = req.params;
-    const { items, delivery, buyerName, buyerPhone, buyerAddress } = req.body || {};
+    const { items, delivery, buyerName, buyerPhone, buyerAddress, paymentMethod } = req.body || {};
 
     const sellers = DB.getSellers();
     if (!sellers[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
@@ -288,6 +340,19 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ ok: false, error: "items array is required" });
     }
+
+    // Validate 10-digit Indian phone for buyer
+    const bPhone = normalizePhone(buyerPhone || delivery?.phone);
+    if (!bPhone) {
+      return res.status(400).json({ ok: false, error: "Valid 10-digit Indian mobile number is required" });
+    }
+
+    // Validate payment method matches seller settings
+    const pm = String(paymentMethod || "").toLowerCase();
+    const sPay = sellers[sellerId].payment || {};
+    if (pm === "cod" && !sPay.codEnabled) return res.status(400).json({ ok: false, error: "COD is not available for this seller" });
+    if (pm === "upi" && !sPay.upiId) return res.status(400).json({ ok: false, error: "UPI is not available for this seller" });
+    if (pm !== "cod" && pm !== "upi") return res.status(400).json({ ok: false, error: "Invalid payment method. Choose COD or UPI." });
 
     const products = DB.getProducts();
     const stockCheck = OrderLogic.validateStock(products, items);
@@ -327,11 +392,12 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
     const order = {
       id: OrderLogic.makeOrderId(),
       sellerId,
-      buyerName: buyerName || delivery?.name || "Guest Buyer",
-      buyerPhone: buyerPhone || delivery?.phone || "0000000000",
-      buyerAddress: buyerAddress || delivery?.address || "N/A",
+      buyerName: tString(buyerName || delivery?.name || "Guest Buyer", 50),
+      buyerPhone: bPhone,
+      buyerAddress: tString(buyerAddress || delivery?.address || "N/A", 250),
       items: enrichedItems,
       total,
+      paymentMethod: pm,
       paymentStatus: "unpaid",
       status: "pending",
       history: [{ status: "pending", at: nowIso() }],
@@ -343,6 +409,7 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
     ordersDb[sellerId] = ordersDb[sellerId] || [];
     ordersDb[sellerId].unshift(order);
     DB.saveOrders(ordersDb);
+    Analytics.track("ORDER_PLACED", { sellerId, orderId: order.id, total, itemsCount: items.length });
 
     res.json({ ok: true, order, orderId: order.id });
   } catch (err) {
@@ -407,11 +474,18 @@ app.patch("/api/sellers/:sellerId/payment", requireSellerKey, (req, res) => {
     if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
 
     const { codEnabled, upiId, paymentNote } = req.body || {};
+
+    // Validate UPI ID
+    const upiStr = String(upiId || "").trim();
+    if (upiStr && !isValidUpi(upiStr)) {
+      return res.status(400).json({ ok: false, error: "Invalid UPI ID format. Ensure it follows format like name@upi" });
+    }
+
     if (!seller.payment) seller.payment = { codEnabled: false, upiId: "", paymentNote: "" };
 
     if (codEnabled !== undefined) seller.payment.codEnabled = !!codEnabled;
-    if (upiId !== undefined) seller.payment.upiId = String(upiId || "").trim();
-    if (paymentNote !== undefined) seller.payment.paymentNote = String(paymentNote || "").trim();
+    if (upiId !== undefined) seller.payment.upiId = tString(upiStr, 100);
+    if (paymentNote !== undefined) seller.payment.paymentNote = tString(paymentNote, 250);
     seller.payment.updatedAt = nowIso();
 
     DB.saveSellers(sellers);
@@ -435,28 +509,29 @@ app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
   try {
     const { name, price, stock, category, options, sizes, variants, desc, images } = req.body;
-    if (!name || isNaN(Number(price))) {
-      return res.status(400).json({ ok: false, error: "name and price are required" });
+    if (!name || isNaN(Number(price)) || Number(price) <= 0) {
+      return res.status(400).json({ ok: false, error: "valid name and numeric price are required" });
     }
 
     const products = DB.getProducts();
     const product = {
       id: "prod_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
       sellerId: req.params.sellerId,
-      name: String(name).trim(),
-      category: String(category || "").trim(),
+      name: tString(name, 100),
+      category: tString(category, 50),
       price: Number(price),
       stock: stock === "" ? "" : Number(stock) || 0,
       options: Array.isArray(options) ? options : [],
       sizes: Array.isArray(sizes) ? sizes : [],
       variants: Array.isArray(variants) ? variants : [],
-      desc: String(desc || "").trim(),
+      desc: tString(desc, 1000),
       images: Array.isArray(images) ? images : [],
       createdAt: nowIso()
     };
 
     products.push(product);
     DB.saveProducts(products);
+    Analytics.track("PRODUCT_ADDED", { sellerId: req.params.sellerId, productId: product.id });
     res.json({ ok: true, product });
   } catch (err) {
     console.error("[seller products POST] error:", err);
@@ -556,6 +631,66 @@ app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, (req, res)
   } catch (err) {
     console.error("[seller orders PATCH] error:", err);
     res.status(500).json({ ok: false, error: "server error" });
+  }
+});
+
+// Update payment status ("unpaid" -> "paid")
+app.patch("/api/sellers/:sellerId/orders/:orderId/payment-status", requireSellerKey, (req, res) => {
+  try {
+    const ordersDb = DB.getOrders();
+    const sellerOrders = ordersDb[req.params.sellerId] || [];
+    const order = sellerOrders.find((o) => o.id === req.params.orderId);
+    if (!order) return res.status(404).json({ ok: false, error: "order not found" });
+
+    const next = String(req.body.paymentStatus || "").toLowerCase();
+    if (next !== "paid" && next !== "unpaid" && next !== "refunded") {
+      return res.status(400).json({ ok: false, error: "invalid payment status. Allowed: unpaid, paid, refunded" });
+    }
+
+    order.paymentStatus = next;
+    order.updatedAt = nowIso();
+
+    DB.saveOrders(ordersDb);
+    res.json({ ok: true, order });
+  } catch (err) {
+    console.error("[seller payment-status PATCH] error:", err);
+    res.status(500).json({ ok: false, error: "server error" });
+  }
+});
+
+// -------------------- ADMIN PROTECTED ROUTES --------------------
+app.get("/api/admin/stats", requireAdmin, (req, res) => {
+  try {
+    const sellers = DB.getSellers();
+    const products = DB.getProducts();
+    const ordersDb = DB.getOrders();
+    const events = DB.getEvents();
+
+    let totalOrders = 0;
+    let totalRevenue = 0;
+
+    Object.values(ordersDb).forEach(sellerOrders => {
+      sellerOrders.forEach(o => {
+        totalOrders++;
+        if (o.status !== "cancelled" && o.status !== "failed") {
+          totalRevenue += Number(o.total) || 0;
+        }
+      });
+    });
+
+    res.json({
+      ok: true,
+      stats: {
+        totalStores: Object.keys(sellers).length,
+        totalProducts: products.length,
+        totalOrders,
+        totalRevenue
+      },
+      recentEvents: events.slice(-100).reverse() // Show last 100 events
+    });
+  } catch (err) {
+    console.error("[admin stats GET] error:", err);
+    res.status(500).json({ ok: false, error: "server error generating stats" });
   }
 });
 

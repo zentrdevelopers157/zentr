@@ -857,12 +857,31 @@
     const $ = (id) => document.getElementById(id);
     const API = location.origin;
     const params = new URLSearchParams(location.search);
-    const SELLER_ID = params.get("sellerId");
-    const SELLER_KEY = params.get("sellerKey");
+    let SELLER_ID = params.get("sellerId");
+    let SELLER_KEY = params.get("sellerKey");
+
+    if (!SELLER_ID || !SELLER_KEY) {
+      try {
+        const s = JSON.parse(localStorage.getItem("zentr_store"));
+        if (s && s.sellerId && s.sellerKey) {
+          SELLER_ID = s.sellerId;
+          SELLER_KEY = s.sellerKey;
+          const u = new URL(location.href);
+          u.searchParams.set("sellerId", SELLER_ID);
+          u.searchParams.set("sellerKey", SELLER_KEY);
+          history.replaceState(null, "", u.toString());
+        }
+      } catch (e) { }
+    }
 
     // Redirect if missing credentials
     if (!SELLER_ID || !SELLER_KEY) {
       document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#fff"><h2>⚠️ Missing seller credentials</h2><p>Please use the link provided when you created your store.</p><a href="/" style="color:#27f0d5">← Back to Zentr</a></div>';
+    } else {
+      try {
+        const existing = JSON.parse(localStorage.getItem("zentr_store")) || {};
+        localStorage.setItem("zentr_store", JSON.stringify({ ...existing, sellerId: SELLER_ID, sellerKey: SELLER_KEY }));
+      } catch (e) { }
     }
 
     // ─── STATE ───
@@ -999,6 +1018,20 @@
           body: JSON.stringify({ status: newStatus })
         });
         showToast(`✅ Order marked as ${newStatus}`);
+        await loadAll();
+      } catch (err) {
+        showToast("❌ " + err.message);
+      }
+    };
+
+    window.updatePaymentStatus = async function (orderId, newStatus) {
+      if (!confirm(`Mark payment as "${newStatus}"?`)) return;
+      try {
+        await apiFetch(`/api/sellers/${SELLER_ID}/orders/${orderId}/payment-status`, {
+          method: "PATCH",
+          body: JSON.stringify({ paymentStatus: newStatus })
+        });
+        showToast(`✅ Payment marked as ${newStatus}`);
         await loadAll();
       } catch (err) {
         showToast("❌ " + err.message);
@@ -1203,15 +1236,19 @@
               <div class="order-detail">${date} · ${formatINR(o.total)}</div>
               <div class="order-detail" style="margin-top:4px">${itemsHtml}</div>
               ${o.buyerPhone ? `<div class="order-detail" style="margin-top:2px">📱 ${escapeHtml(o.buyerPhone)}</div>` : ''}
+              <div class="order-detail" style="margin-top:6px; font-weight:600; color:var(--turq)">
+                Payment: ${(o.paymentMethod || 'COD').toUpperCase()} &mdash; <span style="color:${o.paymentStatus === 'paid' ? 'var(--ok)' : 'var(--warn)'}">${o.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Unpaid'}</span>
+              </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
               <div class="chip ${statusClass}" style="text-transform:capitalize">${o.status}</div>
               <button class="iconbtn" onclick="copyTrack('${o.id}')" title="Copy tracking link">🔗</button>
             </div>
           </div>
-          ${nextSteps.length > 0 ? `
+          ${(nextSteps.length > 0 || o.paymentStatus !== 'paid') ? `
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--stroke)">
-            <span style="font-size:11px;color:var(--muted)">Update status →</span>
+            <span style="font-size:11px;color:var(--muted)">Actions →</span>
+            ${o.paymentStatus !== 'paid' ? `<button class="order-status-btn" onclick="updatePaymentStatus('${o.id}', 'paid')" style="border-color:var(--ok); color:var(--text); background:rgba(39, 240, 213, 0.15)">💰 Mark as Paid</button>` : ''}
             ${nextSteps.map(s => `<button class="order-status-btn${s === 'cancelled' ? ' cancel' : ''}" onclick="updateOrderStatus('${o.id}', '${s}')">${s === 'confirmed' ? '✅ Confirm' : s === 'packed' ? '📦 Pack' : s === 'shipped' ? '🚚 Ship' : s === 'delivered' ? '🎉 Delivered' : s === 'cancelled' ? '✕ Cancel' : s}</button>`).join('')}
           </div>` : `<div style="font-size:11px;color:var(--muted)">Order ${o.status === 'delivered' ? '✅ complete' : o.status === 'cancelled' ? '❌ cancelled' : `is ${o.status}`}. No further updates.</div>`}
         `;
@@ -1324,6 +1361,11 @@
           const codEnabled = $("codEnabled") ? $("codEnabled").checked : false;
           const upiId = $("upiId") ? $("upiId").value.trim() : "";
           const paymentNote = $("paymentNote") ? $("paymentNote").value.trim() : "";
+
+          if (upiId && !/^[\w.-]+@[\w.-]+$/.test(upiId)) {
+            return showToast("❌ Invalid UPI ID format");
+          }
+
           await apiFetch(`/api/sellers/${SELLER_ID}/payment`, {
             method: "PATCH",
             body: JSON.stringify({ codEnabled, upiId, paymentNote })

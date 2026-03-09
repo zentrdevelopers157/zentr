@@ -328,9 +328,9 @@ app.post("/api/onboard", (req, res) => {
       phone: norm,
       category: cat,
       createdAt: nowIso(),
-      // Payment info (v1) - empty by default
+      // Payment info (v1) - COD enabled by default
       payment: {
-        codEnabled: false,
+        codEnabled: true,
         upiId: "",
         paymentNote: ""
       }

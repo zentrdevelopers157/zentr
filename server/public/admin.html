@@ -727,6 +727,32 @@
     <div id="dashboard">
         <div class="error-banner" id="errorBanner"></div>
 
+        <!-- MONGODB SETUP WARNING -->
+        <div id="mongoWarning"
+            style="display:none; background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.3); border-radius:12px; padding:20px; margin-bottom:24px;">
+            <h3 style="color:var(--bad); margin-bottom:12px; font-size:16px;">⚠️ Database Persistence Offline (JSON
+                Fallback Active)</h3>
+            <p style="color:var(--text); font-size:13px; line-height:1.5; margin-bottom:12px;">
+                Your stores and products will be DELETED every time Render restarts until you connect a database. Please
+                follow these exact steps to fix it permanently:
+            </p>
+            <ol style="color:var(--muted); font-size:13px; line-height:1.6; padding-left:20px; margin-bottom:0;">
+                <li>Create a free account on <a href="https://www.mongodb.com/atlas/database" target="_blank"
+                        style="color:var(--turq)">MongoDB Atlas</a> and build a "Free M0" cluster.</li>
+                <li>Create a Database User with a username and password.</li>
+                <li>Under Network Access, click "Add IP Address" and select "Allow Access From Anywhere"
+                    (<code>0.0.0.0/0</code>).</li>
+                <li>Click Connect ➝ Drivers ➝ Node.js and copy your connection string (it looks like
+                    <code>mongodb+srv://...</code>).
+                </li>
+                <li>Go to your <strong style="color:white">Render Dashboard</strong> ➝ Zentr Web Service ➝ Environment.
+                </li>
+                <li>Add a new Environment Variable with Key: <code>MONGODB_URI</code> and Value: <em>(paste your
+                        connection string)</em>.</li>
+                <li>Click Save. Render will restart and this warning will turn green.</li>
+            </ol>
+        </div>
+
         <!-- CORE METRICS row 1 -->
         <div class="sec-head">📊 Core Metrics</div>
         <div class="stat-grid grid-5" id="coreGrid"></div>
@@ -896,6 +922,7 @@
                 }
 
                 const dbBadge = g('dbBadge');
+                const mongoWarn = g('mongoWarning');
                 if (dbBadge) {
                     dbBadge.style.display = 'inline-block';
                     if (data.isMongoConnected) {
@@ -903,11 +930,13 @@
                         dbBadge.style.color = 'var(--ok)';
                         dbBadge.style.borderColor = 'rgba(77,255,136,.3)';
                         dbBadge.style.background = 'var(--ok-dim)';
+                        if (mongoWarn) mongoWarn.style.display = 'none';
                     } else {
                         dbBadge.textContent = 'MDB: OFFLINE (JSON FALLBACK)';
                         dbBadge.style.color = 'var(--bad)';
                         dbBadge.style.borderColor = 'rgba(255,107,107,.3)';
                         dbBadge.style.background = 'var(--bad-dim)';
+                        if (mongoWarn) mongoWarn.style.display = 'block';
                     }
                 }
 

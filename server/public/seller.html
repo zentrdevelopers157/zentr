@@ -1344,9 +1344,14 @@
       const rows = $("optionGroupsList").querySelectorAll(".option-group-row");
       const opts = [];
       rows.forEach(row => {
-        const name = row.querySelector(".name-in").value.trim();
-        const vals = row.querySelector(".vals-in").value.split(",").map(s => s.trim()).filter(Boolean);
-        if (name && vals.length) opts.push({ name, values: vals });
+        let name = row.querySelector(".name-in").value.trim();
+        let vals = row.querySelector(".vals-in").value;
+        // Strip emojis
+        name = name.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+        vals = vals.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+
+        const valsArr = vals.split(",").map(s => s.trim()).filter(Boolean);
+        if (name && valsArr.length) opts.push({ name, values: valsArr });
       });
       return opts;
     }

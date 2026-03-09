@@ -372,6 +372,9 @@
     }
 
     if (!paymentMethod) {
+      if (!state.paymentSettings || (!state.paymentSettings.codEnabled && !state.paymentSettings.upiId)) {
+        throw new Error("This store is not accepting orders right now (no payment methods enabled).");
+      }
       throw new Error("Please select a payment method.");
     }
 

@@ -6,7 +6,7 @@ const crypto = require("crypto");
 
 // -------------------- CONFIG --------------------
 const RECEIPT_SECRET = process.env.RECEIPT_SECRET || "dev_only_change_me";
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "admin_secret_dev_only";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "FutureBillionairesHA";
 
 if (RECEIPT_SECRET === "dev_only_change_me") {
   console.warn("⚠️  RECEIPT_SECRET is using a dev default. Set an env var for production.");

@@ -626,6 +626,8 @@ app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, (req, res)
     if (!Array.isArray(order.history)) order.history = [];
     order.history.push({ status: next, at: order.updatedAt });
 
+    if (next === "delivered") Analytics.track("ORDER_DELIVERED", { orderId: order.id, sellerId: req.params.sellerId, total: order.total });
+
     DB.saveOrders(ordersDb);
     res.json({ ok: true, order });
   } catch (err) {
@@ -650,6 +652,8 @@ app.patch("/api/sellers/:sellerId/orders/:orderId/payment-status", requireSeller
     order.paymentStatus = next;
     order.updatedAt = nowIso();
 
+    if (next === "paid") Analytics.track("ORDER_PAID", { orderId: order.id, sellerId: req.params.sellerId, total: order.total });
+
     DB.saveOrders(ordersDb);
     res.json({ ok: true, order });
   } catch (err) {
@@ -659,35 +663,115 @@ app.patch("/api/sellers/:sellerId/orders/:orderId/payment-status", requireSeller
 });
 
 // -------------------- ADMIN PROTECTED ROUTES --------------------
+
+function buildAdminStats() {
+  const sellers = DB.getSellers();
+  const products = DB.getProducts();
+  const ordersDb = DB.getOrders();
+  const events = DB.getEvents();
+
+  const now = Date.now();
+  const DAY = 86400000;
+  const WEEK = 7 * DAY;
+  const MONTH = 30 * DAY;
+  const UNPAID_AGE = 2 * DAY;
+  const STUCK_AGE = 3 * DAY;
+
+  // Flatten all orders
+  const allOrders = [];
+  Object.entries(ordersDb).forEach(([sid, ords]) => {
+    (Array.isArray(ords) ? ords : []).forEach(o => allOrders.push({ ...o, sellerId: o.sellerId || sid }));
+  });
+
+  const sellerList = Object.values(sellers);
+  const totalStores = sellerList.length;
+
+  // Products per seller
+  const prodBySeller = {};
+  products.forEach(p => { prodBySeller[p.sellerId] = (prodBySeller[p.sellerId] || 0) + 1; });
+
+  // Orders per seller
+  const ordBySeller = {};
+  allOrders.forEach(o => { ordBySeller[o.sellerId] = (ordBySeller[o.sellerId] || 0) + 1; });
+
+  // Last activity per seller
+  const lastEvt = {};
+  events.forEach(e => {
+    if (e.sellerId) {
+      const t = new Date(e.timestamp).getTime();
+      if (!lastEvt[e.sellerId] || t > lastEvt[e.sellerId]) lastEvt[e.sellerId] = t;
+    }
+  });
+  allOrders.forEach(o => {
+    const t = new Date(o.createdAt).getTime();
+    if (!lastEvt[o.sellerId] || t > lastEvt[o.sellerId]) lastEvt[o.sellerId] = t;
+  });
+
+  const storesWithProduct = sellerList.filter(s => (prodBySeller[s.sellerId] || 0) >= 1).length;
+  const storesWithOrder = sellerList.filter(s => (ordBySeller[s.sellerId] || 0) >= 1).length;
+  const storesActiveWeek = sellerList.filter(s => lastEvt[s.sellerId] && (now - lastEvt[s.sellerId]) < WEEK).length;
+  const storesZeroProd = sellerList.filter(s => (prodBySeller[s.sellerId] || 0) === 0).length;
+  const avgProductsPerStore = totalStores > 0 ? (products.length / totalStores).toFixed(1) : 0;
+
+  // Order analytics
+  const totalOrders = allOrders.length;
+  let totalRevenue = 0, paidOrders = 0, deliveredOrders = 0;
+  const byStatus = {}, byPayStat = {}, byPayMeth = {};
+  let ordToday = 0, ordWeek = 0, ordMonth = 0;
+
+  allOrders.forEach(o => {
+    const age = now - new Date(o.createdAt).getTime();
+    if (o.status !== "cancelled" && o.status !== "failed") totalRevenue += Number(o.total) || 0;
+    if (o.paymentStatus === "paid") paidOrders++;
+    if (o.status === "delivered") deliveredOrders++;
+
+    byStatus[o.status] = (byStatus[o.status] || 0) + 1;
+    byPayStat[o.paymentStatus || "unpaid"] = (byPayStat[o.paymentStatus || "unpaid"] || 0) + 1;
+    byPayMeth[(o.paymentMethod || "unknown").toUpperCase()] = (byPayMeth[(o.paymentMethod || "unknown").toUpperCase()] || 0) + 1;
+
+    if (age < DAY) ordToday++;
+    if (age < WEEK) ordWeek++;
+    if (age < MONTH) ordMonth++;
+  });
+
+  const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
+  // Event counters
+  const storeVisits = events.filter(e => e.type === "STORE_VIEWED").length;
+  const totalCarts = events.filter(e => e.type === "CART_STARTED").length;
+
+  // Operational alerts
+  const alertsCreatedNoProd = sellerList.filter(s => (prodBySeller[s.sellerId] || 0) === 0)
+    .map(s => ({ sellerId: s.sellerId, storeName: s.storeName, createdAt: s.createdAt }));
+
+  const alertsProdNoOrder = sellerList.filter(s => (prodBySeller[s.sellerId] || 0) >= 1 && (ordBySeller[s.sellerId] || 0) === 0)
+    .map(s => ({ sellerId: s.sellerId, storeName: s.storeName }));
+
+  const alertsUnpaidOld = allOrders.filter(o =>
+    o.paymentStatus !== "paid" && o.status !== "cancelled" &&
+    (now - new Date(o.createdAt).getTime()) > UNPAID_AGE
+  ).map(o => ({ orderId: o.id, sellerId: o.sellerId, total: o.total, createdAt: o.createdAt, status: o.status }));
+
+  const alertsStuckPending = allOrders.filter(o =>
+    o.status === "pending" && (now - new Date(o.createdAt).getTime()) > STUCK_AGE
+  ).map(o => ({ orderId: o.id, sellerId: o.sellerId, createdAt: o.createdAt }));
+
+  const alertsMissingPayment = sellerList.filter(s => { const pm = s.payment || {}; return !pm.codEnabled && !pm.upiId; })
+    .map(s => ({ sellerId: s.sellerId, storeName: s.storeName }));
+
+  return {
+    generatedAt: new Date().toISOString(),
+    core: { totalStores, totalProducts: products.length, totalStoreVisits: storeVisits, totalCartsStarted: totalCarts, totalOrders, paidOrders, deliveredOrders, grossRevenue: Math.round(totalRevenue), avgOrderValue },
+    sellerHealth: { storesWithProduct, storesWithOrder, storesActiveWeek, storesZeroProducts: storesZeroProd, avgProductsPerStore: Number(avgProductsPerStore) },
+    orderAnalytics: { byStatus, byPaymentStatus: byPayStat, byPaymentMethod: byPayMeth, ordToday, ordWeek, ordMonth },
+    alerts: { createdNoProduct: alertsCreatedNoProd, productButNoOrder: alertsProdNoOrder, unpaidOld: alertsUnpaidOld, stuckPending: alertsStuckPending, missingPaymentSetup: alertsMissingPayment },
+    recentEvents: events.slice(-200).reverse()
+  };
+}
+
 app.get("/api/admin/stats", requireAdmin, (req, res) => {
   try {
-    const sellers = DB.getSellers();
-    const products = DB.getProducts();
-    const ordersDb = DB.getOrders();
-    const events = DB.getEvents();
-
-    let totalOrders = 0;
-    let totalRevenue = 0;
-
-    Object.values(ordersDb).forEach(sellerOrders => {
-      sellerOrders.forEach(o => {
-        totalOrders++;
-        if (o.status !== "cancelled" && o.status !== "failed") {
-          totalRevenue += Number(o.total) || 0;
-        }
-      });
-    });
-
-    res.json({
-      ok: true,
-      stats: {
-        totalStores: Object.keys(sellers).length,
-        totalProducts: products.length,
-        totalOrders,
-        totalRevenue
-      },
-      recentEvents: events.slice(-100).reverse() // Show last 100 events
-    });
+    res.json({ ok: true, ...buildAdminStats() });
   } catch (err) {
     console.error("[admin stats GET] error:", err);
     res.status(500).json({ ok: false, error: "server error generating stats" });

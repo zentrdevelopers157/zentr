@@ -479,6 +479,12 @@ app.get("/api/sellers/:sellerId/info", requireSellerKey, (req, res) => {
   res.json({ ok: true, seller: req.seller });
 });
 
+// Get seller info (seller-authenticated)
+app.get("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
+  const s = req.seller;
+  res.json({ ok: true, seller: { sellerId: s.sellerId, storeName: s.storeName, ownerName: s.ownerName, category: s.category, createdAt: s.createdAt } });
+});
+
 // Get payment settings (seller-authenticated)
 app.get("/api/sellers/:sellerId/payment", requireSellerKey, (req, res) => {
   const payment = req.seller.payment || { codEnabled: false, upiId: "", paymentNote: "" };

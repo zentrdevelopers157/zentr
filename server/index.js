@@ -857,7 +857,7 @@ function buildAdminStats() {
 
 app.get("/api/admin/stats", requireAdmin, (req, res) => {
   try {
-    res.json({ ok: true, ...buildAdminStats() });
+    res.json({ ok: true, isMongoConnected: !!_mdbStore, ...buildAdminStats() });
   } catch (err) {
     console.error("[admin stats GET] error:", err);
     res.status(500).json({ ok: false, error: "server error generating stats" });

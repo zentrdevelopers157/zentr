@@ -700,6 +700,8 @@
                 <div class="badge">Founder Analytics</div>
             </div>
             <div id="topbarActions">
+                <div id="dbBadge" class="badge"
+                    style="display:none;font-size:10px;padding:3px 8px;margin-right:8px;font-family:monospace"></div>
                 <span class="ts-label" id="tsLabel">—</span>
                 <button class="btn-refresh" onclick="fetchStats()">⟳ Refresh</button>
                 <button class="btn-lock" onclick="lock()">🔒 Lock</button>
@@ -891,6 +893,22 @@
 
                 if (data.generatedAt) {
                     g('tsLabel').textContent = 'Updated ' + new Date(data.generatedAt).toLocaleTimeString('en-IN');
+                }
+
+                const dbBadge = g('dbBadge');
+                if (dbBadge) {
+                    dbBadge.style.display = 'inline-block';
+                    if (data.isMongoConnected) {
+                        dbBadge.textContent = 'MDB: ONLINE';
+                        dbBadge.style.color = 'var(--ok)';
+                        dbBadge.style.borderColor = 'rgba(77,255,136,.3)';
+                        dbBadge.style.background = 'var(--ok-dim)';
+                    } else {
+                        dbBadge.textContent = 'MDB: OFFLINE (JSON FALLBACK)';
+                        dbBadge.style.color = 'var(--bad)';
+                        dbBadge.style.borderColor = 'rgba(255,107,107,.3)';
+                        dbBadge.style.background = 'var(--bad-dim)';
+                    }
                 }
 
                 renderDashboard(data);

@@ -265,6 +265,31 @@ async function run() {
         return r.status === 200 && r.body.ok;
     });
 
+    // ── G. New Refinements (Task 1, 2, 4) ────────────────────
+    console.log('\n[G] New Refinements');
+
+    await test(34, 'Strict variant validation (emoji block)', async () => {
+        const r = await req('POST', `/api/sellers/${SELLER_ID}/products`,
+            { name: 'Emoji Fail', price: 100, options: [{ name: 'Size', values: ['S', 'M', '🔥'] }] },
+            { 'x-seller-key': SELLER_KEY }
+        );
+        return r.status === 400 && r.body.ok === false && r.body.error.toLowerCase().includes('variants');
+    });
+
+    await test(35, 'Multi-media product creation & persistence', async () => {
+        const r = await req('POST', `/api/sellers/${SELLER_ID}/products`,
+            {
+                name: 'Multi Media Pro',
+                price: 999,
+                images: ['https://picsum.photos/400?1', 'https://picsum.photos/400?2'],
+                videoUrl: 'https://vimeo.com/12345',
+                options: [{ name: 'Pack', values: ['Box', 'Bag'] }]
+            },
+            { 'x-seller-key': SELLER_KEY }
+        );
+        return r.status === 200 && r.body.ok && r.body.product.images.length === 2 && !!r.body.product.videoUrl;
+    });
+
     // Summary
     console.log('\n' + '─'.repeat(60));
     console.log(`📊 Results: ${passed} passed, ${failed} failed out of ${passed + failed} tests`);

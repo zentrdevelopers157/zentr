@@ -621,22 +621,45 @@ app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
 
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
   try {
-    const { name, price, stock, category, options, sizes, variants, desc, images } = req.body;
-    if (!name || isNaN(Number(price)) || Number(price) <= 0) {
-      return res.status(400).json({ ok: false, error: "valid name and numeric price are required" });
+    const { name, price, stock, category, options, desc, images, videoUrl } = req.body;
+    
+    // Task 4: Product name validation (3-80 chars)
+    const pName = tString(name, 80);
+    if (pName.length < 3) {
+      return res.status(400).json({ ok: false, error: "Product name must be between 3 and 80 characters." });
     }
 
-    const products = DB.getProducts();
-    const pName = tString(name, 100);
+    // Task 4: Price validation (> 0)
     const pPrice = Number(price);
+    if (isNaN(pPrice) || pPrice <= 0) {
+      return res.status(400).json({ ok: false, error: "Price must be a number greater than 0." });
+    }
+
     const pStock = stock === "" ? "" : Math.max(0, Number(stock) || 0);
 
-    // Emoji stripping for variants/options (Task 4)
-    const cleanOpts = (Array.isArray(options) ? options : []).map(g => ({
-      name: tString(g.name, 50).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim(),
-      values: (Array.isArray(g.values) ? g.values : []).map(v => tString(v, 50).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim()).filter(Boolean)
-    })).filter(g => g.name && g.values.length > 0);
+    // Task 4: Variant/Options validation
+    const rawOptions = Array.isArray(options) ? options : [];
+    if (rawOptions.length > 10) {
+      return res.status(400).json({ ok: false, error: "Maximum 10 variant groups allowed per product." });
+    }
 
+    const cleanOpts = rawOptions.map(g => {
+      const gName = tString(g.name, 50).replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+      const gVals = (Array.isArray(g.values) ? g.values : []).map(v => {
+        // Task 4: Variant value max 20 chars + allowed chars
+        return tString(v, 20).replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+      }).filter(Boolean);
+      return { name: gName, values: gVals };
+    }).filter(g => g.name && g.values.length > 0);
+
+    // Task 2: Multi-media schema (up to 5 images, 1 video)
+    const pImages = (Array.isArray(images) ? images : []).filter(url => url && typeof url === 'string').slice(0, 5);
+    if (pImages.length === 0) {
+      return res.status(400).json({ ok: false, error: "At least one product image (URL) is required." });
+    }
+    const pVideo = typeof videoUrl === 'string' ? tString(videoUrl, 500) : "";
+
+    const products = DB.getProducts();
     const product = {
       id: "prod_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
       sellerId: req.params.sellerId,
@@ -645,10 +668,9 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
       price: pPrice,
       stock: pStock,
       options: cleanOpts,
-      sizes: Array.isArray(sizes) ? sizes : [],
-      variants: Array.isArray(variants) ? variants : [],
-      desc: tString(desc, 1000),
-      images: Array.isArray(images) ? images : [],
+      desc: tString(desc, 1200),
+      images: pImages,
+      videoUrl: pVideo,
       createdAt: nowIso()
     };
 
@@ -671,14 +693,40 @@ app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, 
     if (idx === -1) return res.status(404).json({ ok: false, error: "product not found" });
 
     const p = products[idx];
-    const fields = ["name", "price", "stock", "category", "options", "sizes", "variants", "desc", "images"];
-    fields.forEach((f) => {
-      if (req.body[f] !== undefined) {
-        if (f === "price") p[f] = Math.max(0, Number(req.body[f]) || 0);
-        else if (f === "stock") p[f] = req.body[f] === "" ? "" : Math.max(0, Number(req.body[f]) || 0);
-        else p[f] = req.body[f];
+    const fields = ["name", "price", "stock", "category", "options", "desc", "images", "videoUrl"];
+    
+    for (const f of fields) {
+      if (req.body[f] === undefined) continue;
+
+      if (f === "name") {
+        const val = tString(req.body[f], 80);
+        if (val.length >= 3) p.name = val;
       }
-    });
+      else if (f === "price") {
+        const val = Number(req.body[f]);
+        if (!isNaN(val) && val > 0) p.price = val;
+      }
+      else if (f === "stock") {
+        p.stock = req.body[f] === "" ? "" : Math.max(0, Number(req.body[f]) || 0);
+      }
+      else if (f === "options") {
+        const raw = Array.isArray(req.body[f]) ? req.body[f].slice(0, 10) : [];
+        p.options = raw.map(g => ({
+          name: tString(g.name, 50).replace(/[^a-zA-Z0-9\s-]/g, '').trim(),
+          values: (Array.isArray(g.values) ? g.values : []).map(v => tString(v, 20).replace(/[^a-zA-Z0-9\s-]/g, '').trim()).filter(Boolean)
+        })).filter(g => g.name && g.values.length > 0);
+      }
+      else if (f === "images") {
+        const imgArr = (Array.isArray(req.body[f]) ? req.body[f] : []).filter(url => url && typeof url === 'string').slice(0, 5);
+        if (imgArr.length > 0) p.images = imgArr;
+      }
+      else if (f === "videoUrl") {
+        p.videoUrl = typeof req.body[f] === 'string' ? tString(req.body[f], 500) : "";
+      }
+      else {
+        p[f] = req.body[f];
+      }
+    }
 
     p.updatedAt = nowIso();
     DB.saveProducts(products);

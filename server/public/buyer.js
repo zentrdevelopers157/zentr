@@ -104,19 +104,62 @@
       const card = document.createElement("div");
       card.className = "card";
 
-      // Image box
+      // Image/Media Gallery
       const imgbox = document.createElement("div");
       imgbox.className = "imgbox";
-      const imgSrc = (p.images && p.images[0]) || "";
-      if (imgSrc) {
-        const img = document.createElement("img");
-        img.src = imgSrc;
-        img.alt = p.name || "product";
-        img.loading = "lazy";
-        img.style.cursor = "zoom-in";
-        img.addEventListener("click", () => showZoom(imgSrc));
-        img.onerror = () => { imgbox.textContent = "No image"; };
-        imgbox.appendChild(img);
+      
+      const mediaItems = [...(p.images || [])];
+      if (p.videoUrl) mediaItems.push({ type: 'video', url: p.videoUrl });
+
+      if (mediaItems.length > 0) {
+        const gallery = document.createElement("div");
+        gallery.className = "gallery";
+        
+        const dotsWrap = document.createElement("div");
+        dotsWrap.className = "gallery-dots";
+        const dots = [];
+
+        mediaItems.forEach((item, idx) => {
+          const itemEl = document.createElement("div");
+          itemEl.className = "gallery-item";
+          
+          const url = typeof item === 'string' ? item : item.url;
+          const isVideo = typeof item === 'object' && item.type === 'video';
+
+          if (isVideo) {
+            if (url.includes("youtube.com") || url.includes("youtu.be")) {
+              const vidId = url.split("v=")[1] || url.split("/").pop();
+              itemEl.innerHTML = `<iframe src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
+            } else {
+              itemEl.innerHTML = `<video src="${url}" controls muted loop playsinline></video>`;
+            }
+          } else {
+            const img = document.createElement("img");
+            img.src = url;
+            img.alt = p.name;
+            img.loading = "lazy";
+            img.addEventListener("click", () => showZoom(url));
+            itemEl.appendChild(img);
+          }
+          gallery.appendChild(itemEl);
+
+          if (mediaItems.length > 1) {
+            const dot = document.createElement("div");
+            dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+            dotsWrap.appendChild(dot);
+            dots.push(dot);
+          }
+        });
+
+        if (mediaItems.length > 1) {
+          gallery.addEventListener("scroll", () => {
+            const scrollIndex = Math.round(gallery.scrollLeft / gallery.clientWidth);
+            dots.forEach((d, i) => d.classList.toggle("active", i === scrollIndex));
+          });
+          imgbox.appendChild(dotsWrap);
+        }
+
+        imgbox.appendChild(gallery);
       } else {
         imgbox.innerHTML = `<div style="font-size:42px;color:rgba(255,255,255,.2)">📦</div>`;
       }

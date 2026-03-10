@@ -643,14 +643,29 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
       return res.status(400).json({ ok: false, error: "Maximum 10 variant groups allowed per product." });
     }
 
-    const cleanOpts = rawOptions.map(g => {
-      const gName = tString(g.name, 50).replace(/[^a-zA-Z0-9\s-]/g, '').trim();
-      const gVals = (Array.isArray(g.values) ? g.values : []).map(v => {
-        // Task 4: Variant value max 20 chars + allowed chars
-        return tString(v, 20).replace(/[^a-zA-Z0-9\s-]/g, '').trim();
-      }).filter(Boolean);
-      return { name: gName, values: gVals };
-    }).filter(g => g.name && g.values.length > 0);
+    const cleanOpts = [];
+    for (const g of rawOptions) {
+      const gName = tString(g.name, 50).trim();
+      const re = /^[a-zA-Z0-9\s-]+$/;
+      if (!re.test(gName)) {
+        return res.status(400).json({ ok: false, error: "Variant group names can only contain letters, numbers, spaces, and hyphens." });
+      }
+      
+      const gVals = [];
+      const rawVals = Array.isArray(g.values) ? g.values : [];
+      for (const v of rawVals) {
+        const val = tString(v, 20).trim();
+        if (!val) continue;
+        if (!re.test(val)) {
+          return res.status(400).json({ ok: false, error: `Invalid characters in variant value: "${val}". Only letters, numbers, spaces, and hyphens allowed.` });
+        }
+        gVals.push(val);
+      }
+      if (gVals.length > 0) cleanOpts.push({ name: gName, values: gVals });
+    }
+    if (cleanOpts.length === 0 && rawOptions.length > 0) {
+       return res.status(400).json({ ok: false, error: "Valid variant options are required if the variant section is used." });
+    }
 
     // Task 2: Multi-media schema (up to 5 images, 1 video)
     const pImages = (Array.isArray(images) ? images : []).filter(url => url && typeof url === 'string').slice(0, 5);
@@ -711,10 +726,23 @@ app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, 
       }
       else if (f === "options") {
         const raw = Array.isArray(req.body[f]) ? req.body[f].slice(0, 10) : [];
-        p.options = raw.map(g => ({
-          name: tString(g.name, 50).replace(/[^a-zA-Z0-9\s-]/g, '').trim(),
-          values: (Array.isArray(g.values) ? g.values : []).map(v => tString(v, 20).replace(/[^a-zA-Z0-9\s-]/g, '').trim()).filter(Boolean)
-        })).filter(g => g.name && g.values.length > 0);
+        const cleanOpts = [];
+        const re = /^[a-zA-Z0-9\s-]+$/;
+        for (const g of raw) {
+          const gName = tString(g.name, 50).trim();
+          if (!re.test(gName)) return res.status(400).json({ ok: false, error: "Variant group names can only contain letters, numbers, spaces, and hyphens." });
+          
+          const gVals = [];
+          const rawVals = Array.isArray(g.values) ? g.values : [];
+          for (const v of rawVals) {
+            const val = tString(v, 20).trim();
+            if (!val) continue;
+            if (!re.test(val)) return res.status(400).json({ ok: false, error: `Invalid characters in variant value: "${val}". Only letters, numbers, spaces, and hyphens allowed.` });
+            gVals.push(val);
+          }
+          if (gVals.length > 0) cleanOpts.push({ name: gName, values: gVals });
+        }
+        p.options = cleanOpts;
       }
       else if (f === "images") {
         const imgArr = (Array.isArray(req.body[f]) ? req.body[f] : []).filter(url => url && typeof url === 'string').slice(0, 5);

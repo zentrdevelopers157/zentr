@@ -977,6 +977,20 @@ app.get("/api/admin/stats", requireAdmin, (req, res) => {
   }
 });
 
+// TEMPORARY: Detailed usage dump for administrative audit
+app.get("/api/admin/detailed-usage-dump", requireAdmin, (req, res) => {
+  try {
+    res.json({
+      ok: true,
+      sellers: MEM.sellers,
+      products: MEM.products,
+      orders: MEM.orders
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: "dump failed" });
+  }
+});
+
 // -------------------- FALLBACK --------------------
 app.use((req, res) => res.status(404).json({ ok: false, error: "not found" }));
 

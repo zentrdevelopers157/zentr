@@ -236,7 +236,11 @@ const normalizePhone = (p) => {
   const digits = String(p || "").replace(/\D/g, "");
   return digits.length === 10 ? digits : null;
 };
-const isValidUpi = (upi) => /^[\w.-]+@[\w.-]+$/.test(String(upi || ""));
+const isValidUpi = (upi) => {
+  const s = String(upi || "").trim();
+  // Standard UPI format: name@bank, allows dots, hyphens, underscores
+  return /^[\w.-]+@[\w.-]+$/.test(s);
+};
 const tString = (val, maxLen) => String(val || "").trim().slice(0, maxLen);
 
 // -------------------- EVENT TRACKING --------------------
@@ -303,7 +307,11 @@ app.post("/api/onboard", (req, res) => {
     const norm = normalizePhone(phone);
 
     if (!storeName || !ownerName || !norm) {
-      return res.status(400).json({ ok: false, error: "Valid 10-digit Indian phone, store name, and owner name are required." });
+      return res.status(400).json({ ok: false, error: "Valid 10-digit Indian phone (e.g. 9876543210), store name, and owner name are required." });
+    }
+    
+    if (storeName.length < 3 || ownerName.length < 3) {
+      return res.status(400).json({ ok: false, error: "Store and owner names must be at least 3 characters long." });
     }
 
     const sellers = DB.getSellers();
@@ -442,6 +450,16 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
     const enrichedItems = items.map((it) => {
       const p = products.find((x) => x.id === it.productId);
       if (!p) throw new Error(`Product not found: ${it.productId}`);
+      
+      // Zentr Rule: No Variant, No Order
+      // If product has options/sizes/variants, ensure buyer selected them
+      const hasOpts = (p.options && p.options.length > 0) || (p.sizes && p.sizes.length > 0) || (p.variants && p.variants.length > 0);
+      const selectedOpts = Array.isArray(it.selectedOptions) ? it.selectedOptions : (Array.isArray(it.variants) ? it.variants : []);
+      
+      if (hasOpts && selectedOpts.length === 0) {
+        throw new Error(`Please select variants for "${p.name}" before checking out.`);
+      }
+
       const unitPrice = OrderLogic.calculateItemPrice(p);
       const qty = Number(it.qty) || 1;
       total += unitPrice * qty;
@@ -450,19 +468,14 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
         name: p.name,
         unitPrice,
         subtotal: unitPrice * qty,
-        // Normalize: always store as selectedOptions array [{name, value}]
-        // buyer.js sends as variants: [{caption, label}] — convert here for uniform storage
-        selectedOptions: Array.isArray(it.selectedOptions)
-          ? it.selectedOptions
-          : Array.isArray(it.variants)
-            ? it.variants.map(v => ({ name: v.caption || v.name || "Option", value: v.label || v.value || "" }))
-            : [],
-        // Keep variants for backward compatibility
-        variants: Array.isArray(it.variants) ? it.variants : (
-          Array.isArray(it.selectedOptions)
-            ? it.selectedOptions.map(o => ({ caption: o.name, label: o.value }))
-            : []
-        )
+        selectedOptions: selectedOpts.map(v => ({ 
+          name: v.caption || v.name || "Option", 
+          value: v.label || v.value || String(v) 
+        })),
+        variants: selectedOpts.map(v => ({ 
+          caption: v.caption || v.name || "Option", 
+          label: v.label || v.value || String(v) 
+        }))
       };
     });
 
@@ -501,7 +514,21 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
 app.get("/api/public/sellers/:sellerId/orders/:orderId", (req, res) => {
   const order = (DB.getOrders()[req.params.sellerId] || []).find((o) => o.id === req.params.orderId);
   if (!order) return res.status(404).json({ ok: false, error: "order not found" });
-  res.json({ ok: true, order });
+  
+  // Security: Return ONLY tracking info, hide PII (Phone/Address) from public links
+  const publicOrder = {
+    id: order.id,
+    sellerId: order.sellerId,
+    buyerName: order.buyerName,
+    items: order.items,
+    total: order.total,
+    status: order.status,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    history: order.history,
+    createdAt: order.createdAt
+  };
+  res.json({ ok: true, order: publicOrder });
 });
 
 app.get("/api/public/sellers/:sellerId/orders/:orderId/receipt", (req, res) => {
@@ -600,14 +627,24 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
     }
 
     const products = DB.getProducts();
+    const pName = tString(name, 100);
+    const pPrice = Number(price);
+    const pStock = stock === "" ? "" : Math.max(0, Number(stock) || 0);
+
+    // Emoji stripping for variants/options (Task 4)
+    const cleanOpts = (Array.isArray(options) ? options : []).map(g => ({
+      name: tString(g.name, 50).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim(),
+      values: (Array.isArray(g.values) ? g.values : []).map(v => tString(v, 50).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim()).filter(Boolean)
+    })).filter(g => g.name && g.values.length > 0);
+
     const product = {
       id: "prod_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
       sellerId: req.params.sellerId,
-      name: tString(name, 100),
+      name: pName,
       category: tString(category, 50),
-      price: Number(price),
-      stock: stock === "" ? "" : Number(stock) || 0,
-      options: Array.isArray(options) ? options : [],
+      price: pPrice,
+      stock: pStock,
+      options: cleanOpts,
       sizes: Array.isArray(sizes) ? sizes : [],
       variants: Array.isArray(variants) ? variants : [],
       desc: tString(desc, 1000),
@@ -637,8 +674,8 @@ app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, 
     const fields = ["name", "price", "stock", "category", "options", "sizes", "variants", "desc", "images"];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) {
-        if (f === "price") p[f] = Number(req.body[f]);
-        else if (f === "stock") p[f] = req.body[f] === "" ? "" : Number(req.body[f]);
+        if (f === "price") p[f] = Math.max(0, Number(req.body[f]) || 0);
+        else if (f === "stock") p[f] = req.body[f] === "" ? "" : Math.max(0, Number(req.body[f]) || 0);
         else p[f] = req.body[f];
       }
     });

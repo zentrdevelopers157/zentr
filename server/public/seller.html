@@ -1054,8 +1054,8 @@
       const p = {
         name: $("pName").value.trim(),
         category: $("pCategory").value.trim(),
-        price: Number($("pPrice").value),
-        stock: $("pStock").value === "" ? "" : Number($("pStock").value),
+        price: Math.max(0, Number($("pPrice").value) || 0),
+        stock: $("pStock").value === "" ? "" : Math.max(0, Number($("pStock").value) || 0),
         options: getOptionGroupsFromForm(),
         desc: $("pDesc").value.trim(),
         images: state.lastImage ? [state.lastImage] : []
@@ -1096,18 +1096,7 @@
       }
     }
 
-    async function updateOrderStatus(orderId, newStatus) {
-      try {
-        await apiFetch(`/api/sellers/${SELLER_ID}/orders/${orderId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ status: newStatus })
-        });
-        showToast("Status updated ✅");
-        await loadAll();
-      } catch (err) {
-        showToast(err.message);
-      }
-    }
+
 
     // ─── UI RENDER ───
     function renderAll() {

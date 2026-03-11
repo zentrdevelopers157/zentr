@@ -410,8 +410,25 @@
             </div>
 
             <div class="field-group">
-                <label>Category <span style="font-weight:400;opacity:.6">(Optional)</span></label>
-                <input type="text" id="storeCategory" placeholder="e.g. Apparel, Electronics" autocomplete="off" />
+                <label>Category *</label>
+                <select id="storeCategory" style="width:100%; padding:13px; background:rgba(255,255,255,.05); border:1px solid var(--stroke); border-radius:12px; color:var(--text); font-family:inherit; outline:none;">
+                    <option value="" disabled selected>Select a category</option>
+                    <option value="Apparel / Clothing">Apparel / Clothing</option>
+                    <option value="Women’s Boutique">Women’s Boutique</option>
+                    <option value="Men’s Fashion">Men’s Fashion</option>
+                    <option value="Jewelry">Jewelry</option>
+                    <option value="Footwear">Footwear</option>
+                    <option value="Beauty / Cosmetics">Beauty / Cosmetics</option>
+                    <option value="Home Bakers">Home Bakers</option>
+                    <option value="Cakes & Desserts">Cakes & Desserts</option>
+                    <option value="Electronics Accessories">Electronics Accessories</option>
+                    <option value="Stationery">Stationery</option>
+                    <option value="Home Decor">Home Decor</option>
+                    <option value="Gift Store">Gift Store</option>
+                    <option value="Thrift / Reselling">Thrift / Reselling</option>
+                    <option value="Handmade Products">Handmade Products</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
 
             <button class="submit-btn" id="createBtn">Create My Store</button>
@@ -482,7 +499,7 @@
             const phone = $("sellerPhone").value.trim();
             const category = $("storeCategory").value.trim();
 
-            if (!name || !owner || !phone) return showToast("Please fill all required fields.");
+            if (!name || !owner || !phone || !category) return showToast("Please fill all required fields.");
 
             const btn = $("createBtn");
             btn.disabled = true;

@@ -513,6 +513,7 @@
     function escHtml(s) {
       return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
+    const escapeHtml = escHtml;
 
     async function load() {
       try {
@@ -544,12 +545,12 @@
 
         const o = data.order;
         el("statusPill").textContent = `status: ${o.status}`;
-        el("payment").innerHTML = `${o.paymentMethod ? escapeHtml(o.paymentMethod.toUpperCase()) : "COD"} &mdash; ${escapeHtml(o.paymentStatus || "unpaid")}`;
+        el("payment").innerHTML = `${o.paymentMethod ? escHtml(o.paymentMethod.toUpperCase()) : "COD"} &mdash; ${escHtml(o.paymentStatus || "unpaid")}`;
         el("total").textContent = (o.total != null) ? `₹${Number(o.total).toLocaleString("en-IN")}` : "—";
 
-        el("buyerName").textContent = o.buyerName || o.delivery?.name || "—";
-        el("buyerPhone").textContent = o.buyerPhone || o.delivery?.phone || "—";
-        el("buyerAddress").textContent = o.buyerAddress || o.delivery?.address || "—";
+        el("buyerName").textContent = o.buyerName || (o.delivery && o.delivery.name) || "—";
+        el("buyerPhone").textContent = o.buyerPhone || (o.delivery && o.delivery.phone) || "—";
+        el("buyerAddress").textContent = o.buyerAddress || (o.delivery && o.delivery.address) || "—";
 
         const items = el("items");
         items.innerHTML = "";

@@ -54,6 +54,15 @@
     return new URL(window.location.href).searchParams.get("sellerId") || "";
   }
 
+  function escapeHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   // ─── CART PERSISTENCE ───
   function loadCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -408,17 +417,12 @@
     }
 
     // Get selected payment method
-    let paymentMethod = "";
-    const pRadios = document.querySelectorAll('input[name="payMethod"]');
-    for (const r of pRadios) {
-      if (r.checked) paymentMethod = r.value;
-    }
-
-    if (!paymentMethod) {
-      if (!state.paymentSettings || (!state.paymentSettings.codEnabled && !state.paymentSettings.upiId)) {
-        throw new Error("This store is not accepting orders right now (no payment methods enabled).");
-      }
-      throw new Error("Please select a payment method.");
+    let selectedMethod = "cod"; // Fallback to cod
+    const radio = document.querySelector('input[name="payMethod"]:checked');
+    if (radio) selectedMethod = radio.value;
+    else if (state.paymentSettings) {
+      if (state.paymentSettings.codEnabled) selectedMethod = "cod";
+      else if (state.paymentSettings.upiId) selectedMethod = "upi";
     }
 
     const items = state.cart.items.map(it => {
@@ -441,7 +445,7 @@
       buyerPhone: phone || "0000000000",
       buyerAddress: address || "N/A",
       delivery: { name, phone, address },
-      paymentMethod
+      paymentMethod: selectedMethod
     };
   }
 
@@ -493,7 +497,19 @@
       if (data.ok && data.storeName) {
         state.storeName = data.storeName;
         const pill = $("sellerPill");
-        if (pill) pill.textContent = `Store: ${data.storeName}`;
+        if (pill) {
+          pill.textContent = `Store: ${data.storeName}`;
+          if (data.category && data.category !== "Other") {
+            const cat = document.createElement("span");
+            cat.className = "pill";
+            cat.style.marginLeft = "8px";
+            cat.style.background = "rgba(39, 240, 213, .15)";
+            cat.style.color = "var(--turq)";
+            cat.style.borderColor = "var(--turq)";
+            cat.textContent = data.category;
+            pill.after(cat);
+          }
+        }
         // Also update page title
         if (data.storeName) document.title = `${data.storeName} | Zentr`;
       }
@@ -562,6 +578,25 @@
         if (grid) grid.innerHTML = `<div style="color:rgba(255,107,107,.8);padding:20px">⚠️ No seller ID provided in the URL. Please use the store link shared by the seller.</div>`;
         return;
       }
+
+      // Check if current user is the owner
+      try {
+        const ownerData = JSON.parse(localStorage.getItem("zentr_store"));
+        if (ownerData && ownerData.sellerId === state.sellerId) {
+          const banner = document.createElement("div");
+          banner.style.cssText = "background:var(--warn);color:#000;text-align:center;padding:10px;font-weight:700;font-size:14px;position:sticky;top:60px;z-index:15;";
+          banner.textContent = "Store preview mode — you are the store owner.";
+          document.body.prepend(banner);
+          
+          const checkoutBtn = $("checkoutBtn");
+          if (checkoutBtn) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.style.opacity = "0.5";
+            checkoutBtn.style.cursor = "not-allowed";
+            checkoutBtn.title = "Checkout is disabled in owner preview mode.";
+          }
+        }
+      } catch (e) { }
 
       loadCart();
       bindUI();

@@ -3,6 +3,7 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const multer = require("multer");
 
 // -------------------- CONFIG --------------------
 const RECEIPT_SECRET = process.env.RECEIPT_SECRET || "dev_only_change_me";
@@ -42,6 +43,35 @@ app.get("/", (req, res) => {
     if (!file) return res.status(404).send(`${page} page not found`);
     res.sendFile(file);
   });
+});
+
+// ── Multer Storage Configuration ──
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, "public", "uploads");
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only images are allowed"));
+  }
+});
+
+// ── Upload Endpoint ──
+app.post("/api/upload", upload.single("image"), (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, error: "No file uploaded" });
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({ ok: true, url: fileUrl });
 });
 
 // -------------------- DATA STORAGE --------------------
@@ -334,7 +364,7 @@ app.post("/api/onboard", (req, res) => {
       storeName,
       ownerName,
       phone: norm,
-      category: cat,
+      category: tString(category, 50) || "Other",
       createdAt: nowIso(),
       // Payment info (v1) - COD enabled by default
       payment: {
@@ -362,7 +392,13 @@ app.get("/api/public/sellers/:sellerId", (req, res) => {
   const seller = sellers[req.params.sellerId];
   if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
   // Return only public info
-  res.json({ ok: true, storeName: seller.storeName, category: seller.category, phone: seller.phone });
+  res.json({
+    ok: true,
+    storeName: seller.storeName,
+    category: seller.category,
+    phone: seller.phone,
+    isMongoConnected: !!_mdbStore
+  });
 });
 
 // Get public payment info (for confirm/receipt pages — no seller key required)
@@ -520,6 +556,8 @@ app.get("/api/public/sellers/:sellerId/orders/:orderId", (req, res) => {
     id: order.id,
     sellerId: order.sellerId,
     buyerName: order.buyerName,
+    buyerPhone: order.buyerPhone,
+    buyerAddress: order.buyerAddress,
     items: order.items,
     total: order.total,
     status: order.status,
@@ -564,13 +602,45 @@ app.post("/api/receipt/verify", (req, res) => {
 // -------------------- SELLER PROTECTED ROUTES --------------------
 
 app.get("/api/sellers/:sellerId/info", requireSellerKey, (req, res) => {
-  res.json({ ok: true, seller: req.seller });
+  res.json({ ok: true, seller: req.seller, isMongoConnected: !!_mdbStore });
 });
 
 // Get seller info (seller-authenticated)
 app.get("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
   const s = req.seller;
   res.json({ ok: true, seller: { sellerId: s.sellerId, storeName: s.storeName, ownerName: s.ownerName, category: s.category, createdAt: s.createdAt } });
+});
+
+// Update store info (seller-authenticated)
+app.patch("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
+  try {
+    const sellers = DB.getSellers();
+    const seller = sellers[req.params.sellerId];
+    if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
+
+    const { storeName, ownerName, category } = req.body || {};
+
+    if (storeName !== undefined) {
+      const val = tString(storeName, 50);
+      if (val.length >= 3) seller.storeName = val;
+      else return res.status(400).json({ ok: false, error: "Store name must be at least 3 characters" });
+    }
+    if (ownerName !== undefined) {
+      const val = tString(ownerName, 50);
+      if (val.length >= 3) seller.ownerName = val;
+      else return res.status(400).json({ ok: false, error: "Owner name must be at least 3 characters" });
+    }
+    if (category !== undefined) {
+      seller.category = tString(category, 50);
+    }
+
+    seller.updatedAt = nowIso();
+    DB.saveSellers(sellers);
+    res.json({ ok: true, seller: { storeName: seller.storeName, ownerName: seller.ownerName, category: seller.category } });
+  } catch (err) {
+    console.error("[seller PATCH] error:", err);
+    res.status(500).json({ ok: false, error: "server error" });
+  }
 });
 
 // Get payment settings (seller-authenticated)
@@ -977,20 +1047,6 @@ app.get("/api/admin/stats", requireAdmin, (req, res) => {
   }
 });
 
-// TEMPORARY: Detailed usage dump for administrative audit
-app.get("/api/admin/detailed-usage-dump", requireAdmin, (req, res) => {
-  try {
-    res.json({
-      ok: true,
-      sellers: MEM.sellers,
-      products: MEM.products,
-      orders: MEM.orders
-    });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: "dump failed" });
-  }
-});
-
 // -------------------- FALLBACK --------------------
 app.use((req, res) => res.status(404).json({ ok: false, error: "not found" }));
 
@@ -1023,8 +1079,14 @@ async function startServer() {
   }
 
   app.listen(PORT, () => {
-    console.log(`✅  Zentr running on http://localhost:${PORT}`);
-    console.log(`🗄️  Storage: ${_mdbStore ? "MongoDB Atlas" : "JSON files (ephemeral on Render)"}`);
+    console.log(`\n🚀 Zentr v1 Server running on port ${PORT}`);
+    if (_mdbStore) {
+      console.log("🗄️  Storage: MongoDB Atlas (Permanent)");
+    } else {
+      console.warn("\n⚠️  CRITICAL PERSISTENCE WARNING:");
+      console.warn("   MONGODB_URI is not set. Storage: JSON files (Ephemeral on Render)");
+      console.warn("   ALL DATA WILL BE WIPED on every deploy/restart unless MONGODB_URI is provided.\n");
+    }
   });
 }
 

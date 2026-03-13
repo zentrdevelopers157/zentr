@@ -1544,6 +1544,7 @@
               <div class="order-detail">${date} · ${formatINR(o.total)}</div>
               <div class="order-detail" style="margin-top:4px">${itemsHtml}</div>
               ${o.buyerPhone ? `<div class="order-detail" style="margin-top:2px">📱 ${escapeHtml(o.buyerPhone)}</div>` : ''}
+              ${o.buyerAddress && o.buyerAddress !== 'N/A' ? `<div class="order-detail" style="margin-top:2px">📍 ${escapeHtml(o.buyerAddress)}</div>` : ''}
               <div class="order-detail" style="margin-top:6px; font-weight:600; color:var(--turq)">
                 Payment: ${(o.paymentMethod || 'COD').toUpperCase()} &mdash; <span style="color:${o.paymentStatus === 'paid' ? 'var(--ok)' : 'var(--warn)'}">${o.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Unpaid'}</span>
               </div>

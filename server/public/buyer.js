@@ -187,12 +187,6 @@
       priceEl.className = "price";
       priceEl.textContent = money(p.price);
 
-      if (p.desc) {
-        const descEl = document.createElement("div");
-        descEl.style.cssText = "font-size:12px;color:rgba(255,255,255,.5);margin:4px 0;line-height:1.4";
-        descEl.textContent = p.desc;
-        meta.appendChild(descEl);
-      }
 
       // ─── OPTION GROUPS ───
       // New schema: p.options = [{name:"Size", values:["S","M","L"]}, ...]
@@ -268,6 +262,12 @@
 
       meta.appendChild(nameEl);
       meta.appendChild(priceEl);
+      if (p.desc) {
+        const descEl = document.createElement("div");
+        descEl.style.cssText = "font-size:12px;color:rgba(255,255,255,.6);margin:4px 0 8px;line-height:1.5;border-left:2px solid rgba(39,240,213,.4);padding-left:8px;";
+        descEl.textContent = p.desc;
+        meta.appendChild(descEl);
+      }
       if (optionGroups.length) meta.appendChild(vwrap);
       meta.appendChild(btn);
 

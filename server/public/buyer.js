@@ -147,6 +147,9 @@
             img.src = url;
             img.alt = p.name;
             img.loading = "lazy";
+            img.onerror = () => {
+              itemEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:42px;color:rgba(255,255,255,.2);background:rgba(0,0,0,0.2);">📦</div>`;
+            };
             img.addEventListener("click", () => showZoom(url));
             itemEl.appendChild(img);
           }

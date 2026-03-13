@@ -324,6 +324,8 @@ function requireAdmin(req, res, next) {
 }
 
 // -------------------- HEALTH CHECK --------------------
+// Health check for Cloudflare/Render
+app.get("/health", (req, res) => res.json({ status: "ok", timestamp: nowIso() }));
 app.get("/api/health", (req, res) => res.json({ ok: true, time: nowIso() }));
 
 // -------------------- ONBOARDING --------------------
@@ -1078,8 +1080,8 @@ async function startServer() {
     console.warn("[startup] migration failed:", e.message);
   }
 
-  app.listen(PORT, () => {
-    console.log(`\n🚀 Zentr v1 Server running on port ${PORT}`);
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`\n🚀 Zentr v1 Server running on http://0.0.0.0:${PORT}`);
     if (_mdbStore) {
       console.log("🗄️  Storage: MongoDB Atlas (Permanent)");
     } else {
@@ -1088,7 +1090,36 @@ async function startServer() {
       console.warn("   ALL DATA WILL BE WIPED on every deploy/restart unless MONGODB_URI is provided.\n");
     }
   });
+
+  // Graceful Shutdown
+  const shutdown = (signal) => {
+    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+    server.close(() => {
+      console.log("Process terminated.");
+      process.exit(0);
+    });
+    // Force exit after 10s if close hangs
+    setTimeout(() => {
+      console.error("Could not close connections in time, forcefully shutting down");
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
+
+// -------------------- CRASH PROTECTION --------------------
+process.on("uncaughtException", (err) => {
+  console.error("FATAL: Uncaught Exception:", err);
+  // Optionally tracker error here
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("FATAL: Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
 
 startServer().catch(err => {
   console.error("Failed to start server:", err);

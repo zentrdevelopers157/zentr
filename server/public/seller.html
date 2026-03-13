@@ -887,6 +887,18 @@
               <div class="btnbar">
                 <button class="btn" id="triggerUploadBtn">➕ Upload Images</button>
               </div>
+
+              <!-- External URL alternative -->
+              <div style="margin-top:10px;">
+                <label style="color:var(--turq);">Or paste external image URL (recommended for persistence)</label>
+                <div style="display:flex;gap:8px;margin-top:4px;">
+                  <input id="externalImgUrl" placeholder="https://i.imgur.com/example.jpg" style="flex:1;" />
+                  <button class="btn" id="addExternalImgBtn" style="flex-shrink:0;padding:8px 12px;font-size:12px;">Add</button>
+                </div>
+                <div style="margin-top:6px;padding:8px 12px;background:rgba(255,204,102,.08);border:1px solid rgba(255,204,102,.25);border-radius:10px;font-size:11px;color:var(--warn);line-height:1.5;">
+                  ⚠️ <b>Uploaded files are temporary</b> on Render's free plan — they delete on every restart. Use external links (e.g. <a href="https://imgbb.com" target="_blank" style="color:var(--turq);">imgbb.com</a> or Google Drive) for permanent images.
+                </div>
+              </div>
               
               <div class="divider"></div>
               
@@ -1179,6 +1191,26 @@
       }
     }
 
+    // External Image URL handler
+    $("addExternalImgBtn").onclick = (e) => {
+      e.preventDefault();
+      const urlInput = $("externalImgUrl");
+      const url = urlInput.value.trim();
+      
+      if (!url) return;
+      if (uploadedImages.length >= 5) {
+        return showToast("Max 5 images allowed per product");
+      }
+      if (!/^https?:\/\/.+/i.test(url)) {
+        return showToast("Please enter a valid HTTP/HTTPS URL");
+      }
+
+      uploadedImages.push(url);
+      updateUploadGrid();
+      urlInput.value = "";
+      showToast("External image added ✅");
+    };
+
     window.removeUploadedImage = (idx) => {
       uploadedImages.splice(idx, 1);
       updateUploadGrid();
@@ -1406,7 +1438,19 @@
             z.querySelector("img").src = imgSrc;
             z.style.display = "flex";
           };
-          imgEl.onerror = () => { miniDiv.textContent = "🖴"; };
+          imgEl.onerror = () => { 
+            miniDiv.innerHTML = '';
+            miniDiv.style.cssText = "display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;";
+            const icon = document.createElement("span");
+            icon.textContent = "🔗";
+            icon.style.fontSize = "18px";
+            const lbl = document.createElement("span");
+            lbl.textContent = "Re-upload";
+            lbl.style.cssText = "font-size:8px;color:var(--warn);text-align:center;";
+            miniDiv.appendChild(icon);
+            miniDiv.appendChild(lbl);
+            miniDiv.title = "Image missing — file was wiped on server restart. Edit product to re-upload.";
+          };
           miniDiv.appendChild(imgEl);
         } else {
           miniDiv.textContent = "📦";

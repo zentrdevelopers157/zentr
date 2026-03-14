@@ -293,6 +293,32 @@
       cursor: pointer;
       flex-shrink: 0;
     }
+
+    /* Powered by Zentr widget */
+    .zentr-brand-widget {
+      display:block;text-decoration:none;color:inherit;border-radius:14px;
+      border:1px solid rgba(39,240,213,.15);background:rgba(39,240,213,.04);
+      padding:12px 14px;position:relative;overflow:hidden;
+      transition:border-color .2s ease,background .2s ease;margin-top:0;
+    }
+    .zentr-brand-widget:hover{border-color:rgba(39,240,213,.35);background:rgba(39,240,213,.08);}
+    .zentr-brand-widget::before{content:'';position:absolute;inset:0;
+      background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(39,240,213,.09),transparent 70%);
+      opacity:0;transition:opacity .3s ease;pointer-events:none;}
+    .zentr-brand-widget:hover::before{opacity:1;}
+    .zbw-inner{display:flex;align-items:center;gap:10px;}
+    .zbw-logo{width:28px;height:28px;border-radius:8px;
+      background:linear-gradient(135deg,rgba(39,240,213,.9),rgba(39,240,213,.3));
+      color:#071114;font-weight:900;font-size:15px;display:flex;
+      align-items:center;justify-content:center;flex-shrink:0;
+      box-shadow:0 4px 12px rgba(39,240,213,.25);}
+    .zbw-text{flex:1;}
+    .zbw-powered{font-size:11px;font-weight:700;color:rgba(39,240,213,.85);letter-spacing:.3px;}
+    .zbw-tagline{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px;}
+    .zbw-cta{font-size:11px;font-weight:700;color:rgba(39,240,213,.7);white-space:nowrap;
+      padding:5px 10px;border-radius:8px;border:1px solid rgba(39,240,213,.2);
+      background:rgba(39,240,213,.07);transition:background .15s,color .15s;}
+    .zentr-brand-widget:hover .zbw-cta{color:rgba(39,240,213,1);background:rgba(39,240,213,.14);}
   </style>
 </head>
 
@@ -374,6 +400,17 @@
 
       <div style="margin-top:14px" class="muted">Items Ordered</div>
       <div class="items" id="items"></div>
+      <!-- Powered by Zentr -->
+      <a href="/" class="zentr-brand-widget" title="Start your own store with Zentr">
+        <div class="zbw-inner">
+          <div class="zbw-logo">Z</div>
+          <div class="zbw-text">
+            <div class="zbw-powered">Powered by Zentr</div>
+            <div class="zbw-tagline">Create a WhatsApp-ready order link in minutes.</div>
+          </div>
+          <div class="zbw-cta">Sell with Zentr →</div>
+        </div>
+      </a>
     </div>
 
     <div class="card">

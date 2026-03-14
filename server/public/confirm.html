@@ -97,7 +97,7 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 14px;
-      padding: 14px;
+      padding: 18px;
       border-radius: 16px;
       border: 1px solid rgba(39, 240, 213, .18);
       background: linear-gradient(180deg, rgba(39, 240, 213, .10), rgba(255, 255, 255, .04));
@@ -106,19 +106,22 @@
 
     .hero h1 {
       margin: 0;
-      font-size: 22px
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .hero p {
       margin: 6px 0 0;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.35
+      line-height: 1.5
     }
 
     .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
       margin-top: 12px
     }
@@ -309,8 +312,9 @@
 
       <div class="hero">
         <div>
-          <h1 id="h1">Order created ✅</h1>
-          <p>Keep this page. You can track status anytime. No login needed.</p>
+          <h1 id="h1">Order Confirmed ✅</h1>
+          <p style="margin-top:6px">Your order has been placed successfully!</p>
+          <p style="margin-top:4px;color:var(--ok);font-weight:600">Seller will contact you shortly.</p>
           <div class="okline" style="margin-top:10px">
             <div></div>
           </div>

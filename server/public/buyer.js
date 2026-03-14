@@ -78,8 +78,8 @@
 
   function updateCartPill() {
     const count = state.cart.items.reduce((a, it) => a + (it.qty || 0), 0);
-    const pill = $("cartPill");
-    if (pill) pill.textContent = `Cart: ${count}`;
+    const badge = $("cartCount");
+    if (badge) badge.textContent = count;
   }
 
   function findCartItem(productId, selectedOptions) {
@@ -377,14 +377,17 @@
     const elDel = $("deliveryFee");
     const elGrand = $("grandTotal");
     if (elSub) elSub.textContent = money(sub);
-    if (elDel) elDel.textContent = money(0);
+    if (elDel) {
+      elDel.textContent = "Free";
+      elDel.style.color = "var(--ok)";
+    }
     if (elGrand) elGrand.textContent = money(sub);
   }
 
   // ─── UI BINDING ───
   function bindUI() {
-    const pill = $("sellerPill");
-    if (pill) pill.textContent = state.storeName ? `Store: ${state.storeName}` : `Seller: ${state.sellerId}`;
+    const nm = $("storeNameText");
+    if (nm && state.storeName) nm.textContent = state.storeName;
 
     const searchInput = $("searchInput");
     if (searchInput) {
@@ -420,13 +423,16 @@
     }
 
     // Get selected payment method
-    let selectedMethod = "cod"; // Fallback to cod
+    let selectedMethod = "cod";
     const radio = document.querySelector('input[name="payMethod"]:checked');
     if (radio) selectedMethod = radio.value;
     else if (state.paymentSettings) {
       if (state.paymentSettings.codEnabled) selectedMethod = "cod";
       else if (state.paymentSettings.upiId) selectedMethod = "upi";
     }
+
+    if (!name) throw new Error("Please enter your Full Name.");
+    if (!address) throw new Error("Please enter your Delivery Address.");
 
     const items = state.cart.items.map(it => {
       const product = state.productById[it.productId];
@@ -453,8 +459,14 @@
   }
 
   async function proceedToPay() {
+    const btn = $("checkoutBtn");
     try {
       const payload = buildCheckoutPayload();
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Processing...`;
+      }
+      
       const res = await fetch(`/api/public/sellers/${state.sellerId}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -478,6 +490,10 @@
 
     } catch (e) {
       toast(e?.message || "Checkout failed");
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Place Order";
+      }
     }
   }
 
@@ -499,22 +515,26 @@
       const data = await res.json().catch(() => ({}));
       if (data.ok && data.storeName) {
         state.storeName = data.storeName;
-        const pill = $("sellerPill");
-        if (pill) {
-          pill.textContent = `Store: ${data.storeName}`;
-          if (data.category && data.category !== "Other") {
-            const cat = document.createElement("span");
-            cat.className = "pill";
-            cat.style.marginLeft = "8px";
-            cat.style.background = "rgba(39, 240, 213, .15)";
-            cat.style.color = "var(--turq)";
-            cat.style.borderColor = "var(--turq)";
-            cat.textContent = data.category;
-            pill.after(cat);
-          }
+        const nm = $("storeNameText");
+        const cp = $("storeCatPill");
+        
+        if (nm) {
+          nm.textContent = data.storeName;
+          nm.classList.remove("skeleton");
+        }
+        
+        if (cp && data.category && data.category !== "Other") {
+          cp.textContent = data.category;
+          cp.style.display = "inline-block";
         }
         // Also update page title
         if (data.storeName) document.title = `${data.storeName} | Zentr`;
+      } else {
+        const nm = $("storeNameText");
+        if (nm) {
+          nm.textContent = `Store ID: ${state.sellerId}`;
+          nm.classList.remove("skeleton");
+        }
       }
     } catch { /* non-critical */ }
   }
@@ -587,8 +607,8 @@
         const ownerData = JSON.parse(localStorage.getItem("zentr_store"));
         if (ownerData && ownerData.sellerId === state.sellerId) {
           const banner = document.createElement("div");
-          banner.style.cssText = "background:var(--warn);color:#000;text-align:center;padding:10px;font-weight:700;font-size:14px;position:sticky;top:60px;z-index:15;";
-          banner.textContent = "Store preview mode — you are the store owner.";
+          banner.style.cssText = "background:var(--warn);color:#000;text-align:center;padding:12px;font-weight:700;font-size:14px;position:sticky;top:60px;z-index:15;box-shadow:0 4px 12px rgba(255, 204, 102, 0.4);";
+          banner.innerHTML = "Preview Mode — Orders disabled.<br><span style='font-size:12px;opacity:0.8;font-weight:500'>Share this link with customers or open in another browser to place a test order.</span>";
           document.body.prepend(banner);
           
           const checkoutBtn = $("checkoutBtn");
@@ -597,6 +617,7 @@
             checkoutBtn.style.opacity = "0.5";
             checkoutBtn.style.cursor = "not-allowed";
             checkoutBtn.title = "Checkout is disabled in owner preview mode.";
+            checkoutBtn.textContent = "Disabled (Preview Mode)";
           }
         }
       } catch (e) { }
@@ -610,6 +631,16 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "BUYER_PAGE_OPEN" })
       }).catch(() => { });
+
+      const grid = $("productGrid");
+      if (grid) {
+        grid.innerHTML = `
+          <div class="card skeleton" style="height:150px;border:none"></div>
+          <div class="card skeleton" style="height:150px;border:none"></div>
+          <div class="card skeleton" style="height:150px;border:none"></div>
+          <div class="card skeleton" style="height:150px;border:none"></div>
+        `;
+      }
 
       // Load in parallel
       await Promise.all([loadCatalog(), loadStoreName(), loadPaymentSettings()]);

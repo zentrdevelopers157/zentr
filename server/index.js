@@ -4,6 +4,11 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const multer = require("multer");
+const { createClient } = require("@supabase/supabase-js");
+
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://fpgtpjuvoothnrxomktq.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_KEY || "sb_publishable_Oc9ON1qM9b043yPeND2Pxw_vfmUW7I-";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // -------------------- CONFIG --------------------
 const RECEIPT_SECRET = process.env.RECEIPT_SECRET || "dev_only_change_me";
@@ -48,7 +53,7 @@ app.get("/", (req, res) => {
 // ── Multer Storage Configuration ──
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, "public", "uploads");
+    const dir = path.join(__dirname, "tmp", "uploads");
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
@@ -67,11 +72,42 @@ const upload = multer({
   }
 });
 
-// ── Upload Endpoint ──
-app.post("/api/upload", upload.single("image"), (req, res) => {
+// ── Upload Endpoint (Supabase Migration) ──
+app.post("/api/upload", upload.single("image"), async (req, res) => {
   if (!req.file) return res.status(400).json({ ok: false, error: "No file uploaded" });
-  const fileUrl = `/uploads/${req.file.filename}`;
-  res.json({ ok: true, url: fileUrl });
+
+  try {
+    const file = req.file;
+    const sellerId = req.body.sellerId || "default_seller";
+    const timestamp = Date.now();
+    const sanitizedName = file.originalname.replace(/[^a-z0-0.]/gi, "_").toLowerCase();
+    const filePath = `${sellerId}/${timestamp}-${sanitizedName}`;
+
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, fs.readFileSync(file.path), {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    // Clean up local temp file
+    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+
+    if (error) {
+      console.error("[supabase-upload] error:", error.message);
+      return res.status(500).json({ ok: false, error: "Supabase upload failed: " + error.message });
+    }
+
+    // Get Public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(filePath);
+
+    res.json({ ok: true, url: publicUrl });
+  } catch (err) {
+    console.error("[api-upload] crash:", err);
+    res.status(500).json({ ok: false, error: "Internal server error during upload" });
+  }
 });
 
 // -------------------- DATA STORAGE --------------------
@@ -693,7 +729,7 @@ app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
 
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
   try {
-    const { name, price, stock, category, options, desc, images, videoUrl } = req.body;
+    const { name, price, stock, category, options, desc, images, image_url, videoUrl } = req.body;
     
     // Task 4: Product name validation (3-80 chars)
     const pName = tString(name, 80);
@@ -739,10 +775,12 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
        return res.status(400).json({ ok: false, error: "Valid variant options are required if the variant section is used." });
     }
 
-    // Task 2: Multi-media schema (up to 5 images, 1 video)
+    // Image Persistence Migration: Use image_url primarily
+    const pImageUrl = typeof image_url === 'string' ? image_url : (Array.isArray(images) && images[0] ? images[0] : "");
     const pImages = (Array.isArray(images) ? images : []).filter(url => url && typeof url === 'string').slice(0, 5);
-    if (pImages.length === 0) {
-      return res.status(400).json({ ok: false, error: "At least one product image (URL) is required." });
+    
+    if (!pImageUrl && pImages.length === 0) {
+      return res.status(400).json({ ok: false, error: "At least one product image is required." });
     }
     const pVideo = typeof videoUrl === 'string' ? tString(videoUrl, 500) : "";
 
@@ -756,7 +794,8 @@ app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
       stock: pStock,
       options: cleanOpts,
       desc: tString(desc, 1200),
-      images: pImages,
+      image_url: pImageUrl,
+      images: pImages.length > 0 ? pImages : (pImageUrl ? [pImageUrl] : []),
       videoUrl: pVideo,
       createdAt: nowIso()
     };
@@ -780,7 +819,7 @@ app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, 
     if (idx === -1) return res.status(404).json({ ok: false, error: "product not found" });
 
     const p = products[idx];
-    const fields = ["name", "price", "stock", "category", "options", "desc", "images", "videoUrl"];
+    const fields = ["name", "price", "stock", "category", "options", "desc", "images", "image_url", "videoUrl"];
     
     for (const f of fields) {
       if (req.body[f] === undefined) continue;
@@ -816,9 +855,20 @@ app.patch("/api/sellers/:sellerId/products/:productId", requireSellerKey, (req, 
         }
         p.options = cleanOpts;
       }
+      else if (f === "image_url") {
+        if (typeof req.body[f] === 'string') {
+          p.image_url = req.body[f];
+          // Keep images array in sync if it's the first image
+          if (!p.images || p.images.length === 0) p.images = [p.image_url];
+          else p.images[0] = p.image_url;
+        }
+      }
       else if (f === "images") {
         const imgArr = (Array.isArray(req.body[f]) ? req.body[f] : []).filter(url => url && typeof url === 'string').slice(0, 5);
-        if (imgArr.length > 0) p.images = imgArr;
+        if (imgArr.length > 0) {
+          p.images = imgArr;
+          p.image_url = imgArr[0]; // Sync primary image_url
+        }
       }
       else if (f === "videoUrl") {
         p.videoUrl = typeof req.body[f] === 'string' ? tString(req.body[f], 500) : "";

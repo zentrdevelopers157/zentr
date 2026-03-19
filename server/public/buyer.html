@@ -98,6 +98,7 @@
       box-shadow: var(--shadow2);
       transition: background 0.2s, border-color 0.2s;
     }
+
     .search:focus-within {
       background: rgba(255, 255, 255, .09);
       border-color: rgba(39, 240, 213, .4);
@@ -131,9 +132,11 @@
       text-decoration: none;
       transition: background 0.2s;
     }
+
     .cart-btn:hover {
       background: rgba(255, 255, 255, .12);
     }
+
     .cart-btn .badge {
       background: var(--turq);
       color: #000;
@@ -165,6 +168,7 @@
         flex-wrap: wrap;
         padding: 12px;
       }
+
       .search {
         order: 3;
         max-width: 100%;
@@ -242,8 +246,15 @@
         justify-items: center;
         text-align: center;
       }
-      .meta { width: 100%; }
-      .meta .name, .meta .price { text-align: center; }
+
+      .meta {
+        width: 100%;
+      }
+
+      .meta .name,
+      .meta .price {
+        text-align: center;
+      }
     }
 
     .card:hover {
@@ -274,7 +285,10 @@
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
-    .gallery::-webkit-scrollbar { display: none; }
+
+    .gallery::-webkit-scrollbar {
+      display: none;
+    }
 
     .gallery-item {
       flex: 0 0 100%;
@@ -285,7 +299,10 @@
       align-items: center;
       justify-content: center;
     }
-    .gallery-item img, .gallery-item video, .gallery-item iframe {
+
+    .gallery-item img,
+    .gallery-item video,
+    .gallery-item iframe {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -302,13 +319,15 @@
       pointer-events: none;
       z-index: 5;
     }
+
     .dot {
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: rgba(255,255,255,.3);
+      background: rgba(255, 255, 255, .3);
       transition: .2s;
     }
+
     .dot.active {
       background: var(--turq);
       width: 10px;
@@ -418,7 +437,10 @@
         justify-items: center;
         text-align: center;
       }
-      .qty { justify-content: center; }
+
+      .qty {
+        justify-content: center;
+      }
     }
 
     .ci-title {
@@ -590,19 +612,27 @@
     }
 
     @keyframes spin {
-      100% { transform: rotate(360deg); }
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     /* Loading skeleton */
     .skeleton {
-      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
       background-size: 200% 100%;
       animation: skeleton-load 1.5s infinite;
       border-radius: 8px;
     }
+
     @keyframes skeleton-load {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
     }
 
     /* ── Powered by Zentr widget ── */
@@ -619,30 +649,37 @@
       overflow: hidden;
       transition: border-color .2s ease, background .2s ease;
     }
+
     .zentr-brand-widget:hover {
       border-color: rgba(39, 240, 213, .35);
       background: rgba(39, 240, 213, .08);
     }
+
     .zentr-brand-widget::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(39,240,213,.09), transparent 70%);
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(39, 240, 213, .09), transparent 70%);
       opacity: 0;
       transition: opacity .3s ease;
       pointer-events: none;
     }
-    .zentr-brand-widget:hover::before { opacity: 1; }
+
+    .zentr-brand-widget:hover::before {
+      opacity: 1;
+    }
+
     .zbw-inner {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .zbw-logo {
       width: 30px;
       height: 30px;
       border-radius: 8px;
-      background: linear-gradient(135deg, rgba(39,240,213,.9), rgba(39,240,213,.3));
+      background: linear-gradient(135deg, rgba(39, 240, 213, .9), rgba(39, 240, 213, .3));
       color: #071114;
       font-weight: 900;
       font-size: 16px;
@@ -650,34 +687,41 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(39,240,213,.25);
+      box-shadow: 0 4px 12px rgba(39, 240, 213, .25);
     }
-    .zbw-text { flex: 1; }
+
+    .zbw-text {
+      flex: 1;
+    }
+
     .zbw-powered {
       font-size: 11px;
       font-weight: 700;
-      color: rgba(39,240,213,.85);
+      color: rgba(39, 240, 213, .85);
       letter-spacing: .3px;
     }
+
     .zbw-tagline {
       font-size: 11px;
       color: var(--muted);
       margin-top: 1px;
     }
+
     .zbw-cta {
       font-size: 11px;
       font-weight: 700;
-      color: rgba(39,240,213,.7);
+      color: rgba(39, 240, 213, .7);
       white-space: nowrap;
       padding: 5px 10px;
       border-radius: 8px;
-      border: 1px solid rgba(39,240,213,.2);
-      background: rgba(39,240,213,.07);
+      border: 1px solid rgba(39, 240, 213, .2);
+      background: rgba(39, 240, 213, .07);
       transition: background .15s, color .15s;
     }
+
     .zentr-brand-widget:hover .zbw-cta {
-      color: rgba(39,240,213,1);
-      background: rgba(39,240,213,.14);
+      color: rgba(39, 240, 213, 1);
+      background: rgba(39, 240, 213, .14);
     }
   </style>
 </head>

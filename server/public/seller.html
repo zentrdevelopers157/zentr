@@ -749,6 +749,8 @@
       </a>
 
       <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn" id="headerCopyBtn" style="padding:6px 12px; font-size:12px; background:rgba(255,255,255,.05); border:1px solid var(--stroke); color:var(--text);">📋 Copy Link</button>
+        <a id="headerPreviewBtn" target="_blank" class="btn primary" style="padding:6px 12px; font-size:12px; text-decoration:none;">👁️ Preview Store</a>
         <div class="pill good" id="sellerBadge">Verified Seller</div>
         <div class="pill" id="storeName">Store: Loading...</div>
       </div>
@@ -895,8 +897,8 @@
                   <input id="externalImgUrl" placeholder="https://i.imgur.com/example.jpg" style="flex:1;" />
                   <button class="btn" id="addExternalImgBtn" style="flex-shrink:0;padding:8px 12px;font-size:12px;">Add</button>
                 </div>
-                <div style="margin-top:6px;padding:8px 12px;background:rgba(255,204,102,.08);border:1px solid rgba(255,204,102,.25);border-radius:10px;font-size:11px;color:var(--warn);line-height:1.5;">
-                  ⚠️ <b>Uploaded files are temporary</b> on Render's free plan — they delete on every restart. Use external links (e.g. <a href="https://imgbb.com" target="_blank" style="color:var(--turq);">imgbb.com</a> or Google Drive) for permanent images.
+                <div style="margin-top:6px;padding:8px 12px;background:rgba(39,240,213,.08);border:1px solid rgba(39,240,213,.25);border-radius:10px;font-size:11px;color:var(--turq);line-height:1.5;">
+                  🚀 <b>Persistent Storage Enabled</b> — Images and product data are now stored permanently on Supabase.
                 </div>
               </div>
               
@@ -1140,6 +1142,7 @@
         try {
           const formData = new FormData();
           formData.append("image", file);
+          formData.append("sellerId", SELLER_ID); // Organize by sellerId in Supabase
           
           const res = await fetch(`${API}/api/upload`, {
             method: "POST",
@@ -1262,8 +1265,25 @@
           const topbarName = document.querySelector("#storeName");
           if (topbarName) topbarName.textContent = "Store: " + state.settings.storeName;
           
-          const di = $("debugInfo");
           if (di) di.textContent = `ID: ${SELLER_ID}`;
+
+          // Update action buttons
+          const storeUrl = `${location.origin}/buyer?sellerId=${SELLER_ID}`;
+          if ($("headerCopyBtn")) $("headerCopyBtn").onclick = () => {
+            navigator.clipboard.writeText(storeUrl);
+            showToast("Store link copied 📋");
+          };
+          if ($("headerPreviewBtn")) $("headerPreviewBtn").href = storeUrl;
+          if ($("storeUrlDisplay")) $("storeUrlDisplay").textContent = storeUrl;
+          if ($("copyStoreBtn")) $("copyStoreBtn").onclick = () => {
+            navigator.clipboard.writeText(storeUrl);
+            showToast("Store link copied 📋");
+          };
+          if ($("openStoreBtn")) $("openStoreBtn").onclick = () => window.open(storeUrl, "_blank");
+          if ($("shareWaBtn")) $("shareWaBtn").onclick = () => {
+             const wa = `https://wa.me/?text=${encodeURIComponent("Check out my store on Zentr: " + storeUrl)}`;
+             window.open(wa, "_blank");
+          };
 
           // Handle persistence warning
           const pWarn = $("persistenceWarning");
@@ -1342,8 +1362,7 @@
         stock: $("pStock").value === "" ? "" : Math.max(0, Number($("pStock").value) || 0),
         options: getOptionGroupsFromForm(),
         desc: $("pDesc").value.trim(),
-        options: getOptionGroupsFromForm(),
-        desc: $("pDesc").value.trim(),
+        image_url: uploadedImages[0] || "", // Primary persistent image URL
         images: uploadedImages,
         videoUrl: $("pVideo").value.trim()
       };

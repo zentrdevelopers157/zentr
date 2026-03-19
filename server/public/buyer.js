@@ -117,7 +117,15 @@
       const imgbox = document.createElement("div");
       imgbox.className = "imgbox";
       
-      const mediaItems = [...(p.images || [])];
+      // Image/Media Gallery Migration: Prioritize image_url
+      const pImageUrl = p.image_url || (Array.isArray(p.images) && p.images[0]) || "";
+      const mediaItems = [];
+      if (pImageUrl) mediaItems.push(pImageUrl);
+      if (Array.isArray(p.images)) {
+        p.images.forEach(img => {
+          if (img !== pImageUrl) mediaItems.push(img);
+        });
+      }
       if (p.videoUrl) mediaItems.push({ type: 'video', url: p.videoUrl });
 
       if (mediaItems.length > 0) {

@@ -1006,8 +1006,8 @@ app.get("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
 app.patch("/api/sellers/:sellerId", requireSellerKey, async (req, res) => {
   try {
     const sellers = DB.getSellers();
-    const seller = sellers[req.params.sellerId];
-    if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
+    const seller = sellers[req.params.sellerId]; // Still need this to update the object in the large map
+    if (!seller) return res.status(404).json({ ok: false, error: "Seller record could not be loaded." });
 
     const { storeName, ownerName, category, profilePhoto } = req.body || {};
 
@@ -1037,7 +1037,7 @@ app.patch("/api/sellers/:sellerId", requireSellerKey, async (req, res) => {
     res.json({ ok: true, seller: { storeName: seller.storeName, ownerName: seller.ownerName, category: seller.category, profilePhoto: seller.profilePhoto } });
   } catch (err) {
     console.error("[seller PATCH] error:", err);
-    res.status(500).json({ ok: false, error: "server error" });
+    res.status(500).json({ ok: false, error: "Store update failed. Please try again." });
   }
 });
 
@@ -1312,6 +1312,17 @@ app.post("/api/otp/send", Security.checkBlacklist, (req, res) => {
   if (!phone) return res.status(400).json({ error: true, message: "Valid 10-digit phone number required." });
   OTPService.sendOTP(phone);
   res.json({ ok: true, message: "OTP sent successfully." });
+});
+
+// Get seller products (seller-authenticated)
+app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
+  try {
+    const products = DB.getProducts().filter((p) => p.sellerId === req.params.sellerId);
+    res.json({ ok: true, products });
+  } catch (err) {
+    console.error("[seller products GET] error:", err);
+    res.status(500).json({ ok: false, error: "Could not load products." });
+  }
 });
 
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {

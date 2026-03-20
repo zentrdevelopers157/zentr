@@ -1283,22 +1283,53 @@
         ...options.headers
       };
       const fetchOpts = { cache: "no-store", ...options, headers };
-      const res = await fetch(`${API}${path}`, fetchOpts);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-      return data;
+      try {
+        const res = await fetch(`${API}${path}`, fetchOpts);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          // Task 5: More specific error messages
+          let msg = data.error || `Request failed (Error ${res.status})`;
+          if (res.status === 404 && !data.error) {
+             if (path.includes("/products")) msg = "Products record not found.";
+             else if (path.includes("/orders")) msg = "Orders record not found.";
+             else if (path.includes("/info")) msg = "Store info not found.";
+             else msg = "Endpoint missing or record not found.";
+          }
+          throw new Error(msg);
+        }
+        return data;
+      } catch (err) {
+        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+          throw new Error("Network error: Could not connect to server.");
+        }
+        throw err;
+      }
     }
 
     async function loadAll() {
       try {
-        const [pData, oData, infoData, payData] = await Promise.all([
+        // Task 1: Fetching simultaneously - but catch individual errors for better UX
+        const results = await Promise.allSettled([
           apiFetch(`/api/sellers/${SELLER_ID}/products`),
           apiFetch(`/api/sellers/${SELLER_ID}/orders`),
           apiFetch(`/api/sellers/${SELLER_ID}/info`),
           apiFetch(`/api/sellers/${SELLER_ID}/payment`)
         ]);
-        state.products = pData.products || [];
-        state.orders = oData.orders || [];
+
+        const [pRes, oRes, iRes, payRes] = results;
+
+        if (iRes.status === "rejected") {
+           throw iRes.reason; // If store info fails, we can't do much
+        }
+
+        const infoData = iRes.value;
+        state.products = pRes.status === "fulfilled" ? (pRes.value.products || []) : [];
+        state.orders = oRes.status === "fulfilled" ? (oRes.value.orders || []) : [];
+        const payData = payRes.status === "fulfilled" ? payRes.value : null;
+
+        if (pRes.status === "rejected") showToast("⚠️ Could not load products: " + pRes.reason.message);
+        if (oRes.status === "rejected") showToast("⚠️ Could not load orders: " + oRes.reason.message);
+
         if (infoData.seller) {
           state.settings.storeName = infoData.seller.storeName || "My Store";
           state.settings.ownerName = infoData.seller.ownerName || "";

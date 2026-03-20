@@ -137,7 +137,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       cleanup();
       return res.status(503).json({
         ok: false,
-        error: "Image storage is not configured. Please set SUPABASE_SERVICE_KEY in environment variables, or use an external image URL instead."
+        error: "Image upload failed. Storage path not found."
       });
     }
 
@@ -153,9 +153,15 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 
     if (uploadErr) {
       console.error("[supabase-upload] error:", uploadErr.message);
+      let errMsg = `Image upload failed: ${uploadErr.message}.`;
+      if (uploadErr.message.toLowerCase().includes("not found") || uploadErr.message.toLowerCase().includes("bucket")) {
+        errMsg = "Image upload failed. Storage path not found.";
+      } else {
+        errMsg = "Upload failed. Please use external image URL.";
+      }
       return res.status(500).json({
         ok: false,
-        error: `Image upload failed: ${uploadErr.message}. You can also paste an external image URL instead.`
+        error: errMsg
       });
     }
 
@@ -576,7 +582,7 @@ function requireSellerKey(req, res, next) {
   const seller = sellers[sellerId];
 
   if (!seller) {
-    return res.status(404).json({ ok: false, error: "seller not found" });
+    return res.status(404).json({ ok: false, error: "Seller record not found." });
   }
 
   if (key !== seller.sellerKey) {

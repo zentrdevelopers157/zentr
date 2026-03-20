@@ -1162,7 +1162,10 @@
         } catch (err) {
           placeholder.remove();
           // Non-blocking: show the error but highlight the URL fallback
-          const msg = err.message || "Upload failed";
+          let msg = err.message || "Upload failed. Please use external image URL.";
+          if (msg.toLowerCase() === "error 404" || msg.toLowerCase().includes("not found")) {
+            msg = "Image upload failed. Storage path not found.";
+          }
           showToast(`❌ ${msg}`);
           // Scroll URL input into view and highlight it
           const urlInput = $("externalImgUrl");
@@ -1738,7 +1741,11 @@
           if (pill) { pill.style.display = "inline-flex"; setTimeout(() => { pill.style.display = "none"; }, 3000); }
           await loadAll(); // Refresh to update topbar etc.
         } catch (err) {
-          showToast("❌ " + err.message);
+          let msg = err.message;
+          if (msg.includes("Seller record not found") || msg.includes("not found")) {
+            msg = "Store update failed. Please try again.";
+          }
+          showToast("❌ " + msg);
         }
       };
     }

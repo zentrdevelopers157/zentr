@@ -1,0 +1,62 @@
+﻿
+≡ƒöì Zentr Full Live QA ΓÇö https://zentr.onrender.com
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+[A] Welcome / Onboarding
+  Γ£à [1] Welcome page loads
+  Γ£à [2] Health check ok
+  Γ£à [3] Onboard rejects bad phone
+  Γ£à [4] Onboard creates new seller
+  Γ£à [5] Duplicate phone returns 409
+
+[B] Seller Dashboard
+  Γ£à [6] Seller dashboard page loads
+  Γ£à [7] Seller info endpoint returns data
+  Γ¥î [8] Add product works ΓÇö {"ok":false,"error":"At least one product image (URL) is required."}
+  Γ¥î [9] List seller products ΓÇö assertion returned false
+  Γ¥î [10] Edit product works ΓÇö assertion returned false
+  Γ£à [11] Payment settings save
+  Γ£à [12] Payment settings persist
+  Γ£à [13] Seller cannot access another seller data
+
+[C] Buyer / Store Page
+  Γ£à [14] Buyer page loads
+  Γ£à [15] Public seller info endpoint
+  Γ¥î [16] Public products list returns edited product ΓÇö assertion returned false
+  Γ£à [17] Public payment settings visible
+  Γ£à [18] BUYER_PAGE_OPEN event fires
+
+[D] Order + Payment Flow
+  Γ£à [19] Checkout rejects bad phone
+  Γ¥î [20] Checkout creates COD order ΓÇö {"ok":false,"error":"Product not found: "}
+  Γ£à [21] Order confirmation page loads
+  Γ¥î [22] Public order returns correct paymentMethod + status ΓÇö assertion returned false
+  Γ¥î [23] Seller sees order in their dashboard ΓÇö assertion returned false
+  Γ¥î [24] Seller updates order status pending ΓåÆ confirmed ΓÇö assertion returned false
+  Γ¥î [25] Mark order as paid works ΓÇö assertion returned false
+  Γ¥î [26] Payment status persists as paid ΓÇö assertion returned false
+  Γ£à [27] Tracking page loads
+
+[E] Persistence
+  Γ¥î [28] Products persist after creation ΓÇö assertion returned false
+  Γ¥î [29] Orders persist across requests ΓÇö assertion returned false
+
+[F] Privacy + Admin
+  Γ£à [30] Admin blocked without secret
+  Γ£à [31] Admin loads with correct secret (new stats shape)
+  Γ£à [32] Admin panel page loads
+  Γ¥î [33] DELETE product works ΓÇö assertion returned false
+
+[G] New Refinements
+  Γ¥î [34] Strict variant validation (emoji block) ΓÇö assertion returned false
+  Γ£à [35] Multi-media product creation & persistence
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+≡ƒôè Results: 21 passed, 14 failed out of 35 tests
+≡ƒîÉ Live site: https://zentr.onrender.com
+≡ƒöÆ Admin:     https://zentr.onrender.com/admin
+≡ƒÅ¬ Seller:    https://zentr.onrender.com/seller?sellerId=s_o92nzjza&sellerKey=53f4a7176567ec59bc68084f08241f9eb71c9185
+≡ƒ¢Æ Buyer:     https://zentr.onrender.com/buyer?sellerId=s_o92nzjza
+
+ΓÜá∩╕Å  Some tests failed. Review above.
+

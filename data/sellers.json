@@ -1,1 +1,41 @@
-{}
+{
+  "s_d85gyzmt": {
+    "sellerId": "s_d85gyzmt",
+    "sellerKey": "335da96499183db2f08d8a89f2f36f95d39c7ae9",
+    "storeName": "Antigravity Test Store V2",
+    "ownerName": "Antigravity AI",
+    "phone": "9876543210",
+    "category": "Apparel / Clothing",
+    "createdAt": "2026-03-19T15:30:43.969Z",
+    "payment": {
+      "codEnabled": true,
+      "upiId": "",
+      "paymentNote": ""
+    },
+    "trust_score": 100,
+    "status": "active"
+  },
+  "s_k1hapks9": {
+    "sellerId": "s_k1hapks9",
+    "sellerKey": "c33d7ade5c0d1011f2623e19d8434b46eb2a1999",
+    "storeName": "Final Verified Store",
+    "ownerName": "Owner X",
+    "phone": "9988776655",
+    "category": "Electronics",
+    "createdAt": "2026-03-20T06:11:26.867Z",
+    "phoneVerified": true,
+    "trust_score": 10,
+    "is_verified": false,
+    "status": "active",
+    "total_orders": 0,
+    "fulfilled_orders": 0,
+    "completion_rate": 0,
+    "store_age_days": 0,
+    "lastKnownIp": "127.0.0.1",
+    "payment": {
+      "codEnabled": true,
+      "upiId": "",
+      "paymentNote": ""
+    }
+  }
+}

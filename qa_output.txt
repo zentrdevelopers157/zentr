@@ -1,0 +1,62 @@
+
+🔍 Zentr Full Live QA — https://zentr.onrender.com
+────────────────────────────────────────────────────────────
+
+[A] Welcome / Onboarding
+  ✅ [1] Welcome page loads
+  ✅ [2] Health check ok
+  ✅ [3] Onboard rejects bad phone
+  ✅ [4] Onboard creates new seller
+  ✅ [5] Duplicate phone returns 409
+
+[B] Seller Dashboard
+  ✅ [6] Seller dashboard page loads
+  ✅ [7] Seller info endpoint returns data
+  ✅ [8] Add product works
+  ✅ [9] List seller products
+  ✅ [10] Edit product works
+  ✅ [11] Payment settings save
+  ✅ [12] Payment settings persist
+  ✅ [13] Seller cannot access another seller data
+
+[C] Buyer / Store Page
+  ✅ [14] Buyer page loads
+  ✅ [15] Public seller info endpoint
+  ✅ [16] Public products list returns edited product
+  ✅ [17] Public payment settings visible
+  ✅ [18] BUYER_PAGE_OPEN event fires
+
+[D] Order + Payment Flow
+  ✅ [19] Checkout rejects bad phone
+  ✅ [20] Checkout creates COD order
+  ✅ [21] Order confirmation page loads
+  ✅ [22] Public order returns correct paymentMethod + status
+  ✅ [23] Seller sees order in their dashboard
+  ✅ [24] Seller updates order status pending → confirmed
+  ✅ [25] Mark order as paid works
+  ✅ [26] Payment status persists as paid
+  ✅ [27] Tracking page loads
+
+[E] Persistence
+  ✅ [28] Products persist after creation
+  ✅ [29] Orders persist across requests
+
+[F] Privacy + Admin
+  ✅ [30] Admin blocked without secret
+  ✅ [31] Admin loads with correct secret (new stats shape)
+  ✅ [32] Admin panel page loads
+  ✅ [33] DELETE product works
+
+[G] New Refinements
+  ❌ [34] Strict variant validation (emoji block) — assertion returned false
+  ✅ [35] Multi-media product creation & persistence
+
+────────────────────────────────────────────────────────────
+📊 Results: 34 passed, 1 failed out of 35 tests
+🌐 Live site: https://zentr.onrender.com
+🔒 Admin:     https://zentr.onrender.com/admin
+🏪 Seller:    https://zentr.onrender.com/seller?sellerId=s_b27cfb44&sellerKey=b9d785b99445f57863691c1be37f3389dfe97a43
+🛒 Buyer:     https://zentr.onrender.com/buyer?sellerId=s_b27cfb44
+
+⚠️  Some tests failed. Review above.
+

@@ -1,1 +1,35 @@
-{}
+{
+  "s_d85gyzmt": [
+    {
+      "id": "ord_1773934861714_ll4x7",
+      "sellerId": "s_d85gyzmt",
+      "buyerName": "Test Buyer V2",
+      "buyerPhone": "9998887776",
+      "buyerAddress": "Zentr Testing Lab, BKC, Mumbai",
+      "items": [
+        {
+          "productId": "prod_1773934509261_y9utf",
+          "qty": 1,
+          "variants": [],
+          "name": "Premium AI Shirt V2",
+          "unitPrice": 999,
+          "subtotal": 999,
+          "selectedOptions": []
+        }
+      ],
+      "total": 999,
+      "paymentMethod": "cod",
+      "paymentStatus": "unpaid",
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-03-19T15:41:01.714Z"
+        }
+      ],
+      "createdAt": "2026-03-19T15:41:01.714Z",
+      "idempotencyKey": null,
+      "receiptSig": "2a4a7836e4d42c4efcb7aa0838bf8796d4ebb38469be8d03e354a1adf0a03dab"
+    }
+  ]
+}

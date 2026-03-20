@@ -686,6 +686,76 @@
         .error-banner.show {
             display: block;
         }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--stroke);
+            padding-bottom: 2px;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            color: var(--turq);
+            border-color: var(--turq);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tables */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .admin-table th {
+            text-align: left;
+            padding: 12px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--stroke);
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-active { background: var(--ok-dim); color: var(--ok); }
+        .status-suspended { background: var(--warn-dim); color: var(--warn); }
+        .status-banned { background: var(--bad-dim); color: var(--bad); }
+        .status-shadow_limited { background: var(--blue-dim); color: var(--blue); }
+
+        .btn-action {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--stroke);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 11px;
+            margin-right: 4px;
+        }
+        .btn-action:hover { background: rgba(255,255,255,0.1); }
+        .btn-ban { color: var(--bad); border-color: rgba(255,107,107,0.3); }
     </style>
 </head>
 
@@ -716,8 +786,9 @@
             <h2>Founder Dashboard</h2>
             <p>Owner access only.</p>
             <form id="loginForm">
-                <input type="password" id="secretInput" class="inp" autocomplete="new-password" />
-                <button type="submit" class="btn-primary">Unlock →</button>
+                <input type="text" id="usernameInput" class="inp" placeholder="Username" style="margin-bottom:8px;" />
+                <input type="password" id="passwordInput" class="inp" placeholder="Password" autocomplete="new-password" />
+                <button type="submit" class="btn-primary">Unlock Dashboard →</button>
             </form>
             <div class="err-msg" id="errMsg"></div>
         </div>
@@ -725,7 +796,14 @@
 
     <!-- Dashboard -->
     <div id="dashboard">
-        <div class="error-banner" id="errorBanner"></div>
+        <div class="tabs">
+            <div class="tab active" data-tab="analytics">Analytics</div>
+            <div class="tab" data-tab="sellers">Sellers</div>
+            <div class="tab" data-tab="reports">Reports & Anomalies</div>
+        </div>
+
+        <div id="analyticsTab" class="tab-content active">
+            <div class="error-banner" id="errorBanner"></div>
 
         <!-- MONGODB SETUP WARNING -->
         <div id="mongoWarning"
@@ -876,11 +954,27 @@
         try { secret = localStorage.getItem('zentr_adm') || ''; } catch (e) { }
 
         // ── Auth ──────────────────────────────────────────
-        g('loginForm').addEventListener('submit', e => {
+        g('loginForm').addEventListener('submit', async e => {
             e.preventDefault();
-            secret = g('secretInput').value.trim();
-            if (!secret) { g('errMsg').textContent = 'Enter the access key.'; return; }
-            fetchStats();
+            const username = g('usernameInput').value.trim();
+            const password = g('passwordInput').value.trim();
+            if (!username || !password) { g('errMsg').textContent = 'Enter username and password.'; return; }
+            
+            g('errMsg').textContent = 'Authenticating...';
+            try {
+                const res = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Login failed');
+                secret = data.token;
+                localStorage.setItem('zentr_adm', secret);
+                fetchStats();
+            } catch (err) {
+                g('errMsg').textContent = err.message;
+            }
         });
 
         function lock() {
@@ -898,8 +992,8 @@
             g('errMsg').textContent = '';
             g('loadingOverlay').classList.add('show');
             try {
-                const res = await fetch('/api/admin/stats', {
-                    headers: { 'x-admin-secret': secret }
+                const res = await fetch('/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${secret}` }
                 });
                 let data;
                 try { data = await res.json(); } catch (e) { throw new Error('Server returned non-JSON.'); }
@@ -1100,6 +1194,141 @@
             <div class="evt-meta">${esc(meta)}</div>
           </div>`;
                 }).join('');
+        }
+
+        // ── Tabs ──────────────────────────────────────────
+        document.querySelectorAll('.tab').forEach(t => {
+            t.addEventListener('click', () => {
+                document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active'));
+                t.classList.add('active');
+                g(t.dataset.tab + 'Tab').classList.add('active');
+                if (t.dataset.tab === 'sellers') fetchSellers();
+                if (t.dataset.tab === 'reports') { fetchReports(); fetchAnomalies(); }
+            });
+        });
+
+        // ── Sellers ───────────────────────────────────────
+        async function fetchSellers() {
+            try {
+                const res = await fetch('/admin/sellers', {
+                    headers: { 'Authorization': `Bearer ${secret}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to fetch sellers');
+                renderSellers(data.sellers);
+            } catch (err) { showToast('Error: ' + err.message); }
+        }
+
+        function renderSellers(sellers) {
+            const body = g('sellersTableBody');
+            body.innerHTML = sellers.map(s => `
+                <tr>
+                    <td>
+                        <div style="font-weight:700">${esc(s.storeName)}</div>
+                        <div style="font-size:11px;color:var(--muted)">${esc(s.ownerName)} · ${esc(s.phone)}</div>
+                    </td>
+                    <td><span class="status-badge status-${s.status}">${s.status}</span></td>
+                    <td style="font-weight:700; color:${s.trust_score < 40 ? 'var(--bad)' : 'var(--ok)'}">${s.trust_score || 0}</td>
+                    <td>${s.total_orders || 0}</td>
+                    <td>${new Date(s.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-action" onclick="handleAction('${s.sellerId}', 'warn')">Warn</button>
+                        <button class="btn-action" onclick="handleAction('${s.sellerId}', 'suspend')">Suspend</button>
+                        <button class="btn-action" onclick="handleAction('${s.sellerId}', 'shadow_limit')">Shadow</button>
+                        <button class="btn-action btn-ban" onclick="handleAction('${s.sellerId}', 'ban')">Ban</button>
+                        <button class="btn-action" onclick="handleAction('${s.sellerId}', 'unban')">Unban</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function handleAction(id, action) {
+            if (!confirm(`Are you sure you want to ${action} this seller?`)) return;
+            try {
+                const res = await fetch(`/admin/sellers/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${secret}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action })
+                });
+                if (!res.ok) throw new Error('Action failed');
+                showToast(`Seller ${action}ed successfully!`);
+                fetchSellers();
+            } catch (err) { showToast('Error: ' + err.message); }
+        }
+
+        // ── Reports ───────────────────────────────────────
+        async function fetchReports() {
+            try {
+                const res = await fetch('/admin/reports', {
+                    headers: { 'Authorization': `Bearer ${secret}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to fetch reports');
+                renderReports(data.reports);
+            } catch (err) { showToast('Error: ' + err.message); }
+        }
+
+        function renderReports(reports) {
+            const body = g('reportsTableBody');
+            body.innerHTML = reports.map(r => `
+                <tr>
+                    <td>
+                        <div style="font-weight:700">${esc(r.reason)}</div>
+                        <div style="font-size:11px;color:var(--muted)">${esc(r.reporter_contact)} · ${esc(r.order_id || 'No order')}</div>
+                    </td>
+                    <td><code>${r.seller_id}</code></td>
+                    <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+                    <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-action" onclick="updateReport('${r.id}', 'reviewed')">Mark Reviewed</button>
+                        <button class="btn-action btn-ban" onclick="updateReport('${r.id}', 'dismissed')">Dismiss</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function updateReport(id, status) {
+            try {
+                const res = await fetch(`/admin/reports/${id}`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${secret}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+                if (!res.ok) throw new Error('Failed to update report');
+                fetchReports();
+            } catch (err) { showToast('Error: ' + err.message); }
+        }
+
+        async function fetchAnomalies() {
+            try {
+                const res = await fetch('/admin/anomalies', {
+                    headers: { 'Authorization': `Bearer ${secret}` }
+                });
+                const data = await res.json();
+                const list = g('anomaliesList');
+                list.innerHTML = data.anomalies.map(s => `
+                    <div class="kpi bad">
+                        <div class="kpi-label">Anomaly Detected</div>
+                        <div class="kpi-val bad">${esc(s.storeName)}</div>
+                        <div class="kpi-sub">Trust: ${s.trust_score} · Orders: ${s.total_orders}</div>
+                        <button class="btn-action" style="margin-top:10px" onclick="location.hash='#'; g('tab-sellers').click();">Investigate</button>
+                    </div>
+                `).join('');
+            } catch (err) {}
+        }
+
+        function showToast(msg) {
+            const b = document.createElement('div');
+            b.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000; color:#fff; padding:10px 20px; border-radius:8px; z-index:10000; border:1px solid var(--stroke);";
+            b.textContent = msg;
+            document.body.appendChild(b);
+            setTimeout(() => b.remove(), 3000);
         }
 
         // ── Boot ──────────────────────────────────────────

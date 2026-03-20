@@ -1,0 +1,127 @@
+[
+  {
+    "id": "evt_1773934243981_z2xnv",
+    "type": "STORE_CREATED",
+    "timestamp": "2026-03-19T15:30:43.981Z",
+    "sellerId": "s_d85gyzmt",
+    "storeName": "Antigravity Test Store V2"
+  },
+  {
+    "id": "evt_1773934509272_roum3",
+    "type": "PRODUCT_ADDED",
+    "timestamp": "2026-03-19T15:35:09.272Z",
+    "sellerId": "s_d85gyzmt",
+    "productId": "prod_1773934509261_y9utf"
+  },
+  {
+    "id": "evt_1773934561738_icyma",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:36:01.738Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934561749_3hzqu",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:36:01.749Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934585214_d0qe4",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:36:25.214Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934585225_xbnqp",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:36:25.225Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934613081_eq1pj",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:36:53.081Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934613134_mrksm",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:36:53.134Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934662190_jud89",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:37:42.190Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934662220_ar30o",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:37:42.220Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934673637_uj30d",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:37:53.637Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934673661_h4k88",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:37:53.661Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934747166_y0bja",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:39:07.166Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934747181_cdpdv",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:39:07.181Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934790972_2zxzb",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-19T15:39:50.972Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934790983_qb30d",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-19T15:39:50.983Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773934861744_f414o",
+    "type": "ORDER_PLACED",
+    "timestamp": "2026-03-19T15:41:01.744Z",
+    "sellerId": "s_d85gyzmt",
+    "orderId": "ord_1773934861714_ll4x7",
+    "total": 999,
+    "itemsCount": 1
+  },
+  {
+    "id": "evt_1773985819127_bfh91",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-20T05:50:19.128Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773985819155_w9x7l",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-20T05:50:19.155Z",
+    "sellerId": "s_d85gyzmt"
+  },
+  {
+    "id": "evt_1773987086875_qttrq",
+    "type": "STORE_CREATED",
+    "timestamp": "2026-03-20T06:11:26.875Z",
+    "sellerId": "s_k1hapks9"
+  }
+]

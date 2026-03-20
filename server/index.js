@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -7,8 +8,51 @@ const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://fpgtpjuvoothnrxomktq.supabase.co";
+// Anon/publishable key — used for public read operations
 const SUPABASE_KEY = process.env.SUPABASE_KEY || "sb_publishable_Oc9ON1qM9b043yPeND2Pxw_vfmUW7I-";
+// Service role key — required for bucket creation & admin storage ops
+// Set SUPABASE_SERVICE_KEY in your Render env vars (Project Settings → API → service_role)
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwZ3RwanV2b290aG5yeG9ta3RxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzgwODMwOSwiZXhwIjoyMDg5Mzg0MzA5fQ.C9hldwaY9p5dScMX3pffSix55vmBMfzug1d0TTh1FIU";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { persistSession: false }
+});
+
+const BUCKET = "product-images";
+let _bucketReady = false;
+
+// ── Robust Bucket Initializer ──
+async function ensureBucket() {
+  if (_bucketReady) return true;
+  try {
+    // Attempt to create bucket (idempotent — succeeds if already exists)
+    const { error: createErr } = await supabaseAdmin.storage.createBucket(BUCKET, {
+      public: true,
+      fileSizeLimit: 10 * 1024 * 1024 // 10MB
+    });
+    if (!createErr || createErr.message === "Bucket already exists" || createErr.message.includes("already exists")) {
+      _bucketReady = true;
+      console.log(`✅ Supabase bucket '${BUCKET}' is ready.`);
+      return true;
+    }
+    // If create fails, try to verify the bucket exists via list
+    const { data: buckets, error: listErr } = await supabaseAdmin.storage.listBuckets();
+    if (!listErr && buckets && buckets.some(b => b.name === BUCKET)) {
+      _bucketReady = true;
+      console.log(`✅ Supabase bucket '${BUCKET}' verified via list.`);
+      return true;
+    }
+    console.error(`❌ Supabase bucket setup failed: ${createErr.message}`);
+    console.error("   → Set SUPABASE_SERVICE_KEY env var on Render for bucket auto-creation.");
+    return false;
+  } catch (err) {
+    console.error("❌ Supabase ensureBucket error:", err.message);
+    return false;
+  }
+}
+// Run at startup (non-blocking)
+ensureBucket().catch(() => {});
 
 // -------------------- CONFIG --------------------
 const RECEIPT_SECRET = process.env.RECEIPT_SECRET || "dev_only_change_me";
@@ -72,41 +116,58 @@ const upload = multer({
   }
 });
 
-// ── Upload Endpoint (Supabase Migration) ──
+// ── Upload Endpoint ──
 app.post("/api/upload", upload.single("image"), async (req, res) => {
   if (!req.file) return res.status(400).json({ ok: false, error: "No file uploaded" });
 
+  const localPath = req.file.path;
+  const cleanup = () => { try { if (fs.existsSync(localPath)) fs.unlinkSync(localPath); } catch (_) {} };
+
   try {
     const file = req.file;
-    const sellerId = req.body.sellerId || "default_seller";
+    const sellerId = (req.body.sellerId || "default_seller").replace(/[^a-zA-Z0-9_-]/g, "_");
     const timestamp = Date.now();
-    const sanitizedName = file.originalname.replace(/[^a-z0-0.]/gi, "_").toLowerCase();
+    // Fix: was [^a-z0-0.] (typo) — now correct
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.]/gi, "_").toLowerCase();
     const filePath = `${sellerId}/${timestamp}-${sanitizedName}`;
 
-    const { data, error } = await supabase.storage
-      .from("product-images")
-      .upload(filePath, fs.readFileSync(file.path), {
+    // Ensure bucket exists before every upload (cached after first success)
+    const bucketOk = await ensureBucket();
+    if (!bucketOk) {
+      cleanup();
+      return res.status(503).json({
+        ok: false,
+        error: "Image storage is not configured. Please set SUPABASE_SERVICE_KEY in environment variables, or use an external image URL instead."
+      });
+    }
+
+    const fileBuffer = fs.readFileSync(localPath);
+    const { error: uploadErr } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .upload(filePath, fileBuffer, {
         contentType: file.mimetype,
         upsert: true
       });
 
-    // Clean up local temp file
-    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    cleanup();
 
-    if (error) {
-      console.error("[supabase-upload] error:", error.message);
-      return res.status(500).json({ ok: false, error: "Supabase upload failed: " + error.message });
+    if (uploadErr) {
+      console.error("[supabase-upload] error:", uploadErr.message);
+      return res.status(500).json({
+        ok: false,
+        error: `Image upload failed: ${uploadErr.message}. You can also paste an external image URL instead.`
+      });
     }
 
-    // Get Public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from("product-images")
-      .getPublicUrl(filePath);
+    // Construct public URL (works for public buckets without additional API call)
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filePath}`;
 
+    console.log(`[upload] ✅ ${filePath} → ${publicUrl}`);
     res.json({ ok: true, url: publicUrl });
   } catch (err) {
+    cleanup();
     console.error("[api-upload] crash:", err);
-    res.status(500).json({ ok: false, error: "Internal server error during upload" });
+    res.status(500).json({ ok: false, error: "Image upload failed. Try again or paste an external image URL." });
   }
 });
 
@@ -122,13 +183,20 @@ const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const SELLERS_FILE = path.join(DATA_DIR, "sellers.json");
 const EVENTS_FILE = path.join(DATA_DIR, "events.json");
+const REPORTS_FILE = path.join(DATA_DIR, "reports.json");
+const BLACKLIST_FILE = path.join(DATA_DIR, "blacklist.json");
+const ADMIN_LOGS_FILE = path.join(DATA_DIR, "admin_logs.json");
 
 // ── In-memory cache (populated from MongoDB on startup) ──
 const MEM = {
   sellers: {},
   products: [],
   orders: {},
-  events: []
+  events: [],
+  reports: [],
+  blacklist: [],
+  adminLogs: [],
+  ipStoreCreationCount: {} // ip -> [{ timestamp }]
 };
 
 // ── MongoDB client ────────────────────────────────────────
@@ -154,6 +222,9 @@ async function connectMongo() {
       if (doc._id === "products" && doc.data) MEM.products = doc.data;
       if (doc._id === "orders" && doc.data) MEM.orders = doc.data;
       if (doc._id === "events" && doc.data) MEM.events = doc.data;
+      if (doc._id === "reports" && doc.data) MEM.reports = doc.data;
+      if (doc._id === "blacklist" && doc.data) MEM.blacklist = doc.data;
+      if (doc._id === "admin_logs" && doc.data) MEM.adminLogs = doc.data;
     });
 
     console.log(`✅ MongoDB connected. Loaded: ${Object.keys(MEM.sellers).length} sellers, ${MEM.products.length} products, ${Object.keys(MEM.orders).length} order keys, ${MEM.events.length} events.`);
@@ -179,6 +250,24 @@ const FileDB = {
     if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, "{}");
     if (!fs.existsSync(SELLERS_FILE)) fs.writeFileSync(SELLERS_FILE, "{}");
     if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, "[]");
+    if (!fs.existsSync(REPORTS_FILE)) fs.writeFileSync(REPORTS_FILE, "[]");
+    if (!fs.existsSync(BLACKLIST_FILE)) fs.writeFileSync(BLACKLIST_FILE, "[]");
+    if (!fs.existsSync(ADMIN_LOGS_FILE)) fs.writeFileSync(ADMIN_LOGS_FILE, "[]");
+  },
+  loadAll() {
+    this.ensure();
+    try {
+      if (fs.existsSync(SELLERS_FILE)) MEM.sellers = JSON.parse(fs.readFileSync(SELLERS_FILE, "utf-8"));
+      if (fs.existsSync(PRODUCTS_FILE)) MEM.products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf-8"));
+      if (fs.existsSync(ORDERS_FILE)) MEM.orders = JSON.parse(fs.readFileSync(ORDERS_FILE, "utf-8"));
+      if (fs.existsSync(EVENTS_FILE)) MEM.events = JSON.parse(fs.readFileSync(EVENTS_FILE, "utf-8"));
+      if (fs.existsSync(REPORTS_FILE)) MEM.reports = JSON.parse(fs.readFileSync(REPORTS_FILE, "utf-8"));
+      if (fs.existsSync(BLACKLIST_FILE)) MEM.blacklist = JSON.parse(fs.readFileSync(BLACKLIST_FILE, "utf-8"));
+      if (fs.existsSync(ADMIN_LOGS_FILE)) MEM.adminLogs = JSON.parse(fs.readFileSync(ADMIN_LOGS_FILE, "utf-8"));
+      console.log(`[FileDB] Loaded data from JSON files.`);
+    } catch (err) {
+      console.error("[FileDB] Error loading data:", err.message);
+    }
   },
   read(file, fallback) {
     this.ensure();
@@ -228,6 +317,36 @@ const DB = {
   saveEvents(e) {
     if (_mdbStore) { MEM.events = e; mdbSave("events", e); }
     else FileDB.write(EVENTS_FILE, e);
+  },
+
+  getReports() {
+    if (_mdbStore) return [...MEM.reports];
+    const d = FileDB.read(REPORTS_FILE, []);
+    return Array.isArray(d) ? d : [];
+  },
+  saveReports(r) {
+    if (_mdbStore) { MEM.reports = r; mdbSave("reports", r); }
+    else FileDB.write(REPORTS_FILE, r);
+  },
+
+  getBlacklist() {
+    if (_mdbStore) return [...MEM.blacklist];
+    const d = FileDB.read(BLACKLIST_FILE, []);
+    return Array.isArray(d) ? d : [];
+  },
+  saveBlacklist(b) {
+    if (_mdbStore) { MEM.blacklist = b; mdbSave("blacklist", b); }
+    else FileDB.write(BLACKLIST_FILE, b);
+  },
+
+  getAdminLogs() {
+    if (_mdbStore) return [...MEM.adminLogs];
+    const d = FileDB.read(ADMIN_LOGS_FILE, []);
+    return Array.isArray(d) ? d : [];
+  },
+  saveAdminLogs(l) {
+    if (_mdbStore) { MEM.adminLogs = l; mdbSave("admin_logs", l); }
+    else FileDB.write(ADMIN_LOGS_FILE, l);
   },
 
   // Legacy — kept for any migration callsite
@@ -309,6 +428,123 @@ const isValidUpi = (upi) => {
 };
 const tString = (val, maxLen) => String(val || "").trim().slice(0, maxLen);
 
+// ── Blacklist & Security ──
+const Security = {
+  isBlacklisted(phone, ip) {
+    const blacklist = DB.getBlacklist();
+    return blacklist.some(b => 
+      (phone && b.phone_number === phone) || 
+      (ip && b.ip_address === ip)
+    );
+  },
+  
+  checkBlacklist(req, res, next) {
+    const phone = normalizePhone(req.body.phone);
+    const ip = req.ip || req.headers['x-forwarded-for'];
+    if (Security.isBlacklisted(phone, ip)) {
+      return res.status(403).json({ error: true, message: "Your access has been restricted.", code: "BANNED" });
+    }
+    next();
+  }
+};
+
+// ── Trust Score Engine ──
+const TrustEngine = {
+  calculateScore(seller, orders = []) {
+    let score = 0;
+    
+    // Base scores
+    if (seller.phoneVerified) score += 10;
+    if (seller.profilePhoto) score += 10;
+    
+    // Order based
+    const deliveredCount = orders.filter(o => o.status === "delivered").length;
+    score += deliveredCount * 5;
+    
+    // Reports (deductions)
+    const reports = DB.getReports().filter(r => r.seller_id === seller.sellerId);
+    reports.forEach(r => {
+      if (r.reason === "scam") score -= 40;
+      else score -= 20; // thumbs down or other
+    });
+    
+    // Account age
+    if (seller.createdAt) {
+      const ageWeeks = Math.floor((Date.now() - new Date(seller.createdAt)) / (1000 * 60 * 60 * 24 * 7));
+      score += ageWeeks * 1;
+    }
+    
+    return score;
+  },
+
+  async updateSellerTrust(sellerId) {
+    const sellers = DB.getSellers();
+    const seller = sellers[sellerId];
+    if (!seller) return;
+
+    const orders = (DB.getOrders()[sellerId] || []);
+    const score = this.calculateScore(seller, orders);
+    
+    seller.trust_score = score;
+    
+    // Public trust signals
+    seller.total_orders = orders.length;
+    seller.fulfilled_orders = orders.filter(o => o.status === "delivered").length;
+    seller.completion_rate = seller.total_orders > 0 ? (seller.fulfilled_orders / seller.total_orders) * 100 : 0;
+    
+    const ageDays = Math.floor((Date.now() - new Date(seller.createdAt)) / (1000 * 60 * 60 * 24));
+    seller.store_age_days = ageDays;
+    
+    // Verification badge
+    seller.is_verified = (seller.phoneVerified && seller.profilePhoto && score > 30);
+    
+    // Auto-actions
+    if (score < 0) {
+      seller.status = "banned";
+      // Add to blacklist
+      const blacklist = DB.getBlacklist();
+      if (!blacklist.find(b => b.phone_number === seller.phone)) {
+        blacklist.push({
+          phone_number: seller.phone,
+          ip_address: seller.lastKnownIp || "",
+          reason: "Trust score fell below 0",
+          banned_at: new Date().toISOString(),
+          banned_by: "system"
+        });
+        DB.saveBlacklist(blacklist);
+      }
+    } else if (score < 20) {
+      seller.status = "suspended";
+    } else if (seller.status === "suspended" || seller.status === "banned") {
+      // Potentially auto-unban if score improves? Prompt says "unban" via admin.
+    } else if (!seller.status) {
+      seller.status = "active";
+    }
+
+    DB.saveSellers(sellers);
+  }
+};
+
+// ── Rate Limiting (Store Creation Cooldown) ──
+const RateLimit = {
+  canCreateStore(ip) {
+    const now = Date.now();
+    const dayAgo = now - 24 * 60 * 60 * 1000;
+    
+    if (!MEM.ipStoreCreationCount[ip]) MEM.ipStoreCreationCount[ip] = [];
+    
+    // Cleanup old records
+    MEM.ipStoreCreationCount[ip] = MEM.ipStoreCreationCount[ip].filter(t => t > dayAgo);
+    
+    return MEM.ipStoreCreationCount[ip].length < 2;
+  },
+  
+  trackStoreCreation(ip) {
+    if (!MEM.ipStoreCreationCount[ip]) MEM.ipStoreCreationCount[ip] = [];
+    MEM.ipStoreCreationCount[ip].push(Date.now());
+  }
+};
+
 // -------------------- EVENT TRACKING --------------------
 const Analytics = {
   track(type, metadata = {}) {
@@ -351,35 +587,110 @@ function requireSellerKey(req, res, next) {
   next();
 }
 
-function requireAdmin(req, res, next) {
-  const key = req.header("x-admin-secret");
-  if (!key || key !== ADMIN_SECRET) {
-    return res.status(403).json({ ok: false, error: "forbidden: invalid admin secret" });
+const jwt = require('jsonwebtoken');
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || "zentr-admin-secret-2024";
+
+function requireAdminAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: true, message: "Admin authorization required.", code: "UNAUTHORIZED" });
   }
-  next();
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
+    req.admin = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: true, message: "Invalid or expired admin session.", code: "SESSION_EXPIRED" });
+  }
 }
+
+// ── Audit Logging Helper ──
+const AuditLog = {
+  log(admin, action, targetId, notes = "") {
+    const logs = DB.getAdminLogs();
+    logs.unshift({
+      admin_id: admin.username || "system",
+      action,
+      target_seller_id: targetId,
+      timestamp: nowIso(),
+      notes
+    });
+    DB.saveAdminLogs(logs);
+  }
+};
 
 // -------------------- HEALTH CHECK --------------------
 // Health check for Cloudflare/Render
 app.get("/health", (req, res) => res.json({ status: "ok", timestamp: nowIso() }));
 app.get("/api/health", (req, res) => res.json({ ok: true, time: nowIso() }));
 
-// -------------------- ONBOARDING --------------------
-app.post("/api/onboard", (req, res) => {
-  try {
-    const { name, owner, phone, category } = req.body || {};
+// -------------------- ONBOARDING ROUTES --------------------
 
-    const storeName = tString(name, 50);
-    const ownerName = tString(owner, 50);
+app.post("/api/report", async (req, res) => {
+  try {
+    const { seller_id, order_id, reason, description } = req.body;
+    if (!seller_id || !reason) return res.status(400).json({ error: true, message: "seller_id and reason are required." });
+    
+    const reports = DB.getReports();
+    const newReport = {
+      id: "rep_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      seller_id,
+      order_id: order_id || null,
+      reason,
+      description: tString(description, 500),
+      status: "pending",
+      created_at: nowIso()
+    };
+    
+    reports.push(newReport);
+    DB.saveReports(reports);
+    
+    // Auto-flagging / Suspension logic
+    const sellerReports = reports.filter(r => r.seller_id === seller_id);
+    const sellers = DB.getSellers();
+    const seller = sellers[seller_id];
+    
+    if (seller) {
+      if (sellerReports.length >= 5) {
+         seller.status = "suspended";
+         DB.saveSellers(sellers);
+         console.log(`[system] Auto-suspended seller ${seller_id} due to 5 reports.`);
+      } else if (sellerReports.length >= 3) {
+         seller.flaggedForReview = true; // For admin panel
+         DB.saveSellers(sellers);
+         console.log(`[system] Flagged seller ${seller_id} for review due to 3 reports.`);
+      }
+      
+      // Update trust score due to new report
+      await TrustEngine.updateSellerTrust(seller_id);
+    }
+    
+    res.json({ ok: true, message: "Report submitted successfully." });
+  } catch (err) {
+    console.error("[report] error:", err);
+    res.status(500).json({ error: true, message: "Failed to submit report." });
+  }
+});
+app.post("/api/onboard", Security.checkBlacklist, async (req, res) => {
+  try {
+    const { name, storeName, owner, ownerName, phone, category } = req.body || {};
+
+    const ip = req.ip || req.headers['x-forwarded-for'];
+    if (!RateLimit.canCreateStore(ip)) {
+      return res.status(429).json({ error: true, message: "Too many stores created from this IP. Try again in 24 hours.", code: "RATE_LIMIT" });
+    }
+
+    const sName = tString(storeName || name, 50);
+    const oName = tString(ownerName || owner, 50);
     const cat = tString(category, 50);
     const norm = normalizePhone(phone);
 
-    if (!storeName || !ownerName || !norm) {
-      return res.status(400).json({ ok: false, error: "Valid 10-digit Indian phone (e.g. 9876543210), store name, and owner name are required." });
-    }
-    
-    if (storeName.length < 3 || ownerName.length < 3) {
-      return res.status(400).json({ ok: false, error: "Store and owner names must be at least 3 characters long." });
+    if (!sName || !oName || !norm) {
+      return res.status(400).json({ ok: false, error: "Valid 10-digit Indian phone, store name, and owner name are required." });
     }
 
     const sellers = DB.getSellers();
@@ -404,6 +715,15 @@ app.post("/api/onboard", (req, res) => {
       phone: norm,
       category: tString(category, 50) || "Other",
       createdAt: nowIso(),
+      phoneVerified: true, // Set to true after OTP verify
+      trust_score: 10,     // Initial score for phone verification
+      is_verified: false,
+      status: "active",
+      total_orders: 0,
+      fulfilled_orders: 0,
+      completion_rate: 0,
+      store_age_days: 0,
+      lastKnownIp: ip,
       // Payment info (v1) - COD enabled by default
       payment: {
         codEnabled: true,
@@ -411,7 +731,10 @@ app.post("/api/onboard", (req, res) => {
         paymentNote: ""
       }
     };
+    
     DB.saveSellers(sellers);
+    RateLimit.trackStoreCreation(ip);
+    
     Analytics.track("STORE_CREATED", { sellerId, storeName: name });
 
     console.log(`[onboard] new seller created: ${sellerId} (${storeName})`);
@@ -429,12 +752,27 @@ app.get("/api/public/sellers/:sellerId", (req, res) => {
   const sellers = DB.getSellers();
   const seller = sellers[req.params.sellerId];
   if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
-  // Return only public info
+  
+  // Check if seller is banned or suspended
+  if (seller.status === "banned") {
+    return res.status(403).json({ error: true, message: "This store has been banned for violating our terms.", code: "BANNED" });
+  }
+  if (seller.status === "suspended") {
+    return res.status(403).json({ error: true, message: "This store is currently suspended pending admin review.", code: "SUSPENDED" });
+  }
+
+  // Return public info + trust signals
   res.json({
     ok: true,
     storeName: seller.storeName,
     category: seller.category,
     phone: seller.phone,
+    is_verified: !!seller.is_verified,
+    trust_score: seller.trust_score || 0,
+    total_orders: seller.total_orders || 0,
+    fulfilled_orders: seller.fulfilled_orders || 0,
+    completion_rate: seller.completion_rate || 0,
+    store_age_days: seller.store_age_days || 0,
     isMongoConnected: !!_mdbStore
   });
 });
@@ -489,7 +827,16 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
     const { items, delivery, buyerName, buyerPhone, buyerAddress, paymentMethod } = req.body || {};
 
     const sellers = DB.getSellers();
-    if (!sellers[sellerId]) return res.status(404).json({ ok: false, error: "seller not found" });
+    const seller = sellers[sellerId];
+    if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
+
+    // Shadow Limit / Block check
+    if (seller.status === "shadow_limited") {
+      return res.status(403).json({ error: true, message: "This store is currently not accepting new orders.", code: "SHADOW_LIMITED" });
+    }
+    if (seller.status === "suspended" || seller.status === "banned") {
+      return res.status(403).json({ error: true, message: "This store is inactive.", code: "INACTIVE" });
+    }
 
     const idemKey = getIdempotencyKey(req);
     const ordersDb = DB.getOrders();
@@ -650,13 +997,13 @@ app.get("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
 });
 
 // Update store info (seller-authenticated)
-app.patch("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
+app.patch("/api/sellers/:sellerId", requireSellerKey, async (req, res) => {
   try {
     const sellers = DB.getSellers();
     const seller = sellers[req.params.sellerId];
     if (!seller) return res.status(404).json({ ok: false, error: "seller not found" });
 
-    const { storeName, ownerName, category } = req.body || {};
+    const { storeName, ownerName, category, profilePhoto } = req.body || {};
 
     if (storeName !== undefined) {
       const val = tString(storeName, 50);
@@ -671,10 +1018,17 @@ app.patch("/api/sellers/:sellerId", requireSellerKey, (req, res) => {
     if (category !== undefined) {
       seller.category = tString(category, 50);
     }
+    if (profilePhoto !== undefined) {
+      seller.profilePhoto = profilePhoto; // URL from upload
+    }
 
     seller.updatedAt = nowIso();
     DB.saveSellers(sellers);
-    res.json({ ok: true, seller: { storeName: seller.storeName, ownerName: seller.ownerName, category: seller.category } });
+    
+    // Recalculate trust on profile update (+10 if profilePhoto added)
+    await TrustEngine.updateSellerTrust(req.params.sellerId);
+    
+    res.json({ ok: true, seller: { storeName: seller.storeName, ownerName: seller.ownerName, category: seller.category, profilePhoto: seller.profilePhoto } });
   } catch (err) {
     console.error("[seller PATCH] error:", err);
     res.status(500).json({ ok: false, error: "server error" });
@@ -717,14 +1071,241 @@ app.patch("/api/sellers/:sellerId/payment", requireSellerKey, (req, res) => {
   }
 });
 
-app.get("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
-  try {
-    const products = DB.getProducts().filter((p) => p.sellerId === req.params.sellerId);
-    res.json({ ok: true, products });
-  } catch (err) {
-    console.error("[seller products GET] error:", err);
-    res.status(500).json({ ok: false, error: "server error" });
+// -------------------- ADMIN PANEL --------------------
+const adminRouter = express.Router();
+
+adminRouter.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    const token = jwt.sign({ username }, ADMIN_JWT_SECRET, { expiresIn: '8h' });
+    return res.json({ ok: true, token });
   }
+  res.status(401).json({ error: true, message: "Invalid credentials." });
+});
+
+adminRouter.use(requireAdminAuth);
+
+adminRouter.get("/stats", (req, res) => {
+  const sellers = Object.values(DB.getSellers());
+  const orders = Object.values(DB.getOrders()).flat();
+  const products = DB.getProducts();
+  const events = DB.getEvents();
+  const reports = DB.getReports();
+  
+  const today = new Date().toISOString().split('T')[0];
+  const ordersToday = orders.filter(o => o.createdAt?.startsWith(today)).length;
+
+  const validOrders = orders.filter(o => o.status !== "cancelled");
+  const grossRevenue = validOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+  const storesWithProduct = new Set(products.map(p => p.sellerId)).size;
+  const storesWithOrder = new Set(orders.map(o => o.sellerId)).size;
+
+  const byStatus = {};
+  const byPaymentStatus = {};
+  const byPaymentMethod = {};
+  
+  orders.forEach(o => {
+    byStatus[o.status || 'pending'] = (byStatus[o.status || 'pending'] || 0) + 1;
+    byPaymentStatus[o.paymentStatus || 'unpaid'] = (byPaymentStatus[o.paymentStatus || 'unpaid'] || 0) + 1;
+    byPaymentMethod[o.paymentMethod || 'unknown'] = (byPaymentMethod[o.paymentMethod || 'unknown'] || 0) + 1;
+  });
+
+  const createdNoProduct = sellers.filter(s => !products.some(p => p.sellerId === s.sellerId));
+  const productButNoOrder = sellers.filter(s => products.some(p => p.sellerId === s.sellerId) && !orders.some(o => o.sellerId === s.sellerId));
+  const missingPaymentSetup = sellers.filter(s => !s.payment || (!s.payment.codEnabled && !s.payment.upiId));
+
+  res.json({
+    ok: true,
+    generatedAt: nowIso(),
+    isMongoConnected: !!_mdbStore,
+    core: {
+      totalStores: sellers.length,
+      totalProducts: products.length,
+      totalStoreVisits: events.filter(e => e.type === "STORE_VIEWED" || e.type === "BUYER_PAGE_OPEN").length,
+      totalOrders: orders.length,
+      grossRevenue,
+      paidOrders: orders.filter(o => o.paymentStatus === "paid").length,
+      deliveredOrders: orders.filter(o => o.status === "delivered").length,
+      avgOrderValue: validOrders.length ? Math.round(grossRevenue / validOrders.length) : 0,
+      totalCartsStarted: events.filter(e => e.type === "BUYER_PAGE_OPEN").length
+    },
+    sellerHealth: {
+      storesWithProduct,
+      storesWithOrder,
+      storesActiveWeek: sellers.filter(s => s.status === 'active').length, // simplification
+      storesZeroProducts: sellers.length - storesWithProduct,
+      avgProductsPerStore: sellers.length ? (products.length / sellers.length).toFixed(1) : 0
+    },
+    orderAnalytics: {
+      ordToday: ordersToday,
+      ordWeek: orders.length, // simplification
+      ordMonth: orders.length, // simplification
+      byStatus,
+      byPaymentStatus,
+      byPaymentMethod,
+    },
+    alerts: {
+      createdNoProduct,
+      productButNoOrder,
+      unpaidOld: orders.filter(o => (o.paymentStatus || 'unpaid') === 'unpaid'), // simplified
+      stuckPending: orders.filter(o => o.status === 'pending'), // simplified
+      missingPaymentSetup
+    },
+    recentEvents: events.slice(-50).reverse()
+  });
+});
+
+adminRouter.get("/sellers", (req, res) => {
+  let { status, sort, page = 1, limit = 20 } = req.query;
+  let sellers = Object.values(DB.getSellers());
+
+  if (status) sellers = sellers.filter(s => s.status === status || (status === "flagged" && s.flaggedForReview));
+  
+  if (sort === "trust_score") sellers.sort((a, b) => (b.trust_score || 0) - (a.trust_score || 0));
+  else if (sort === "created_at") sellers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  else if (sort === "total_orders") sellers.sort((a, b) => (b.total_orders || 0) - (a.total_orders || 0));
+
+  const start = (page - 1) * limit;
+  const paginated = sellers.slice(start, start + limit);
+
+  res.json({
+    ok: true,
+    total: sellers.length,
+    page: Number(page),
+    limit: Number(limit),
+    sellers: paginated
+  });
+});
+
+adminRouter.get("/sellers/:id", (req, res) => {
+  const seller = DB.getSellers()[req.params.id];
+  if (!seller) return res.status(404).json({ error: true, message: "Seller not found." });
+  
+  const orders = (DB.getOrders()[req.params.id] || []);
+  const reports = DB.getReports().filter(r => r.seller_id === req.params.id);
+  
+  res.json({
+    ok: true,
+    seller: { ...seller, orders, reports }
+  });
+});
+
+adminRouter.patch("/sellers/:id/status", async (req, res) => {
+  const { action } = req.body;
+  const sellers = DB.getSellers();
+  const seller = sellers[req.params.id];
+  if (!seller) return res.status(404).json({ error: true, message: "Seller not found." });
+
+  let note = `Status changed to ${action}`;
+
+  switch(action) {
+    case "warn":
+      // In a real app, send WhatsApp message via Twilio/API
+      note = "Sent warning message to seller via WhatsApp.";
+      break;
+    case "suspend":
+      seller.status = "suspended";
+      break;
+    case "shadow_limit":
+      seller.status = "shadow_limited";
+      break;
+    case "ban":
+      seller.status = "banned";
+      // Add to blacklist
+      const blacklist = DB.getBlacklist();
+      if (!blacklist.find(b => b.phone_number === seller.phone)) {
+        blacklist.push({
+          phone_number: seller.phone,
+          ip_address: seller.lastKnownIp || "",
+          reason: "Manual ban by admin",
+          banned_at: nowIso(),
+          banned_by: req.admin.username
+        });
+        DB.saveBlacklist(blacklist);
+      }
+      break;
+    case "unban":
+      seller.status = "active";
+      seller.flaggedForReview = false;
+      // Remove from blacklist
+      const bList = DB.getBlacklist().filter(b => b.phone_number !== seller.phone);
+      DB.saveBlacklist(bList);
+      break;
+    default:
+      return res.status(400).json({ error: true, message: "Invalid action." });
+  }
+
+  DB.saveSellers(sellers);
+  AuditLog.log(req.admin, action, req.params.id, note);
+  res.json({ ok: true, status: seller.status });
+});
+
+adminRouter.get("/reports", (req, res) => {
+  const { status, reason } = req.query;
+  let reports = DB.getReports();
+  if (status) reports = reports.filter(r => r.status === status);
+  if (reason) reports = reports.filter(r => r.reason === reason);
+  res.json({ ok: true, reports });
+});
+
+adminRouter.patch("/reports/:id", (req, res) => {
+  const { status } = req.body;
+  const reports = DB.getReports();
+  const report = reports.find(r => r.id === req.params.id);
+  if (!report) return res.status(404).json({ error: true, message: "Report not found." });
+  
+  report.status = status;
+  DB.saveReports(reports);
+  AuditLog.log(req.admin, `report_${status}`, report.seller_id, `Report ${req.params.id} marked as ${status}`);
+  res.json({ ok: true, report });
+});
+
+adminRouter.get("/anomalies", (req, res) => {
+  const sellers = Object.values(DB.getSellers());
+  const now = Date.now();
+  const hourAgo = now - 3600000;
+  const dayAgo = now - 86400000;
+  const weekAgo = now - 7 * 86400000;
+
+  const anomalies = sellers.filter(s => {
+    const orders = (DB.getOrders()[s.sellerId] || []);
+    const recentOrders = orders.filter(o => new Date(o.createdAt) > hourAgo);
+    const dailyOrders = orders.filter(o => new Date(o.createdAt) > dayAgo);
+    const reports = DB.getReports().filter(r => r.seller_id === s.sellerId && new Date(r.created_at) > weekAgo);
+    
+    const isNew = new Date(s.createdAt) > dayAgo;
+    
+    return (
+      recentOrders.length > 20 || // 20 orders in 1 hour
+      reports.length > 3 ||       // 3 reports in 7 days
+      (isNew && dailyOrders.length > 10) // New account (>10 orders in 24h)
+    );
+  });
+
+  res.json({ ok: true, anomalies });
+});
+
+adminRouter.get("/logs", (req, res) => {
+  const { page = 1, limit = 50 } = req.query;
+  const logs = DB.getAdminLogs();
+  const start = (page - 1) * limit;
+  res.json({
+    ok: true,
+    total: logs.length,
+    page: Number(page),
+    limit: Number(limit),
+    logs: logs.slice(start, start + limit)
+  });
+});
+
+app.use("/admin", adminRouter);
+
+app.post("/api/otp/send", Security.checkBlacklist, (req, res) => {
+  const phone = normalizePhone(req.body.phone);
+  if (!phone) return res.status(400).json({ error: true, message: "Valid 10-digit phone number required." });
+  OTPService.sendOTP(phone);
+  res.json({ ok: true, message: "OTP sent successfully." });
 });
 
 app.post("/api/sellers/:sellerId/products", requireSellerKey, (req, res) => {
@@ -912,7 +1493,7 @@ app.get("/api/sellers/:sellerId/orders", requireSellerKey, (req, res) => {
   }
 });
 
-app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, (req, res) => {
+app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, async (req, res) => {
   try {
     const ordersDb = DB.getOrders();
     const sellerOrders = ordersDb[req.params.sellerId] || [];
@@ -947,7 +1528,11 @@ app.patch("/api/sellers/:sellerId/orders/:orderId", requireSellerKey, (req, res)
     if (!Array.isArray(order.history)) order.history = [];
     order.history.push({ status: next, at: order.updatedAt });
 
-    if (next === "delivered") Analytics.track("ORDER_DELIVERED", { orderId: order.id, sellerId: req.params.sellerId, total: order.total });
+    if (next === "delivered") {
+      Analytics.track("ORDER_DELIVERED", { orderId: order.id, sellerId: req.params.sellerId, total: order.total });
+      // Update trust score on delivery (+5)
+      await TrustEngine.updateSellerTrust(req.params.sellerId);
+    }
 
     DB.saveOrders(ordersDb);
     res.json({ ok: true, order });
@@ -1090,14 +1675,6 @@ function buildAdminStats() {
   };
 }
 
-app.get("/api/admin/stats", requireAdmin, (req, res) => {
-  try {
-    res.json({ ok: true, isMongoConnected: !!_mdbStore, ...buildAdminStats() });
-  } catch (err) {
-    console.error("[admin stats GET] error:", err);
-    res.status(500).json({ ok: false, error: "server error generating stats" });
-  }
-});
 
 // -------------------- FALLBACK --------------------
 app.use((req, res) => res.status(404).json({ ok: false, error: "not found" }));
@@ -1109,26 +1686,54 @@ async function startServer() {
   // Connect to MongoDB and pre-load data before serving any requests
   await connectMongo();
 
+  // Ensure data is loaded (either from Mongo or JSON fallback)
+  if (!_mdbStore) {
+    FileDB.loadAll();
+  }
+
   // Ensure local fallback files exist (no-op if MongoDB is active)
   try { FileDB.ensure(); } catch (_) { }
 
-  // Migrate existing sellers that are missing the payment field
+  // Migrate existing sellers that are missing fields
   try {
     const sellers = DB.getSellers();
     let migrated = false;
     Object.values(sellers).forEach(s => {
+      let changed = false;
       if (!s.payment) {
         s.payment = { codEnabled: false, upiId: "", paymentNote: "" };
-        migrated = true;
+        changed = true;
       }
+      if (s.trust_score === undefined) {
+        s.trust_score = 100;
+        changed = true;
+      }
+      if (!s.status) {
+        s.status = "active";
+        changed = true;
+      }
+      if (changed) migrated = true;
     });
     if (migrated) {
       DB.saveSellers(sellers);
-      console.log("[startup] migrated sellers: added missing payment field");
+      console.log("[startup] migrated sellers: added missing fields (payment, trust_score, status)");
     }
   } catch (e) {
     console.warn("[startup] migration failed:", e.message);
   }
+
+  // Health check for monitoring
+  app.get("/api/health", (req, res) => res.json({ ok: true, timestamp: new Date().toISOString() }));
+
+  // Global Error Handler for Express
+  app.use((err, req, res, next) => {
+    console.error("🔥 Express Error:", err.stack);
+    res.status(500).json({ 
+      ok: false, 
+      error: "Internal Server Error", 
+      message: process.env.NODE_ENV === 'development' ? err.message : "Something went wrong on our end."
+    });
+  });
 
   const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n🚀 Zentr v1 Server running on http://0.0.0.0:${PORT}`);

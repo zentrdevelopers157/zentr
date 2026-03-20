@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "prod_1773934509261_y9utf",
+    "sellerId": "s_d85gyzmt",
+    "name": "Premium AI Shirt V2",
+    "category": "",
+    "price": 999,
+    "stock": 24,
+    "options": [],
+    "desc": "Verified by Antigravity v2.",
+    "image_url": "https://picsum.photos/seed/zentr_v2/400/400",
+    "images": [
+      "https://picsum.photos/seed/zentr_v2/400/400",
+      "https://picsum.photos/seed/zentr_v2/400/400"
+    ],
+    "videoUrl": "",
+    "createdAt": "2026-03-19T15:35:09.261Z"
+  }
+]

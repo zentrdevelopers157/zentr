@@ -394,44 +394,48 @@
             <h2 class="form-title">Create your store</h2>
             <p class="form-sub">Fill in your details to get your seller dashboard instantly.</p>
 
-            <div class="field-group">
-                <label>Store Name *</label>
-                <input type="text" id="storeName" placeholder="e.g. Trendy Fits" autocomplete="off" />
-            </div>
 
-            <div class="field-group">
-                <label>Your Name *</label>
-                <input type="text" id="sellerName" placeholder="e.g. Jane Doe" autocomplete="off" />
-            </div>
+            <div id="initialSection">
+                <div class="field-group">
+                    <label>Store Name *</label>
+                    <input type="text" id="storeName" placeholder="e.g. Trendy Fits" autocomplete="off" />
+                </div>
 
-            <div class="field-group">
-                <label>WhatsApp Number *</label>
-                <input type="tel" id="sellerPhone" placeholder="+91 9876543210" autocomplete="tel" />
-            </div>
+                <div class="field-group">
+                    <label>Your Name *</label>
+                    <input type="text" id="sellerName" placeholder="e.g. Jane Doe" autocomplete="off" />
+                </div>
 
-            <div class="field-group">
-                <label>Category *</label>
-                <select id="storeCategory" style="width:100%; padding:13px; background:rgba(255,255,255,.05); border:1px solid var(--stroke); border-radius:12px; color:var(--text); font-family:inherit; outline:none;">
-                    <option value="" disabled selected>Select a category</option>
-                    <option value="Apparel / Clothing">Apparel / Clothing</option>
-                    <option value="Women’s Boutique">Women’s Boutique</option>
-                    <option value="Men’s Fashion">Men’s Fashion</option>
-                    <option value="Jewelry">Jewelry</option>
-                    <option value="Footwear">Footwear</option>
-                    <option value="Beauty / Cosmetics">Beauty / Cosmetics</option>
-                    <option value="Home Bakers">Home Bakers</option>
-                    <option value="Cakes & Desserts">Cakes & Desserts</option>
-                    <option value="Electronics Accessories">Electronics Accessories</option>
-                    <option value="Stationery">Stationery</option>
-                    <option value="Home Decor">Home Decor</option>
-                    <option value="Gift Store">Gift Store</option>
-                    <option value="Thrift / Reselling">Thrift / Reselling</option>
-                    <option value="Handmade Products">Handmade Products</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
+                <div class="field-group">
+                    <label>WhatsApp Number *</label>
+                    <input type="tel" id="sellerPhone" placeholder="+91 9876543210" autocomplete="tel" />
+                </div>
 
-            <button class="submit-btn" id="createBtn">Create My Store</button>
+                <div class="field-group">
+                    <label>Category *</label>
+                    <select id="storeCategory"
+                        style="width:100%; padding:13px; background:rgba(255,255,255,.05); border:1px solid var(--stroke); border-radius:12px; color:var(--text); font-family:inherit; outline:none;">
+                        <option value="" disabled selected>Select a category</option>
+                        <option value="Apparel / Clothing">Apparel / Clothing</option>
+                        <option value="Women’s Boutique">Women’s Boutique</option>
+                        <option value="Men’s Fashion">Men’s Fashion</option>
+                        <option value="Jewelry">Jewelry</option>
+                        <option value="Footwear">Footwear</option>
+                        <option value="Beauty / Cosmetics">Beauty / Cosmetics</option>
+                        <option value="Home Bakers">Home Bakers</option>
+                        <option value="Cakes & Desserts">Cakes & Desserts</option>
+                        <option value="Electronics Accessories">Electronics Accessories</option>
+                        <option value="Stationery">Stationery</option>
+                        <option value="Home Decor">Home Decor</option>
+                        <option value="Gift Store">Gift Store</option>
+                        <option value="Thrift / Reselling">Thrift / Reselling</option>
+                        <option value="Handmade Products">Handmade Products</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <button class="submit-btn" id="createBtn">Create My Store</button>
+            </div>
         </div>
 
         <div id="welcomeScreen">
@@ -442,7 +446,9 @@
 
                 <h2 class="welcome-title">Welcome to Zentr! <br><span class="welcome-name" id="welcomeName">Store</span>
                 </h2>
-                <p class="welcome-sub">Your store is live. Share the buyer link with customers.</p>
+                <p class="welcome-sub" id="welcomeSub">Your store is live. Share the buyer link with customers.<br><span
+                        style="font-size:12px;opacity:0.7">Redirecting to your dashboard in <span
+                            id="countdown">5</span>s...</span></p>
 
                 <div class="links-box">
                     <div class="link-row">
@@ -499,23 +505,22 @@
             const phone = $("sellerPhone").value.trim();
             const category = $("storeCategory").value.trim();
 
-            if (!name || !owner || !phone || !category) return showToast("Please fill all required fields.");
+            if (!phone) return showToast("Please enter your phone number.");
+            const cleanPhone = phone.replace(/\D/g, "");
+            if (cleanPhone.length < 10) return showToast("Please enter a valid 10-digit phone number.");
 
             const btn = $("createBtn");
             btn.disabled = true;
             btn.textContent = "Creating...";
 
-            $("dot1").classList.add("done"); $("dot1").classList.remove("active");
-            $("dot2").classList.add("active");
-
             try {
                 const res = await fetch("/api/onboard", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, owner, phone, category })
+                    body: JSON.stringify({ name, owner, phone: cleanPhone, category })
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Failed");
+                if (!res.ok) throw new Error(data.error || "Failed to create store");
 
                 localStorage.setItem("zentr_store", JSON.stringify({
                     sellerId: data.sellerId,
@@ -535,12 +540,20 @@
                 $("formCard").style.display = "none";
                 $("welcomeScreen").style.display = "block";
 
-                setTimeout(() => { location.href = dashUrl; }, 10000);
+                let seconds = 5;
+                const timer = setInterval(() => {
+                    seconds--;
+                    if ($("countdown")) $("countdown").textContent = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        location.href = dashUrl;
+                    }
+                }, 1000);
+
             } catch (err) {
                 showToast("❌ " + err.message);
                 btn.disabled = false;
-                btn.textContent = "Create My Store";
-                $("dot2").classList.remove("active"); $("dot1").classList.add("active");
+                btn.textContent = "Verify & Create My Store";
             }
         });
     </script>

@@ -123,5 +123,170 @@
     "type": "STORE_CREATED",
     "timestamp": "2026-03-20T06:11:26.875Z",
     "sellerId": "s_k1hapks9"
+  },
+  {
+    "id": "evt_1774032956384_pvv2t",
+    "type": "STORE_CREATED",
+    "timestamp": "2026-03-20T18:55:56.385Z",
+    "sellerId": "s_07rv1kkf"
+  },
+  {
+    "id": "evt_1774032956445_tvtlp",
+    "type": "PRODUCT_ADDED",
+    "timestamp": "2026-03-20T18:55:56.445Z",
+    "sellerId": "s_07rv1kkf",
+    "productId": "prod_1774032956431_v7hu4"
+  },
+  {
+    "id": "evt_1774032974389_qlvc5",
+    "type": "STORE_CREATED",
+    "timestamp": "2026-03-20T18:56:14.389Z",
+    "sellerId": "s_dt1x1gpk"
+  },
+  {
+    "id": "evt_1774032974429_5hsfx",
+    "type": "PRODUCT_ADDED",
+    "timestamp": "2026-03-20T18:56:14.429Z",
+    "sellerId": "s_dt1x1gpk",
+    "productId": "prod_1774032974423_j6npf"
+  },
+  {
+    "id": "evt_1774594356606_wjgxm",
+    "type": "STORE_CREATED",
+    "timestamp": "2026-03-27T06:52:36.608Z",
+    "sellerId": "s_lukna9ff",
+    "storeName": "Test Store"
+  },
+  {
+    "id": "evt_1774594475046_rdn3y",
+    "type": "PRODUCT_ADDED",
+    "timestamp": "2026-03-27T06:54:35.046Z",
+    "sellerId": "s_lukna9ff",
+    "productId": "prod_1774594475027_07a8y"
+  },
+  {
+    "id": "evt_1774594604733_kga7b",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T06:56:44.733Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594604756_8i7xp",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T06:56:44.756Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594611641_fibs2",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T06:56:51.641Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594611657_ti30k",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T06:56:51.657Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594717715_0xs3q",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T06:58:37.715Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594717739_47y2v",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T06:58:37.739Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594769349_j7d1p",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T06:59:29.349Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594769375_azksz",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T06:59:29.375Z",
+    "sellerId": "s_lukna9ff"
+  },
+  {
+    "id": "evt_1774594882900_4w8sp",
+    "type": "ORDER_PLACED",
+    "timestamp": "2026-03-27T07:01:22.900Z",
+    "sellerId": "s_lukna9ff",
+    "orderId": "ord_1774594882878_1o0s3",
+    "total": 150,
+    "itemsCount": 1
+  },
+  {
+    "id": "evt_1774595171258_ju2ba",
+    "type": "STORE_CREATED",
+    "timestamp": "2026-03-27T07:06:11.258Z",
+    "sellerId": "s_7k8wz352",
+    "storeName": "Audit Store"
+  },
+  {
+    "id": "evt_1774595590378_0a6lz",
+    "type": "PRODUCT_ADDED",
+    "timestamp": "2026-03-27T07:13:10.378Z",
+    "sellerId": "s_7k8wz352",
+    "productId": "prod_1774595590339_02pxx"
+  },
+  {
+    "id": "evt_1774595615233_dj9nq",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T07:13:35.233Z",
+    "sellerId": "s_7k8wz352"
+  },
+  {
+    "id": "evt_1774595615283_hdrtq",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T07:13:35.283Z",
+    "sellerId": "s_7k8wz352"
+  },
+  {
+    "id": "evt_1774595672321_qvq32",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T07:14:32.321Z",
+    "sellerId": "s_7k8wz352"
+  },
+  {
+    "id": "evt_1774595672403_tfqgn",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T07:14:32.403Z",
+    "sellerId": "s_7k8wz352"
+  },
+  {
+    "id": "evt_1774595736687_9i4fn",
+    "type": "ORDER_PLACED",
+    "timestamp": "2026-03-27T07:15:36.687Z",
+    "sellerId": "s_7k8wz352",
+    "orderId": "ord_1774595736679_bthw7",
+    "total": 10,
+    "itemsCount": 1
+  },
+  {
+    "id": "evt_1774595745410_7kqkh",
+    "type": "BUYER_PAGE_OPEN",
+    "timestamp": "2026-03-27T07:15:45.410Z",
+    "sellerId": "s_7k8wz352"
+  },
+  {
+    "id": "evt_1774595745424_2rswr",
+    "type": "STORE_VIEWED",
+    "timestamp": "2026-03-27T07:15:45.424Z",
+    "sellerId": "s_7k8wz352"
+  },
+  {
+    "id": "evt_1774595808416_kjijy",
+    "type": "ORDER_PLACED",
+    "timestamp": "2026-03-27T07:16:48.417Z",
+    "sellerId": "s_7k8wz352",
+    "orderId": "ord_1774595808405_g7aw3",
+    "total": 10,
+    "itemsCount": 1
   }
 ]

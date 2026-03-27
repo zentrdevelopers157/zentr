@@ -37,5 +37,93 @@
       "upiId": "",
       "paymentNote": ""
     }
+  },
+  "s_07rv1kkf": {
+    "sellerId": "s_07rv1kkf",
+    "sellerKey": "fb55e086280215bafbe10194bfaceaf85de23d19",
+    "storeName": "Test Fix Store",
+    "ownerName": "QA Tester",
+    "phone": "9111111111",
+    "category": "Electronics",
+    "createdAt": "2026-03-20T18:55:56.377Z",
+    "phoneVerified": true,
+    "trust_score": 10,
+    "is_verified": false,
+    "status": "active",
+    "total_orders": 0,
+    "fulfilled_orders": 0,
+    "completion_rate": 0,
+    "store_age_days": 0,
+    "lastKnownIp": "127.0.0.1",
+    "payment": {
+      "codEnabled": true,
+      "upiId": "",
+      "paymentNote": ""
+    }
+  },
+  "s_dt1x1gpk": {
+    "sellerId": "s_dt1x1gpk",
+    "sellerKey": "e288459fd4073ee5b41d3d039df7bc71b4f19257",
+    "storeName": "Updated Store Name",
+    "ownerName": "Updated Owner",
+    "phone": "9222222222",
+    "category": "Electronics",
+    "createdAt": "2026-03-20T18:56:14.383Z",
+    "phoneVerified": true,
+    "trust_score": 10,
+    "status": "suspended",
+    "total_orders": 0,
+    "fulfilled_orders": 0,
+    "completion_rate": 0,
+    "store_age_days": 0,
+    "lastKnownIp": "127.0.0.1",
+    "payment": {
+      "codEnabled": true,
+      "upiId": "",
+      "paymentNote": ""
+    },
+    "updatedAt": "2026-03-20T18:56:14.458Z"
+  },
+  "s_lukna9ff": {
+    "sellerId": "s_lukna9ff",
+    "sellerKey": "e730063bfb5c42f69bdc3ef9d71c7966b0b9898b",
+    "phone": "9876543211",
+    "category": "Beauty / Cosmetics",
+    "createdAt": "2026-03-27T06:52:36.592Z",
+    "phoneVerified": true,
+    "trust_score": 10,
+    "is_verified": false,
+    "status": "active",
+    "total_orders": 0,
+    "fulfilled_orders": 0,
+    "completion_rate": 0,
+    "store_age_days": 0,
+    "lastKnownIp": "127.0.0.1",
+    "payment": {
+      "codEnabled": true,
+      "upiId": "",
+      "paymentNote": ""
+    }
+  },
+  "s_7k8wz352": {
+    "sellerId": "s_7k8wz352",
+    "sellerKey": "1dabb7eddd5959765ee1fe146d5934aff2cbef80",
+    "phone": "1234567890",
+    "category": "Footwear",
+    "createdAt": "2026-03-27T07:06:11.250Z",
+    "phoneVerified": true,
+    "trust_score": 10,
+    "is_verified": false,
+    "status": "active",
+    "total_orders": 0,
+    "fulfilled_orders": 0,
+    "completion_rate": 0,
+    "store_age_days": 0,
+    "lastKnownIp": "127.0.0.1",
+    "payment": {
+      "codEnabled": true,
+      "upiId": "",
+      "paymentNote": ""
+    }
   }
 }

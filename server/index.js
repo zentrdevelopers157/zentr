@@ -448,7 +448,7 @@ const Security = {
     const phone = normalizePhone(req.body.phone);
     const ip = req.ip || req.headers['x-forwarded-for'];
     if (Security.isBlacklisted(phone, ip)) {
-      return res.status(403).json({ error: true, message: "Your access has been restricted.", code: "BANNED" });
+      return res.status(403).json({ ok: false, error: "Your access has been restricted.", code: "BANNED" });
     }
     next();
   }
@@ -519,7 +519,7 @@ const TrustEngine = {
         });
         DB.saveBlacklist(blacklist);
       }
-    } else if (score < 20) {
+    } else if (score < 5) {
       seller.status = "suspended";
     } else if (seller.status === "suspended" || seller.status === "banned") {
       // Potentially auto-unban if score improves? Prompt says "unban" via admin.
@@ -601,7 +601,7 @@ const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || "zentr-admin-secret-202
 function requireAdminAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: true, message: "Admin authorization required.", code: "UNAUTHORIZED" });
+    return res.status(401).json({ ok: false, error: "Admin authorization required.", code: "UNAUTHORIZED" });
   }
 
   const token = authHeader.split(' ')[1];
@@ -610,7 +610,7 @@ function requireAdminAuth(req, res, next) {
     req.admin = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: true, message: "Invalid or expired admin session.", code: "SESSION_EXPIRED" });
+    return res.status(401).json({ ok: false, error: "Invalid or expired admin session.", code: "SESSION_EXPIRED" });
   }
 }
 
@@ -639,7 +639,7 @@ app.get("/api/health", (req, res) => res.json({ ok: true, time: nowIso() }));
 app.post("/api/report", async (req, res) => {
   try {
     const { seller_id, order_id, reason, description } = req.body;
-    if (!seller_id || !reason) return res.status(400).json({ error: true, message: "seller_id and reason are required." });
+    if (!seller_id || !reason) return res.status(400).json({ ok: false, error: "seller_id and reason are required." });
     
     const reports = DB.getReports();
     const newReport = {
@@ -678,7 +678,7 @@ app.post("/api/report", async (req, res) => {
     res.json({ ok: true, message: "Report submitted successfully." });
   } catch (err) {
     console.error("[report] error:", err);
-    res.status(500).json({ error: true, message: "Failed to submit report." });
+    res.status(500).json({ ok: false, error: "Failed to submit report." });
   }
 });
 app.post("/api/onboard", Security.checkBlacklist, async (req, res) => {
@@ -687,7 +687,7 @@ app.post("/api/onboard", Security.checkBlacklist, async (req, res) => {
 
     const ip = req.ip || req.headers['x-forwarded-for'];
     if (!RateLimit.canCreateStore(ip)) {
-      return res.status(429).json({ error: true, message: "Too many stores created from this IP. Try again in 24 hours.", code: "RATE_LIMIT" });
+      return res.status(429).json({ ok: false, error: "Too many stores created from this IP. Try again in 24 hours.", code: "RATE_LIMIT" });
     }
 
     const sName = tString(storeName || name, 50);
@@ -761,10 +761,10 @@ app.get("/api/public/sellers/:sellerId", (req, res) => {
   
   // Check if seller is banned or suspended
   if (seller.status === "banned") {
-    return res.status(403).json({ error: true, message: "This store has been banned for violating our terms.", code: "BANNED" });
+    return res.status(403).json({ ok: false, error: "This store has been banned for violating our terms.", code: "BANNED" });
   }
   if (seller.status === "suspended") {
-    return res.status(403).json({ error: true, message: "This store is currently suspended pending admin review.", code: "SUSPENDED" });
+    return res.status(403).json({ ok: false, error: "This store is currently suspended pending admin review.", code: "SUSPENDED" });
   }
 
   // Return public info + trust signals
@@ -838,10 +838,10 @@ app.post("/api/public/sellers/:sellerId/checkout", (req, res) => {
 
     // Shadow Limit / Block check
     if (seller.status === "shadow_limited") {
-      return res.status(403).json({ error: true, message: "This store is currently not accepting new orders.", code: "SHADOW_LIMITED" });
+      return res.status(403).json({ ok: false, error: "This store is currently not accepting new orders.", code: "SHADOW_LIMITED" });
     }
     if (seller.status === "suspended" || seller.status === "banned") {
-      return res.status(403).json({ error: true, message: "This store is inactive.", code: "INACTIVE" });
+      return res.status(403).json({ ok: false, error: "This store is inactive.", code: "INACTIVE" });
     }
 
     const idemKey = getIdempotencyKey(req);
@@ -1086,7 +1086,7 @@ adminRouter.post("/login", (req, res) => {
     const token = jwt.sign({ username }, ADMIN_JWT_SECRET, { expiresIn: '8h' });
     return res.json({ ok: true, token });
   }
-  res.status(401).json({ error: true, message: "Invalid credentials." });
+  res.status(401).json({ ok: false, error: "Invalid credentials." });
 });
 
 adminRouter.use(requireAdminAuth);
@@ -1186,7 +1186,7 @@ adminRouter.get("/sellers", (req, res) => {
 
 adminRouter.get("/sellers/:id", (req, res) => {
   const seller = DB.getSellers()[req.params.id];
-  if (!seller) return res.status(404).json({ error: true, message: "Seller not found." });
+  if (!seller) return res.status(404).json({ ok: false, error: "Seller not found." });
   
   const orders = (DB.getOrders()[req.params.id] || []);
   const reports = DB.getReports().filter(r => r.seller_id === req.params.id);
@@ -1201,7 +1201,7 @@ adminRouter.patch("/sellers/:id/status", async (req, res) => {
   const { action } = req.body;
   const sellers = DB.getSellers();
   const seller = sellers[req.params.id];
-  if (!seller) return res.status(404).json({ error: true, message: "Seller not found." });
+  if (!seller) return res.status(404).json({ ok: false, error: "Seller not found." });
 
   let note = `Status changed to ${action}`;
 
@@ -1239,7 +1239,7 @@ adminRouter.patch("/sellers/:id/status", async (req, res) => {
       DB.saveBlacklist(bList);
       break;
     default:
-      return res.status(400).json({ error: true, message: "Invalid action." });
+      return res.status(400).json({ ok: false, error: "Invalid action." });
   }
 
   DB.saveSellers(sellers);
@@ -1259,7 +1259,7 @@ adminRouter.patch("/reports/:id", (req, res) => {
   const { status } = req.body;
   const reports = DB.getReports();
   const report = reports.find(r => r.id === req.params.id);
-  if (!report) return res.status(404).json({ error: true, message: "Report not found." });
+  if (!report) return res.status(404).json({ ok: false, error: "Report not found." });
   
   report.status = status;
   DB.saveReports(reports);

@@ -15,5 +15,70 @@
     ],
     "videoUrl": "",
     "createdAt": "2026-03-19T15:35:09.261Z"
+  },
+  {
+    "id": "prod_1774032956431_v7hu4",
+    "sellerId": "s_07rv1kkf",
+    "name": "Test Product",
+    "category": "Test",
+    "price": 100,
+    "stock": 10,
+    "options": [],
+    "desc": "",
+    "image_url": "https://example.com/test.jpg",
+    "images": [
+      "https://example.com/test.jpg"
+    ],
+    "videoUrl": "",
+    "createdAt": "2026-03-20T18:55:56.431Z"
+  },
+  {
+    "id": "prod_1774032974423_j6npf",
+    "sellerId": "s_dt1x1gpk",
+    "name": "Test Product",
+    "category": "Test",
+    "price": 100,
+    "stock": 10,
+    "options": [],
+    "desc": "",
+    "image_url": "https://example.com/test.jpg",
+    "images": [
+      "https://example.com/test.jpg"
+    ],
+    "videoUrl": "",
+    "createdAt": "2026-03-20T18:56:14.423Z"
+  },
+  {
+    "id": "prod_1774594475027_07a8y",
+    "sellerId": "s_lukna9ff",
+    "name": "Test Product",
+    "category": "Other",
+    "price": 150,
+    "stock": 9,
+    "options": [],
+    "desc": "",
+    "image_url": "https://via.placeholder.com/150",
+    "images": [
+      "https://via.placeholder.com/150"
+    ],
+    "videoUrl": "",
+    "createdAt": "2026-03-27T06:54:35.027Z",
+    "updatedAt": "2026-03-27T06:56:08.513Z"
+  },
+  {
+    "id": "prod_1774595590339_02pxx",
+    "sellerId": "s_7k8wz352",
+    "name": "Audit Item",
+    "category": "",
+    "price": 10,
+    "stock": 98,
+    "options": [],
+    "desc": "",
+    "image_url": "https://picsum.photos/200",
+    "images": [
+      "https://picsum.photos/200"
+    ],
+    "videoUrl": "",
+    "createdAt": "2026-03-27T07:13:10.339Z"
   }
 ]

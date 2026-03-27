@@ -1565,23 +1565,35 @@
           return parts.join(" · ");
         })();
 
-        div.innerHTML += `
-          <div class="txt">
-            <div class="t">${escapeHtml(p.name)}</div>
-            <div class="s">${escapeHtml(p.category || 'No Category')} • ${formatINR(p.price)}</div>
-            ${optionsSummary ? `<div class="s" style="color:rgba(39,240,213,.7);margin-top:2px;font-size:11px">${escapeHtml(optionsSummary)}</div>` : ''}
-          </div>
-          <div class="right">
-            <div class="chip ${lowStock ? 'bad' : 'ok'}">Stock: ${p.stock === "" ? "∞" : p.stock}</div>
-            <div class="actions">
-              <button class="iconbtn edit-btn" title="Edit">✏️</button>
-              <button class="iconbtn danger del-btn" title="Delete">🗑️</button>
-            </div>
+        const detailDiv = document.createElement("div");
+        detailDiv.className = "txt";
+        detailDiv.innerHTML = `
+          <div class="t">${escapeHtml(p.name)}</div>
+          <div class="s">${escapeHtml(p.category || 'No Category')} • ${formatINR(p.price)}</div>
+          ${optionsSummary ? `<div class="s" style="color:rgba(39,240,213,.7);margin-top:2px;font-size:11px">${escapeHtml(optionsSummary)}</div>` : ''}
+        `;
+        div.appendChild(detailDiv);
+
+        const rightDiv = document.createElement("div");
+        rightDiv.className = "right";
+        rightDiv.innerHTML = `
+          <div class="chip ${lowStock ? 'bad' : 'ok'}">Stock: ${p.stock === "" ? "∞" : p.stock}</div>
+          <div class="actions">
+            <button class="iconbtn edit-btn" title="Edit">✏️</button>
+            <button class="iconbtn danger del-btn" title="Delete">🗑️</button>
           </div>
         `;
+        div.appendChild(rightDiv);
 
-        div.querySelector(".edit-btn").onclick = () => loadEdit(p);
-        div.querySelector(".del-btn").onclick = () => { state.editingId = p.id; deleteProduct(); };
+        div.querySelector(".edit-btn").onclick = (e) => {
+          e.stopPropagation();
+          loadEdit(p);
+        };
+        div.querySelector(".del-btn").onclick = (e) => {
+          e.stopPropagation();
+          state.editingId = p.id;
+          deleteProduct();
+        };
         list.appendChild(div);
       });
     }

@@ -483,7 +483,9 @@
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false) {
-        throw new Error(data.error || "Order create failed");
+        // Handle various error formats: data.error, data.message, or fallback
+        const errMsg = data.error || data.message || "Order create failed";
+        throw new Error(String(errMsg));
       }
 
       toast("Order created ✅ Redirecting...");
